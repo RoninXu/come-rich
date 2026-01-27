@@ -4,7 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Workflow Rules
 
+- **Git Branch Protection**: NEVER make direct code changes on the `master` branch. All development must follow feature branch workflow:
+  1. Before starting any new feature/task, ask the user if they want to create a new feature branch
+  2. Suggested branch naming: `feature/<feature-name>`, `fix/<bug-name>`, `refactor/<scope>`
+  3. All code changes must be committed to the feature branch
+  4. After completing the feature, ask the user if they want to create a Pull Request to merge into `master`
+
 - **Git Commit Prompt**: After any file changes (create, edit, delete), always ask the user if they want to commit the changes to git before proceeding to the next task.
+
+- **Pull Request Workflow**: After committing code to a feature branch:
+  1. Ask the user if they want to create a PR for code review and merge
+  2. Use `gh pr create` to create the PR with a clear title and description
+  3. Wait for user approval before merging
 
 - **Code Verification**: After any code update (new files, edits, or component additions), run the appropriate verification checks to ensure the code works correctly:
   - **Backend changes**: Run `mvn compile` or `mvn spring-boot:run` to verify compilation and startup
