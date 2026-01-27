@@ -2649,6 +2649,816 @@ refactor: 重构AI对话逻辑
 
 ---
 
+## 10. 安全设计
+
+### 10.1 传输安全
+
+```
+HTTPS配置：
+├─ 全站强制HTTPS
+├─ TLS 1.3协议
+├─ HSTS（HTTP Strict Transport Security）
+└─ 证书固定（移动端）
+
+Nginx配置示例：
+server {
+    listen 443 ssl http2;
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
+    add_header Strict-Transport-Security "max-age=31536000" always;
+}
+```
+
+### 10.2 数据加密
+
+```java
+// 敏感数据加密工具类
+@Component
+public class EncryptionUtil {
+    @Value("${encryption.key}")
+    private String encryptionKey;
+
+    // AES-256加密
+    public String encrypt(String plainText) {
+        // 使用AES-256-GCM模式
+        SecretKeySpec keySpec = new SecretKeySpec(
+            encryptionKey.getBytes(), "AES");
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec);
+        // ...
+        return Base64.encode(encrypted);
+    }
+
+    // 解密
+    public String decrypt(String encryptedText) {
+        // ...
+    }
+}
+
+// 需要加密的字段：
+// · 身份证号
+// · 银行卡号
+// · 真实姓名
+// · 详细地址
+```
+
+### 10.3 输入验证与防护
+
+```java
+// 防XSS过滤器
+@Component
+public class XssFilter implements Filter {
+    @Override
+    public void doFilter(ServletRequest request,
+                         ServletResponse response,
+                         FilterChain chain) {
+        chain.doFilter(new XssRequestWrapper(
+            (HttpServletRequest) request), response);
+    }
+}
+
+// 防SQL注入：使用JPA参数化查询（默认安全）
+@Query("SELECT t FROM Transaction t WHERE t.userId = :userId")
+List<Transaction> findByUserId(@Param("userId") Long userId);
+
+// 防CSRF：Spring Security配置
+@Configuration
+public class SecurityConfig {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) {
+        http.csrf(csrf -> csrf
+            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()));
+        return http.build();
+    }
+}
+```
+
+### 10.4 认证安全
+
+```
+JWT安全配置：
+├─ Access Token有效期：2小时
+├─ Refresh Token有效期：7天
+├─ Token存储：HttpOnly Cookie（防XSS）
+├─ 单设备登录（可选）
+└─ 登录失败锁定：5次失败锁定30分钟
+
+密码安全：
+├─ BCrypt加密（cost=12）
+├─ 密码强度要求：8位以上，包含大小写+数字
+└─ 防止密码暴力破解（限流）
+```
+
+### 10.5 敏感数据脱敏
+
+```java
+// 日志脱敏
+@Slf4j
+public class LogUtil {
+    public static String maskPhone(String phone) {
+        if (phone == null || phone.length() < 11) return phone;
+        return phone.substring(0, 3) + "****" + phone.substring(7);
+    }
+
+    public static String maskIdCard(String idCard) {
+        if (idCard == null || idCard.length() < 18) return idCard;
+        return idCard.substring(0, 6) + "********" + idCard.substring(14);
+    }
+}
+
+// 响应脱敏注解
+@JsonSerialize(using = PhoneMaskSerializer.class)
+private String phone;
+```
+
+---
+
+## 11. 测试策略
+
+### 11.1 单元测试
+
+```java
+// 使用JUnit 5 + Mockito
+@ExtendWith(MockitoExtension.class)
+class TransactionServiceTest {
+
+    @Mock
+    private TransactionRepository transactionRepository;
+
+    @InjectMocks
+    private TransactionService transactionService;
+
+    @Test
+    void testGetMonthlyStatistics() {
+        // Given
+        Long userId = 1L;
+        YearMonth yearMonth = YearMonth.of(2026, 1);
+        List<Transaction> mockTransactions = Arrays.asList(
+            createTransaction(1000, TransactionType.INCOME),
+            createTransaction(500, TransactionType.EXPENSE)
+        );
+        when(transactionRepository.findByUserIdAndTransactionDateBetween(
+            eq(userId), any(), any()))
+            .thenReturn(mockTransactions);
+
+        // When
+        MonthlyStatistics result = transactionService
+            .getMonthlyStatistics(userId, yearMonth);
+
+        // Then
+        assertEquals(new BigDecimal("1000"), result.getTotalIncome());
+        assertEquals(new BigDecimal("500"), result.getTotalExpense());
+        assertEquals(new BigDecimal("500"), result.getBalance());
+    }
+}
+
+// 覆盖率目标：>80%
+// 使用JaCoCo生成覆盖率报告
+```
+
+### 11.2 集成测试
+
+```java
+// 使用Testcontainers进行数据库集成测试
+@SpringBootTest
+@Testcontainers
+class TransactionIntegrationTest {
+
+    @Container
+    static PostgreSQLContainer<?> postgres =
+        new PostgreSQLContainer<>("postgres:14-alpine");
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+    }
+
+    @Autowired
+    private TestRestTemplate restTemplate;
+
+    @Test
+    void testCreateTransaction() {
+        TransactionRequest request = new TransactionRequest();
+        request.setAmount(new BigDecimal("100.00"));
+        request.setType(TransactionType.EXPENSE);
+        request.setCategoryId(1L);
+
+        ResponseEntity<ApiResponse> response = restTemplate
+            .postForEntity("/api/transactions", request, ApiResponse.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+}
+```
+
+### 11.3 API测试
+
+```java
+// 使用MockMvc测试Controller
+@WebMvcTest(TransactionController.class)
+class TransactionControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private TransactionService transactionService;
+
+    @Test
+    void testCreateTransaction() throws Exception {
+        mockMvc.perform(post("/api/transactions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"amount\":100,\"type\":2,\"categoryId\":1}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0));
+    }
+}
+```
+
+### 11.4 E2E测试（前端）
+
+```typescript
+// 使用Playwright进行E2E测试
+import { test, expect } from '@playwright/test';
+
+test.describe('记账功能', () => {
+  test('手动记账流程', async ({ page }) => {
+    // 登录
+    await page.goto('/login');
+    await page.fill('[name="username"]', 'testuser');
+    await page.fill('[name="password"]', 'password123');
+    await page.click('button[type="submit"]');
+
+    // 导航到记账页
+    await page.click('text=记账');
+
+    // 填写记账信息
+    await page.fill('[name="amount"]', '50');
+    await page.selectOption('[name="category"]', '餐饮');
+    await page.fill('[name="description"]', '午餐');
+
+    // 提交
+    await page.click('button:has-text("保存")');
+
+    // 验证
+    await expect(page.locator('.success-message')).toBeVisible();
+  });
+});
+```
+
+---
+
+## 12. CI/CD流程
+
+### 12.1 GitHub Actions工作流
+
+```yaml
+# .github/workflows/ci.yml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # 后端构建
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+
+      - name: Code Style Check
+        run: mvn checkstyle:check
+
+      - name: Run Tests
+        run: mvn test
+
+      - name: Build
+        run: mvn package -DskipTests
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: target/site/jacoco/jacoco.xml
+
+  # 前端构建
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+        working-directory: ./frontend
+
+      - name: Lint
+        run: pnpm lint
+        working-directory: ./frontend
+
+      - name: Build
+        run: pnpm build
+        working-directory: ./frontend
+
+  # Docker构建与推送
+  docker:
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: your-repo/finance-planner:latest
+
+  # 部署到测试环境
+  deploy-staging:
+    needs: docker
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy to staging
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            cd /app
+            docker-compose pull
+            docker-compose up -d
+```
+
+### 12.2 部署流程图
+
+```
+代码提交
+    ↓
+代码检查（ESLint/Checkstyle）
+    ↓
+单元测试
+    ↓
+构建制品
+    ↓
+构建Docker镜像
+    ↓
+推送到镜像仓库
+    ↓
+部署到测试环境
+    ↓
+E2E测试
+    ↓
+人工审核
+    ↓
+部署到生产环境
+    ↓
+健康检查
+    ↓
+回滚机制（如失败）
+```
+
+---
+
+## 13. 日志与监控
+
+### 13.1 日志规范
+
+```yaml
+# logback-spring.xml配置
+logging:
+  level:
+    root: INFO
+    com.finance.planner: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/finance-planner.log
+    max-size: 100MB
+    max-history: 30
+```
+
+```java
+// 日志规范
+@Slf4j
+public class TransactionService {
+
+    public void createTransaction(TransactionRequest request, Long userId) {
+        // 入口日志
+        log.info("Creating transaction, userId={}, amount={}",
+            userId, request.getAmount());
+
+        try {
+            // 业务逻辑...
+
+            // 成功日志
+            log.info("Transaction created successfully, id={}",
+                transaction.getId());
+        } catch (Exception e) {
+            // 异常日志
+            log.error("Failed to create transaction, userId={}, error={}",
+                userId, e.getMessage(), e);
+            throw e;
+        }
+    }
+}
+
+// 日志格式：JSON结构化（生产环境）
+// {"timestamp":"2026-01-27T10:00:00","level":"INFO","message":"...","userId":1}
+```
+
+### 13.2 监控体系
+
+```
+监控架构：
+┌─────────────────────────────────────────────────────┐
+│  应用层                                              │
+│  ┌─────────────────┐    ┌─────────────────┐        │
+│  │ Spring Boot      │───>│ Actuator        │        │
+│  │ Application      │    │ Endpoints       │        │
+│  └─────────────────┘    └────────┬────────┘        │
+│                                  │                   │
+└──────────────────────────────────┼───────────────────┘
+                                   ↓
+┌─────────────────────────────────────────────────────┐
+│  采集层                                              │
+│  ┌─────────────────┐    ┌─────────────────┐        │
+│  │ Prometheus      │    │ Filebeat        │        │
+│  │ (指标采集)       │    │ (日志采集)       │        │
+│  └────────┬────────┘    └────────┬────────┘        │
+│           │                      │                   │
+└───────────┼──────────────────────┼───────────────────┘
+            ↓                      ↓
+┌─────────────────────────────────────────────────────┐
+│  存储层                                              │
+│  ┌─────────────────┐    ┌─────────────────┐        │
+│  │ Prometheus      │    │ Elasticsearch   │        │
+│  │ TSDB            │    │                 │        │
+│  └────────┬────────┘    └────────┬────────┘        │
+│           │                      │                   │
+└───────────┼──────────────────────┼───────────────────┘
+            ↓                      ↓
+┌─────────────────────────────────────────────────────┐
+│  展示层                                              │
+│  ┌─────────────────┐    ┌─────────────────┐        │
+│  │ Grafana         │    │ Kibana          │        │
+│  │ (指标可视化)     │    │ (日志可视化)     │        │
+│  └─────────────────┘    └─────────────────┘        │
+└─────────────────────────────────────────────────────┘
+```
+
+### 13.3 告警规则
+
+```yaml
+# Prometheus告警规则
+groups:
+  - name: finance-planner-alerts
+    rules:
+      # API响应时间过长
+      - alert: HighResponseTime
+        expr: http_server_requests_seconds_max > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API响应时间过长"
+
+      # 错误率过高
+      - alert: HighErrorRate
+        expr: rate(http_server_requests_seconds_count{status=~"5.."}[5m]) / rate(http_server_requests_seconds_count[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "错误率超过5%"
+
+      # 内存使用过高
+      - alert: HighMemoryUsage
+        expr: jvm_memory_used_bytes / jvm_memory_max_bytes > 0.85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "JVM内存使用超过85%"
+```
+
+### 13.4 关键指标Dashboard
+
+```
+核心监控指标：
+├─ 系统指标
+│   ├─ CPU使用率
+│   ├─ 内存使用率
+│   ├─ 磁盘IO
+│   └─ 网络流量
+│
+├─ 应用指标
+│   ├─ QPS（每秒请求数）
+│   ├─ 响应时间（P50/P95/P99）
+│   ├─ 错误率
+│   └─ 活跃连接数
+│
+├─ 业务指标
+│   ├─ 在线用户数
+│   ├─ API调用量（按接口）
+│   ├─ AI对话请求量
+│   └─ OCR调用量
+│
+└─ 数据库指标
+    ├─ 连接池使用率
+    ├─ 慢查询数量
+    └─ 缓存命中率
+```
+
+---
+
+## 14. 高可用与灾备
+
+### 14.1 高可用架构
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         用户                                 │
+└────────────────────────────┬────────────────────────────────┘
+                             │
+                             ↓
+┌─────────────────────────────────────────────────────────────┐
+│                      CDN + WAF                               │
+│              (静态资源加速 + Web应用防火墙)                    │
+└────────────────────────────┬────────────────────────────────┘
+                             │
+                             ↓
+┌─────────────────────────────────────────────────────────────┐
+│                   负载均衡（SLB）                             │
+│                    健康检查 + 自动剔除                        │
+└────────────────────────────┬────────────────────────────────┘
+                             │
+              ┌──────────────┼──────────────┐
+              ↓              ↓              ↓
+        ┌─────────┐    ┌─────────┐    ┌─────────┐
+        │ App 1   │    │ App 2   │    │ App N   │
+        │ (可用区A)│    │ (可用区B)│    │ (可用区C)│
+        └────┬────┘    └────┬────┘    └────┬────┘
+             │              │              │
+             └──────────────┼──────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│                   数据层高可用                                │
+│  ┌──────────────────┐    ┌──────────────────┐              │
+│  │  PostgreSQL      │    │  Redis           │              │
+│  │  主从复制        │    │  Sentinel集群     │              │
+│  │  ┌─────┐ ┌─────┐│    │  ┌─────┐ ┌─────┐ │              │
+│  │  │主库 │→│从库 ││    │  │主节点│→│从节点│ │              │
+│  │  └─────┘ └─────┘│    │  └─────┘ └─────┘ │              │
+│  └──────────────────┘    └──────────────────┘              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 14.2 容灾设计
+
+```
+容灾级别：
+├─ 应用层容灾
+│   ├─ 多实例部署（>=2个实例）
+│   ├─ 跨可用区部署
+│   ├─ 健康检查（每30秒）
+│   └─ 自动重启（容器编排）
+│
+├─ 数据层容灾
+│   ├─ PostgreSQL主从同步
+│   ├─ Redis Sentinel自动故障转移
+│   └─ 数据异地备份（另一地域）
+│
+└─ 服务降级
+    ├─ AI服务降级：返回预设回复
+    ├─ OCR服务降级：提示用户手动输入
+    └─ 非核心功能降级：隐藏功能入口
+
+容灾指标：
+├─ RTO（恢复时间目标）：< 4小时
+├─ RPO（恢复点目标）：< 1小时
+└─ 可用性目标：99.9%（全年停机<8.76小时）
+```
+
+### 14.3 故障演练
+
+```
+演练计划（每季度一次）：
+├─ 演练1：单节点故障
+│   └─ 手动停止一个应用实例，验证负载均衡切换
+│
+├─ 演练2：数据库主从切换
+│   └─ 模拟主库故障，验证从库自动提升
+│
+├─ 演练3：全链路压测
+│   └─ 模拟10倍流量，验证系统扩展能力
+│
+└─ 演练4：数据恢复
+    └─ 从备份恢复数据库，验证恢复流程
+```
+
+---
+
+## 15. 数据备份策略
+
+### 15.1 备份策略
+
+```
+备份类型：
+┌──────────────────────────────────────────────────────┐
+│  数据库备份                                           │
+│  ├─ 全量备份：每日凌晨3:00（业务低峰）               │
+│  ├─ 增量备份：WAL日志实时归档                        │
+│  └─ 保留周期：30天                                   │
+├──────────────────────────────────────────────────────┤
+│  文件备份                                             │
+│  ├─ OSS多副本存储（3副本）                           │
+│  ├─ 跨地域备份（杭州→上海）                          │
+│  └─ 保留周期：永久（用户文件）                       │
+├──────────────────────────────────────────────────────┤
+│  配置备份                                             │
+│  ├─ Git版本控制                                      │
+│  ├─ 配置中心快照                                     │
+│  └─ 保留周期：永久                                   │
+└──────────────────────────────────────────────────────┘
+```
+
+### 15.2 备份脚本
+
+```bash
+#!/bin/bash
+# 数据库备份脚本
+
+DATE=$(date +%Y%m%d_%H%M%S)
+BACKUP_DIR=/backup/postgres
+DB_NAME=finance_planner
+
+# 创建备份目录
+mkdir -p $BACKUP_DIR
+
+# 执行备份
+pg_dump -h localhost -U postgres -Fc $DB_NAME > $BACKUP_DIR/backup_$DATE.dump
+
+# 上传到OSS
+ossutil cp $BACKUP_DIR/backup_$DATE.dump oss://finance-backup/postgres/
+
+# 清理30天前的本地备份
+find $BACKUP_DIR -name "*.dump" -mtime +30 -delete
+
+# 记录日志
+echo "[$DATE] Backup completed" >> /var/log/backup.log
+```
+
+### 15.3 恢复流程
+
+```
+恢复步骤：
+1. 评估故障范围
+   └─ 确认需要恢复的数据范围和时间点
+
+2. 选择备份版本
+   └─ 从OSS下载最近的全量备份
+
+3. 准备恢复环境
+   └─ 新建临时数据库或使用灾备实例
+
+4. 执行恢复
+   └─ pg_restore -d finance_planner backup.dump
+
+5. 应用增量日志（如需要）
+   └─ 恢复WAL日志到指定时间点
+
+6. 验证数据
+   └─ 检查关键表数据完整性
+
+7. 切换流量
+   └─ 将应用指向恢复后的数据库
+
+8. 事后复盘
+   └─ 分析故障原因，完善预防措施
+```
+
+### 15.4 恢复演练
+
+```
+演练计划：每月一次
+演练内容：
+├─ 从最近备份恢复到测试环境
+├─ 验证数据完整性
+├─ 记录恢复耗时
+└─ 更新恢复文档
+
+目标指标：
+├─ 恢复时间：< 2小时
+└─ 数据完整性：100%
+```
+
+---
+
+## 16. API限流策略
+
+### 16.1 限流规则
+
+```java
+// 使用Bucket4j实现限流
+@Configuration
+public class RateLimitConfig {
+
+    @Bean
+    public Bucket globalBucket() {
+        // 全局限流：1000 QPS
+        return Bucket.builder()
+            .addLimit(Bandwidth.simple(1000, Duration.ofSeconds(1)))
+            .build();
+    }
+}
+
+// 用户级限流
+@Service
+public class RateLimitService {
+
+    private final Map<Long, Bucket> userBuckets = new ConcurrentHashMap<>();
+
+    public Bucket getUserBucket(Long userId) {
+        return userBuckets.computeIfAbsent(userId, id ->
+            Bucket.builder()
+                // 每分钟100次请求
+                .addLimit(Bandwidth.simple(100, Duration.ofMinutes(1)))
+                .build()
+        );
+    }
+}
+```
+
+### 16.2 限流配置
+
+```yaml
+限流规则：
+├─ 全局限流
+│   └─ 1000 QPS（超过返回429）
+│
+├─ 用户级限流
+│   ├─ 普通接口：100次/分钟
+│   └─ 敏感接口（登录）：5次/分钟
+│
+├─ AI对话限流
+│   ├─ 免费用户：10次/天
+│   ├─ 付费用户：无限制
+│   └─ 单次对话Token限制：4096
+│
+└─ OCR识别限流
+    ├─ 免费用户：10次/天
+    └─ 付费用户：100次/天
+```
+
+### 16.3 限流响应
+
+```json
+// 超过限流返回429
+{
+    "code": 429,
+    "message": "请求过于频繁，请稍后再试",
+    "data": {
+        "retryAfter": 60
+    }
+}
+```
+
+---
+
 ## 附录
 
 ### A. 常见问题FAQ

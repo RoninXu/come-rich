@@ -5,7 +5,11 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "mcp__github__get_me",
-      "mcp__github__create_repository"
+      "mcp__github__create_repository",
+      "Bash(git push:*)",
+      "Bash(jq:*)",
+      "Bash(bash:*)",
+      "Bash(echo:*)"
     ]
   }
 }
