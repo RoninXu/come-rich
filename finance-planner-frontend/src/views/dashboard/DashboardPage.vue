@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard-page">
+  <div class="dashboard-page" v-loading="loading">
     <div class="welcome-section">
       <h2>欢迎回来，{{ userStore.user?.nickname || userStore.username }}</h2>
       <p>今天是 {{ today }}，开始记录您的财务吧！</p>
@@ -14,7 +14,10 @@
             </div>
             <div class="stat-info">
               <div class="stat-label">本月收入</div>
-              <div class="stat-value">¥ {{ monthlyIncome.toFixed(2) }}</div>
+              <div class="stat-value">¥ {{ formatNumber(dashboard?.currentMonth?.totalIncome) }}</div>
+              <div v-if="dashboard?.incomeChange" class="stat-change" :class="dashboard.incomeChange >= 0 ? 'up' : 'down'">
+                {{ dashboard.incomeChange >= 0 ? '+' : '' }}{{ dashboard.incomeChange.toFixed(1) }}%
+              </div>
             </div>
           </div>
         </el-card>
@@ -27,7 +30,10 @@
             </div>
             <div class="stat-info">
               <div class="stat-label">本月支出</div>
-              <div class="stat-value">¥ {{ monthlyExpense.toFixed(2) }}</div>
+              <div class="stat-value">¥ {{ formatNumber(dashboard?.currentMonth?.totalExpense) }}</div>
+              <div v-if="dashboard?.expenseChange" class="stat-change" :class="dashboard.expenseChange <= 0 ? 'up' : 'down'">
+                {{ dashboard.expenseChange >= 0 ? '+' : '' }}{{ dashboard.expenseChange.toFixed(1) }}%
+              </div>
             </div>
           </div>
         </el-card>
@@ -40,20 +46,23 @@
             </div>
             <div class="stat-info">
               <div class="stat-label">本月结余</div>
-              <div class="stat-value">¥ {{ (monthlyIncome - monthlyExpense).toFixed(2) }}</div>
+              <div class="stat-value">¥ {{ formatNumber(dashboard?.currentMonth?.balance) }}</div>
             </div>
           </div>
         </el-card>
       </el-col>
       <el-col :span="6">
-        <el-card class="stat-card health">
+        <el-card class="stat-card health" @click="goToHealthScore" style="cursor: pointer">
           <div class="stat-content">
             <div class="stat-icon">
               <el-icon><DataLine /></el-icon>
             </div>
             <div class="stat-info">
               <div class="stat-label">财务健康分</div>
-              <div class="stat-value">{{ healthScore }}</div>
+              <div class="stat-value">
+                {{ dashboard?.healthScore || 0 }}
+                <span class="grade">{{ dashboard?.healthGrade || '-' }}</span>
+              </div>
             </div>
           </div>
         </el-card>
@@ -90,17 +99,17 @@
               <el-button link type="primary" @click="goToTransactions">查看全部</el-button>
             </div>
           </template>
-          <div v-if="recentTransactions.length === 0" class="empty-state">
+          <div v-if="!dashboard?.recentTransactions || dashboard.recentTransactions.length === 0" class="empty-state">
             <el-empty description="暂无记录，快去记一笔吧" />
           </div>
           <div v-else class="transaction-list">
-            <div v-for="item in recentTransactions" :key="item.id" class="transaction-item">
+            <div v-for="item in dashboard.recentTransactions" :key="item.id" class="transaction-item">
               <div class="transaction-info">
-                <span class="category">{{ item.categoryName }}</span>
-                <span class="description">{{ item.description }}</span>
+                <span class="category">{{ item.categoryName || '未分类' }}</span>
+                <span class="description">{{ item.description || '-' }}</span>
               </div>
               <span :class="['amount', item.type === 1 ? 'income' : 'expense']">
-                {{ item.type === 1 ? '+' : '-' }}¥{{ item.amount.toFixed(2) }}
+                {{ item.type === 1 ? '+' : '-' }}¥{{ Number(item.amount).toFixed(2) }}
               </span>
             </div>
           </div>
@@ -114,23 +123,42 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { ElMessage } from 'element-plus'
 import dayjs from 'dayjs'
 import { TrendCharts, Wallet, Money, DataLine, Plus } from '@element-plus/icons-vue'
+import { getDashboard } from '@/api/analysis'
+import type { Dashboard } from '@/types/analysis'
 
 const router = useRouter()
 const userStore = useUserStore()
 
+const loading = ref(false)
+const dashboard = ref<Dashboard | null>(null)
+
 const today = computed(() => dayjs().format('YYYY年MM月DD日'))
 
-// Mock data - will be replaced with API calls
-const monthlyIncome = ref(0)
-const monthlyExpense = ref(0)
-const healthScore = ref(0)
-const recentTransactions = ref<any[]>([])
-
-onMounted(() => {
-  // TODO: Fetch data from API
+onMounted(async () => {
+  await fetchDashboard()
 })
+
+async function fetchDashboard() {
+  loading.value = true
+  try {
+    const res = await getDashboard()
+    if (res.data.code === 200) {
+      dashboard.value = res.data.data
+    }
+  } catch (error) {
+    ElMessage.error('加载数据失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+function formatNumber(value: number | undefined | null): string {
+  if (value === undefined || value === null) return '0.00'
+  return Number(value).toFixed(2)
+}
 
 function goToNewTransaction() {
   router.push('/accounting/new')
@@ -202,6 +230,25 @@ function goToHealthScore() {
         font-size: 20px;
         font-weight: bold;
         color: #333;
+
+        .grade {
+          font-size: 14px;
+          margin-left: 4px;
+          color: #AB47BC;
+        }
+      }
+
+      .stat-change {
+        font-size: 12px;
+        margin-top: 4px;
+
+        &.up {
+          color: #66BB6A;
+        }
+
+        &.down {
+          color: #FF7043;
+        }
       }
     }
 

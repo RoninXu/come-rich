@@ -10,6 +10,13 @@
 
     <el-card class="filter-card">
       <el-form :inline="true" :model="filterForm">
+        <el-form-item label="快捷日期">
+          <el-button-group>
+            <el-button :type="isPresetActive('today') ? 'primary' : ''" size="small" @click="setDatePreset('today')">今天</el-button>
+            <el-button :type="isPresetActive('week') ? 'primary' : ''" size="small" @click="setDatePreset('week')">本周</el-button>
+            <el-button :type="isPresetActive('month') ? 'primary' : ''" size="small" @click="setDatePreset('month')">本月</el-button>
+          </el-button-group>
+        </el-form-item>
         <el-form-item label="日期范围">
           <el-date-picker
             v-model="filterForm.dateRange"
@@ -17,6 +24,7 @@
             range-separator="至"
             start-placeholder="开始日期"
             end-placeholder="结束日期"
+            @change="handleDateRangeChange"
           />
         </el-form-item>
         <el-form-item label="类型">
@@ -32,37 +40,49 @@
       </el-form>
     </el-card>
 
-    <el-card class="list-card">
-      <el-table :data="transactions" stripe style="width: 100%">
-        <el-table-column prop="transactionDate" label="日期" width="120" />
-        <el-table-column prop="categoryName" label="分类" width="120" />
-        <el-table-column prop="description" label="备注" />
-        <el-table-column prop="amount" label="金额" width="150">
-          <template #default="{ row }">
-            <span :class="row.type === 1 ? 'income' : 'expense'">
-              {{ row.type === 1 ? '+' : '-' }}¥{{ row.amount.toFixed(2) }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="150">
-          <template #default="{ row }">
-            <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+    <el-card class="list-card" v-loading="loading">
+      <el-empty v-if="!loading && transactions.length === 0" description="暂无记录" />
 
-      <div class="pagination">
-        <el-pagination
-          v-model:current-page="pagination.page"
-          v-model:page-size="pagination.pageSize"
-          :total="pagination.total"
-          :page-sizes="[10, 20, 50]"
-          layout="total, sizes, prev, pager, next"
-          @size-change="handleSizeChange"
-          @current-change="handlePageChange"
-        />
-      </div>
+      <template v-else>
+        <el-table :data="transactions" stripe style="width: 100%">
+          <el-table-column prop="transactionDate" label="日期" width="120" />
+          <el-table-column label="分类" width="120">
+            <template #default="{ row }">
+              <span>{{ row.categoryName || '未分类' }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="description" label="备注">
+            <template #default="{ row }">
+              <span>{{ row.description || '-' }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="amount" label="金额" width="150">
+            <template #default="{ row }">
+              <span :class="row.type === 1 ? 'income' : 'expense'">
+                {{ row.type === 1 ? '+' : '-' }}¥{{ Number(row.amount).toFixed(2) }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="150">
+            <template #default="{ row }">
+              <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
+              <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+
+        <div class="pagination">
+          <el-pagination
+            v-model:current-page="pagination.page"
+            v-model:page-size="pagination.pageSize"
+            :total="pagination.total"
+            :page-sizes="[10, 20, 50]"
+            layout="total, sizes, prev, pager, next"
+            @size-change="handleSizeChange"
+            @current-change="handlePageChange"
+          />
+        </div>
+      </template>
     </el-card>
   </div>
 </template>
@@ -72,12 +92,18 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
+import dayjs from 'dayjs'
+import { getTransactions, deleteTransaction } from '@/api/transaction'
+import type { Transaction, TransactionQueryParams } from '@/types/accounting'
 
 const router = useRouter()
 
+const loading = ref(false)
+
 const filterForm = reactive({
   dateRange: null as [Date, Date] | null,
-  type: null as number | null
+  type: null as number | null,
+  activePreset: null as string | null
 })
 
 const pagination = reactive({
@@ -86,14 +112,40 @@ const pagination = reactive({
   total: 0
 })
 
-const transactions = ref<any[]>([])
+const transactions = ref<Transaction[]>([])
 
 onMounted(() => {
   fetchTransactions()
 })
 
-function fetchTransactions() {
-  // TODO: Implement API call
+async function fetchTransactions() {
+  loading.value = true
+  try {
+    const params: TransactionQueryParams = {
+      page: pagination.page,
+      pageSize: pagination.pageSize
+    }
+
+    if (filterForm.type !== null) {
+      params.type = filterForm.type
+    }
+
+    if (filterForm.dateRange && filterForm.dateRange.length === 2) {
+      params.startDate = dayjs(filterForm.dateRange[0]).format('YYYY-MM-DD')
+      params.endDate = dayjs(filterForm.dateRange[1]).format('YYYY-MM-DD')
+    }
+
+    const res = await getTransactions(params)
+    if (res.data.code === 200) {
+      const pageData = res.data.data
+      transactions.value = pageData.list
+      pagination.total = pageData.total
+    }
+  } catch (error) {
+    ElMessage.error('加载记录失败')
+  } finally {
+    loading.value = false
+  }
 }
 
 function goToNew() {
@@ -108,23 +160,64 @@ function handleFilter() {
 function resetFilter() {
   filterForm.dateRange = null
   filterForm.type = null
+  filterForm.activePreset = null
   handleFilter()
 }
 
-function handleEdit(row: any) {
+function setDatePreset(preset: string) {
+  const today = dayjs()
+  let start: Date
+  let end: Date
+
+  switch (preset) {
+    case 'today':
+      start = today.startOf('day').toDate()
+      end = today.endOf('day').toDate()
+      break
+    case 'week':
+      start = today.startOf('week').toDate()
+      end = today.endOf('week').toDate()
+      break
+    case 'month':
+      start = today.startOf('month').toDate()
+      end = today.endOf('month').toDate()
+      break
+    default:
+      return
+  }
+
+  filterForm.dateRange = [start, end]
+  filterForm.activePreset = preset
+  handleFilter()
+}
+
+function isPresetActive(preset: string): boolean {
+  return filterForm.activePreset === preset
+}
+
+function handleDateRangeChange() {
+  // Clear active preset when user manually selects date range
+  filterForm.activePreset = null
+}
+
+function handleEdit(row: Transaction) {
   router.push(`/accounting/edit/${row.id}`)
 }
 
-async function handleDelete(row: any) {
+async function handleDelete(row: Transaction) {
   try {
     await ElMessageBox.confirm('确定要删除这条记录吗？', '提示', {
       type: 'warning'
     })
-    // TODO: Call delete API
+
+    await deleteTransaction(row.id)
     ElMessage.success('删除成功')
     fetchTransactions()
-  } catch {
-    // User cancelled
+  } catch (error: any) {
+    // User cancelled or API error (API error handled by interceptor)
+    if (error !== 'cancel') {
+      console.error('Delete error:', error)
+    }
   }
 }
 
