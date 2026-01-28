@@ -1,5 +1,5 @@
 <template>
-  <div class="monthly-report-page">
+  <div class="monthly-report-page" v-loading="loading">
     <div class="page-header">
       <h2>月度报表</h2>
       <el-date-picker
@@ -13,22 +13,28 @@
     </div>
 
     <el-row :gutter="20" class="summary-cards">
-      <el-col :span="8">
+      <el-col :span="6">
         <el-card class="summary-card income">
           <div class="card-title">总收入</div>
           <div class="card-value">¥ {{ summary.totalIncome.toFixed(2) }}</div>
         </el-card>
       </el-col>
-      <el-col :span="8">
+      <el-col :span="6">
         <el-card class="summary-card expense">
           <div class="card-title">总支出</div>
           <div class="card-value">¥ {{ summary.totalExpense.toFixed(2) }}</div>
         </el-card>
       </el-col>
-      <el-col :span="8">
+      <el-col :span="6">
         <el-card class="summary-card balance">
           <div class="card-title">结余</div>
-          <div class="card-value">¥ {{ (summary.totalIncome - summary.totalExpense).toFixed(2) }}</div>
+          <div class="card-value">¥ {{ summary.balance.toFixed(2) }}</div>
+        </el-card>
+      </el-col>
+      <el-col :span="6">
+        <el-card class="summary-card savings">
+          <div class="card-title">储蓄率</div>
+          <div class="card-value">{{ summary.savingsRate.toFixed(1) }}%</div>
         </el-card>
       </el-col>
     </el-row>
@@ -54,13 +60,22 @@
 import { ref, reactive, onMounted, nextTick } from 'vue'
 import dayjs from 'dayjs'
 import * as echarts from 'echarts'
+import { ElMessage } from 'element-plus'
+import { getMonthlySummary, getCategoryStats, getDailyStats } from '@/api/analysis'
+import type { MonthlySummary, CategoryStat, DailyStat } from '@/types/analysis'
 
 const selectedMonth = ref(dayjs().format('YYYY-MM'))
+const loading = ref(false)
 
 const summary = reactive({
   totalIncome: 0,
-  totalExpense: 0
+  totalExpense: 0,
+  balance: 0,
+  savingsRate: 0
 })
+
+const categoryStats = ref<CategoryStat[]>([])
+const dailyStats = ref<DailyStat[]>([])
 
 const expensePieRef = ref<HTMLElement>()
 const dailyTrendRef = ref<HTMLElement>()
@@ -84,19 +99,58 @@ function initCharts() {
   })
 }
 
-function fetchData() {
-  // TODO: Fetch data from API
+async function fetchData() {
+  loading.value = true
+  try {
+    const [year, month] = selectedMonth.value.split('-').map(Number)
 
-  // Mock data
-  summary.totalIncome = 15000
-  summary.totalExpense = 8500
+    // Fetch all data in parallel
+    const [summaryRes, categoryRes, dailyRes] = await Promise.all([
+      getMonthlySummary(year, month),
+      getCategoryStats(year, month, 2), // type 2 = expense
+      getDailyStats(year, month)
+    ])
 
-  updateExpensePieChart()
-  updateDailyTrendChart()
+    // Update summary
+    if (summaryRes.data.code === 200 && summaryRes.data.data) {
+      const data = summaryRes.data.data
+      summary.totalIncome = data.totalIncome || 0
+      summary.totalExpense = data.totalExpense || 0
+      summary.balance = data.balance || 0
+      summary.savingsRate = data.savingsRate || 0
+    }
+
+    // Update category stats
+    if (categoryRes.data.code === 200 && categoryRes.data.data) {
+      categoryStats.value = categoryRes.data.data
+    }
+
+    // Update daily stats
+    if (dailyRes.data.code === 200 && dailyRes.data.data) {
+      dailyStats.value = dailyRes.data.data
+    }
+
+    // Update charts after data is loaded
+    nextTick(() => {
+      updateExpensePieChart()
+      updateDailyTrendChart()
+    })
+  } catch (error) {
+    ElMessage.error('加载数据失败')
+  } finally {
+    loading.value = false
+  }
 }
 
 function updateExpensePieChart() {
   if (!expensePieChart) return
+
+  // Transform category stats to chart data
+  const chartData = categoryStats.value.map(stat => ({
+    value: Number(stat.amount),
+    name: stat.categoryName,
+    itemStyle: stat.categoryColor ? { color: stat.categoryColor } : undefined
+  }))
 
   const option: echarts.EChartsOption = {
     tooltip: {
@@ -121,24 +175,24 @@ function updateExpensePieChart() {
         label: {
           show: false
         },
-        data: [
-          { value: 3000, name: '餐饮' },
-          { value: 1500, name: '交通' },
-          { value: 2000, name: '购物' },
-          { value: 1200, name: '居住' },
-          { value: 800, name: '娱乐' }
-        ]
+        data: chartData.length > 0 ? chartData : [{ value: 0, name: '暂无数据' }]
       }
     ]
   }
 
-  expensePieChart.setOption(option)
+  expensePieChart.setOption(option, true)
 }
 
 function updateDailyTrendChart() {
   if (!dailyTrendChart) return
 
-  const days = Array.from({ length: 30 }, (_, i) => `${i + 1}日`)
+  // Transform daily stats to chart data
+  const dates = dailyStats.value.map(stat => {
+    const day = dayjs(stat.date).date()
+    return `${day}日`
+  })
+  const incomeData = dailyStats.value.map(stat => Number(stat.income))
+  const expenseData = dailyStats.value.map(stat => Number(stat.expense))
 
   const option: echarts.EChartsOption = {
     tooltip: {
@@ -156,7 +210,7 @@ function updateDailyTrendChart() {
     xAxis: {
       type: 'category',
       boundaryGap: false,
-      data: days
+      data: dates.length > 0 ? dates : ['暂无数据']
     },
     yAxis: {
       type: 'value'
@@ -166,20 +220,20 @@ function updateDailyTrendChart() {
         name: '收入',
         type: 'line',
         smooth: true,
-        data: Array.from({ length: 30 }, () => Math.floor(Math.random() * 500)),
+        data: incomeData,
         itemStyle: { color: '#66BB6A' }
       },
       {
         name: '支出',
         type: 'line',
         smooth: true,
-        data: Array.from({ length: 30 }, () => Math.floor(Math.random() * 400)),
+        data: expenseData,
         itemStyle: { color: '#FF7043' }
       }
     ]
   }
 
-  dailyTrendChart.setOption(option)
+  dailyTrendChart.setOption(option, true)
 }
 </script>
 
@@ -225,6 +279,10 @@ function updateDailyTrendChart() {
 
     &.balance .card-value {
       color: #42A5F5;
+    }
+
+    &.savings .card-value {
+      color: #AB47BC;
     }
   }
 
