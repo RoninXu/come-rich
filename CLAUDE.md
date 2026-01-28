@@ -25,11 +25,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - **API changes**: Test endpoints using Swagger UI or curl commands
   - Report any errors to the user before proceeding
 
+- **Unit Testing Requirements**: All code changes must include corresponding unit tests:
+  1. **When writing new code**: Create unit tests for all new classes, methods, and components
+  2. **When modifying existing code**: Update or add tests to cover the changes
+  3. **Before completing development**: Run all unit tests and ensure they pass
+  4. **Test commands**:
+     - Backend: `mvn test` (run all tests) or `mvn test -pl <module-name>` (run module tests)
+     - Frontend: `pnpm test` or `pnpm test:unit`
+  5. **Test coverage expectations**:
+     - Service classes: Test all public methods with various inputs
+     - Controller classes: Test request/response handling and error cases
+     - Utility classes: Test edge cases and boundary conditions
+  6. **NEVER commit code with failing tests** - fix all test failures before committing
+
 ## Project Overview
 
 Come Rich (AI个人理财规划师) is an AI-powered personal finance planning application targeting Chinese middle-class users. The project helps users track expenses, receive AI-driven financial coaching, and discover income growth opportunities.
 
-**Current Status**: Phase 1 development in progress - basic infrastructure and authentication completed.
+**Current Status**: Phase 1 completed - Category, Transaction, Analysis modules with full frontend integration.
 
 ## Technology Stack
 
