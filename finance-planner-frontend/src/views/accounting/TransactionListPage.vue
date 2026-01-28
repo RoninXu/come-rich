@@ -10,6 +10,13 @@
 
     <el-card class="filter-card">
       <el-form :inline="true" :model="filterForm">
+        <el-form-item label="快捷日期">
+          <el-button-group>
+            <el-button :type="isPresetActive('today') ? 'primary' : ''" size="small" @click="setDatePreset('today')">今天</el-button>
+            <el-button :type="isPresetActive('week') ? 'primary' : ''" size="small" @click="setDatePreset('week')">本周</el-button>
+            <el-button :type="isPresetActive('month') ? 'primary' : ''" size="small" @click="setDatePreset('month')">本月</el-button>
+          </el-button-group>
+        </el-form-item>
         <el-form-item label="日期范围">
           <el-date-picker
             v-model="filterForm.dateRange"
@@ -17,6 +24,7 @@
             range-separator="至"
             start-placeholder="开始日期"
             end-placeholder="结束日期"
+            @change="handleDateRangeChange"
           />
         </el-form-item>
         <el-form-item label="类型">
@@ -94,7 +102,8 @@ const loading = ref(false)
 
 const filterForm = reactive({
   dateRange: null as [Date, Date] | null,
-  type: null as number | null
+  type: null as number | null,
+  activePreset: null as string | null
 })
 
 const pagination = reactive({
@@ -151,7 +160,44 @@ function handleFilter() {
 function resetFilter() {
   filterForm.dateRange = null
   filterForm.type = null
+  filterForm.activePreset = null
   handleFilter()
+}
+
+function setDatePreset(preset: string) {
+  const today = dayjs()
+  let start: Date
+  let end: Date
+
+  switch (preset) {
+    case 'today':
+      start = today.startOf('day').toDate()
+      end = today.endOf('day').toDate()
+      break
+    case 'week':
+      start = today.startOf('week').toDate()
+      end = today.endOf('week').toDate()
+      break
+    case 'month':
+      start = today.startOf('month').toDate()
+      end = today.endOf('month').toDate()
+      break
+    default:
+      return
+  }
+
+  filterForm.dateRange = [start, end]
+  filterForm.activePreset = preset
+  handleFilter()
+}
+
+function isPresetActive(preset: string): boolean {
+  return filterForm.activePreset === preset
+}
+
+function handleDateRangeChange() {
+  // Clear active preset when user manually selects date range
+  filterForm.activePreset = null
 }
 
 function handleEdit(row: Transaction) {
