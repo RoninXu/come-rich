@@ -11,9 +11,10 @@
         :rules="rules"
         label-width="80px"
         style="max-width: 500px"
+        v-loading="pageLoading"
       >
         <el-form-item label="类型" prop="type">
-          <el-radio-group v-model="form.type">
+          <el-radio-group v-model="form.type" @change="handleTypeChange">
             <el-radio-button :value="2">支出</el-radio-button>
             <el-radio-button :value="1">收入</el-radio-button>
           </el-radio-group>
@@ -36,12 +37,23 @@
             placeholder="请选择分类"
             style="width: 100%"
           >
-            <el-option
-              v-for="category in filteredCategories"
-              :key="category.id"
-              :label="category.name"
-              :value="category.id"
-            />
+            <el-option-group
+              v-for="parent in categoryTree"
+              :key="parent.id"
+              :label="parent.name"
+            >
+              <el-option
+                v-if="!parent.children || parent.children.length === 0"
+                :label="parent.name"
+                :value="parent.id"
+              />
+              <el-option
+                v-for="child in parent.children"
+                :key="child.id"
+                :label="child.name"
+                :value="child.id"
+              />
+            </el-option-group>
           </el-select>
         </el-form-item>
 
@@ -75,18 +87,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
 import dayjs from 'dayjs'
+import { getCategoryTree } from '@/api/category'
+import { createTransaction, updateTransaction, getTransaction } from '@/api/transaction'
+import type { Category, CreateTransactionRequest } from '@/types/accounting'
 
 const router = useRouter()
 const route = useRoute()
 
 const formRef = ref<FormInstance>()
 const loading = ref(false)
+const pageLoading = ref(false)
 
 const isEdit = computed(() => !!route.params.id)
+const transactionId = computed(() => route.params.id ? Number(route.params.id) : null)
 
 const form = reactive({
   type: 2,
@@ -96,20 +113,14 @@ const form = reactive({
   description: ''
 })
 
-// Mock categories - will be replaced with API data
-const categories = ref([
-  { id: 1, name: '餐饮', type: 2 },
-  { id: 2, name: '交通', type: 2 },
-  { id: 3, name: '购物', type: 2 },
-  { id: 4, name: '娱乐', type: 2 },
-  { id: 10, name: '工资', type: 1 },
-  { id: 11, name: '副业', type: 1 },
-  { id: 12, name: '投资收益', type: 1 }
-])
+// Category data from API
+const expenseCategories = ref<Category[]>([])
+const incomeCategories = ref<Category[]>([])
 
-const filteredCategories = computed(() =>
-  categories.value.filter(c => c.type === form.type)
-)
+// Get category tree based on selected type
+const categoryTree = computed(() => {
+  return form.type === 1 ? incomeCategories.value : expenseCategories.value
+})
 
 const rules: FormRules = {
   type: [{ required: true, message: '请选择类型', trigger: 'change' }],
@@ -118,12 +129,61 @@ const rules: FormRules = {
   transactionDate: [{ required: true, message: '请选择日期', trigger: 'change' }]
 }
 
-onMounted(() => {
-  if (isEdit.value) {
-    // TODO: Fetch transaction by ID
+onMounted(async () => {
+  pageLoading.value = true
+  try {
+    // Load categories
+    await loadCategories()
+
+    // If editing, load existing transaction
+    if (isEdit.value && transactionId.value) {
+      await loadTransaction(transactionId.value)
+    }
+  } finally {
+    pageLoading.value = false
   }
-  // TODO: Fetch categories
 })
+
+async function loadCategories() {
+  try {
+    // Load both expense and income categories
+    const [expenseRes, incomeRes] = await Promise.all([
+      getCategoryTree(2),
+      getCategoryTree(1)
+    ])
+
+    if (expenseRes.data.code === 200) {
+      expenseCategories.value = expenseRes.data.data
+    }
+    if (incomeRes.data.code === 200) {
+      incomeCategories.value = incomeRes.data.data
+    }
+  } catch (error) {
+    ElMessage.error('加载分类失败')
+  }
+}
+
+async function loadTransaction(id: number) {
+  try {
+    const res = await getTransaction(id)
+    if (res.data.code === 200) {
+      const transaction = res.data.data
+      form.type = transaction.type
+      form.amount = transaction.amount
+      form.categoryId = transaction.categoryId
+      form.transactionDate = new Date(transaction.transactionDate)
+      form.description = transaction.description || ''
+    }
+  } catch (error) {
+    ElMessage.error('加载交易记录失败')
+    router.push('/accounting')
+  }
+}
+
+function handleTypeChange() {
+  // Reset category when type changes
+  form.categoryId = null
+}
 
 async function handleSubmit() {
   const valid = await formRef.value?.validate().catch(() => false)
@@ -131,15 +191,24 @@ async function handleSubmit() {
 
   loading.value = true
   try {
-    const data = {
-      ...form,
-      transactionDate: dayjs(form.transactionDate).format('YYYY-MM-DD')
+    const data: CreateTransactionRequest = {
+      type: form.type,
+      amount: form.amount!,
+      categoryId: form.categoryId!,
+      transactionDate: dayjs(form.transactionDate).format('YYYY-MM-DD'),
+      description: form.description || undefined
     }
 
-    // TODO: Call create/update API
-    console.log('Submit:', data)
+    if (isEdit.value && transactionId.value) {
+      // Update existing transaction
+      await updateTransaction(transactionId.value, data)
+      ElMessage.success('保存成功')
+    } else {
+      // Create new transaction
+      await createTransaction(data)
+      ElMessage.success('记录成功')
+    }
 
-    ElMessage.success(isEdit.value ? '保存成功' : '记录成功')
     router.push('/accounting')
   } catch (error) {
     // Error handled by interceptor
