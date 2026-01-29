@@ -25,6 +25,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - **API changes**: Test endpoints using Swagger UI or curl commands
   - Report any errors to the user before proceeding
 
+- **README Maintenance**: Keep `README.md` up to date whenever project changes affect its content:
+  1. After adding new features, modules, or major functionality, update the relevant sections in `README.md` (Features, Project Structure, Tech Stack, etc.)
+  2. After changing development setup steps (new dependencies, environment variables, Docker services, ports), update the Getting Started and Development sections
+  3. After modifying API endpoints or database schema, update the API Documentation and Database sections
+  4. When completing a development phase milestone, update the Features section to reflect current status
+  5. Review `README.md` accuracy before creating Pull Requests that introduce significant changes
+
 - **Unit Testing Requirements**: All code changes must include corresponding unit tests:
   1. **When writing new code**: Create unit tests for all new classes, methods, and components
   2. **When modifying existing code**: Update or add tests to cover the changes
