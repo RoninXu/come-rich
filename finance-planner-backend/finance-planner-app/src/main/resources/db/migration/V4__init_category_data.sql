@@ -17,6 +17,9 @@ INSERT INTO category (id, name, type, icon, color, sort_order, is_system) VALUES
 (12, '投资收益', 1, 'invest', '#FFA726', 3, TRUE),
 (13, '其他收入', 1, 'other', '#78909C', 99, TRUE);
 
+-- Reset sequence before inserting sub-categories (which rely on auto-increment)
+SELECT setval('category_id_seq', (SELECT MAX(id) FROM category));
+
 -- Expense sub-categories: 餐饮
 INSERT INTO category (name, parent_id, type, icon, sort_order, is_system) VALUES
 ('早餐', 1, 2, 'breakfast', 1, TRUE),
@@ -53,5 +56,5 @@ INSERT INTO category (name, parent_id, type, icon, sort_order, is_system) VALUES
 ('旅游', 5, 2, 'travel', 3, TRUE),
 ('运动', 5, 2, 'sport', 4, TRUE);
 
--- Reset sequence
+-- Reset sequence after all inserts
 SELECT setval('category_id_seq', (SELECT MAX(id) FROM category));
