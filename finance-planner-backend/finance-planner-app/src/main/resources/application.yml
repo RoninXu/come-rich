@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: finance-planner
+  main:
+    web-application-type: servlet
   profiles:
     active: dev
 
@@ -54,6 +56,26 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     enabled: true
+
+ai:
+  active-provider: deepseek
+  providers:
+    deepseek:
+      api-key: ${DEEPSEEK_API_KEY:}
+      api-url: https://api.deepseek.com/v1/chat/completions
+      model: deepseek-chat
+      temperature: 0.7
+      max-tokens: 2048
+      timeout-seconds: 60
+    moonshot:
+      api-key: ${MOONSHOT_API_KEY:}
+      api-url: https://api.moonshot.cn/v1/chat/completions
+      model: moonshot-v1-8k
+      temperature: 0.7
+      max-tokens: 2048
+      timeout-seconds: 60
+  rate-limit:
+    daily-limit: 10
 
 logging:
   level:

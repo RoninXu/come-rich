@@ -44,6 +44,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '编辑', hidden: true }
       },
       {
+        path: 'ai/chat',
+        name: 'AiChat',
+        component: () => import('@/views/ai/ChatPage.vue'),
+        meta: { title: 'AI 顾问', icon: 'ChatDotRound' }
+      },
+      {
         path: 'analysis/monthly',
         name: 'MonthlyReport',
         component: () => import('@/views/analysis/MonthlyReportPage.vue'),
