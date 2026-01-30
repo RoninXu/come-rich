@@ -36,6 +36,13 @@ public enum ErrorCode {
     CATEGORY_IN_USE(3002, "Category is in use and cannot be deleted"),
     SYSTEM_CATEGORY_PROTECTED(3003, "System category cannot be modified"),
 
+    // AI Errors (4xxx)
+    AI_RATE_LIMIT_EXCEEDED(4001, "今日对话次数已用完"),
+    AI_SERVICE_UNAVAILABLE(4002, "AI 服务暂时不可用"),
+    AI_SESSION_NOT_FOUND(4003, "对话会话不存在"),
+    AI_MESSAGE_TOO_LONG(4004, "消息超出最大长度"),
+    AI_PROVIDER_NOT_FOUND(4005, "AI 模型提供商不存在"),
+
     // Server Errors (5xxx)
     INTERNAL_ERROR(500, "Internal server error"),
     SERVICE_UNAVAILABLE(503, "Service temporarily unavailable");

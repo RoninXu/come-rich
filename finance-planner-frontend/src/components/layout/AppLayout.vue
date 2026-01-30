@@ -19,6 +19,10 @@
           <el-icon><Wallet /></el-icon>
           <span>记账</span>
         </el-menu-item>
+        <el-menu-item index="/ai/chat">
+          <el-icon><ChatDotRound /></el-icon>
+          <span>AI 顾问</span>
+        </el-menu-item>
         <el-sub-menu index="analysis">
           <template #title>
             <el-icon><DataLine /></el-icon>
@@ -58,7 +62,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { HomeFilled, Wallet, DataLine } from '@element-plus/icons-vue'
+import { HomeFilled, Wallet, DataLine, ChatDotRound } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
