@@ -25,12 +25,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - **API changes**: Test endpoints using Swagger UI or curl commands
   - Report any errors to the user before proceeding
 
-- **README Maintenance**: Keep `README.md` up to date whenever project changes affect its content:
-  1. After adding new features, modules, or major functionality, update the relevant sections in `README.md` (Features, Project Structure, Tech Stack, etc.)
-  2. After changing development setup steps (new dependencies, environment variables, Docker services, ports), update the Getting Started and Development sections
-  3. After modifying API endpoints or database schema, update the API Documentation and Database sections
-  4. When completing a development phase milestone, update the Features section to reflect current status
-  5. Review `README.md` accuracy before creating Pull Requests that introduce significant changes
+- **Global File Sync**: After any code changes, always update the following global files before committing:
+  1. **`README.md`** — Features, Project Structure, Tech Stack, Getting Started, etc.
+  2. **`docs/plans/PROGRESS.md`** — Development progress, completed/pending items, module table, page routes
+  3. **`CLAUDE.md`** — Current Status, Project Structure, Module Architecture, Frontend Views
+  4. Keep all three files consistent with each other and with the actual codebase
+  5. Update these files as part of the same commit or PR — never leave them stale
 
 - **Unit Testing Requirements**: All code changes must include corresponding unit tests:
   1. **When writing new code**: Create unit tests for all new classes, methods, and components
@@ -49,7 +49,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Come Rich (AI个人理财规划师) is an AI-powered personal finance planning application targeting Chinese middle-class users. The project helps users track expenses, receive AI-driven financial coaching, and discover income growth opportunities.
 
-**Current Status**: Phase 1 completed - Category, Transaction, Analysis modules with full frontend integration.
+**Current Status**: Phase 2 AI chat module completed - Multi-model LLM integration, SSE streaming, conversation history, rate limiting, full chat UI.
 
 ## Technology Stack
 
@@ -91,6 +91,7 @@ come-rich/
 │   ├── finance-planner-auth/             # Authentication & authorization
 │   ├── finance-planner-accounting/       # Transaction management
 │   ├── finance-planner-analysis/         # Statistics & health score
+│   ├── finance-planner-ai/              # AI chat & multi-model LLM integration
 │   └── finance-planner-app/              # Main application entry
 │       └── src/main/resources/
 │           ├── application.yml
@@ -117,15 +118,16 @@ come-rich/
 - `finance-planner-auth` - User authentication, JWT, Spring Security
 - `finance-planner-accounting` - Transaction CRUD, category management
 - `finance-planner-analysis` - Monthly statistics, health score calculation
-- `finance-planner-ai` - AI conversations and DeepSeek integration (Phase 2)
-- `finance-planner-career` - Side hustle recommendations (Phase 2)
-- `finance-planner-goal` - Goal planning and tracking (Phase 2)
+- `finance-planner-ai` - AI chat, multi-model LLM integration (DeepSeek, Moonshot), SSE streaming
+- `finance-planner-career` - Side hustle recommendations (Phase 2 Advanced - planned)
+- `finance-planner-goal` - Goal planning and tracking (Phase 2 Advanced - planned)
 
 ### Frontend Views
 - `auth/` - Login and registration pages
 - `dashboard/` - Home dashboard with summary
 - `accounting/` - Transaction list and form
 - `analysis/` - Monthly report and health score
+- `ai/` - AI financial advisor chat with SSE streaming
 
 ## Development Commands
 

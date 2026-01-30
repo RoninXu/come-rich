@@ -11,17 +11,24 @@ AI-powered personal finance planning application targeting Chinese middle-class 
 - Monthly analysis (statistics, spending breakdown, financial health score)
 - Full frontend integration with Vue 3 dashboard
 
-**Phase 2 (Planned)**
-- AI financial coaching via DeepSeek V3
+**Phase 2 — AI Chat (Completed)**
+- AI financial advisor chat with SSE streaming
+- Multi-model LLM support (DeepSeek, Moonshot, etc.) with runtime switching
+- Financial context injection (monthly stats + health score into AI prompts)
+- Conversation history persistence
+- Redis-based daily rate limiting (10 chats/day)
+- Full chat UI with typing indicator, quick actions, markdown rendering
+
+**Phase 2 — Advanced (Planned)**
 - Receipt OCR recognition via Baidu OCR
+- Financial goal planning and tracking
 - Side hustle / career recommendations
-- Goal planning and tracking
 
 ## Tech Stack
 
 | Layer | Technologies |
 |---|---|
-| Backend | Java 17, Spring Boot 3.2, Spring Data JPA, Spring Security, JWT |
+| Backend | Java 17, Spring Boot 3.2, Spring Data JPA, Spring Security, JWT, WebFlux (WebClient) |
 | Frontend | Vue 3.4, TypeScript 5, Vite 5, Element Plus, Pinia, ECharts |
 | Database | PostgreSQL 14, Redis 7, Flyway migrations |
 | AI | DeepSeek V3 API, Baidu OCR API |
@@ -36,6 +43,7 @@ come-rich/
 │   ├── finance-planner-auth/         # Authentication & JWT security
 │   ├── finance-planner-accounting/   # Transaction & category management
 │   ├── finance-planner-analysis/     # Statistics & health score
+│   ├── finance-planner-ai/          # AI chat & multi-model LLM integration
 │   └── finance-planner-app/          # Main application entry & Flyway migrations
 ├── finance-planner-frontend/         # Vue 3 + TypeScript SPA
 │   └── src/
@@ -76,6 +84,14 @@ mvn spring-boot:run -pl finance-planner-app
 ```
 
 Backend runs at `http://localhost:8080`. Flyway auto-applies database migrations on startup.
+
+For AI chat functionality, set the LLM API key environment variable:
+
+```bash
+export DEEPSEEK_API_KEY=your_api_key_here
+# Or for Moonshot:
+# export MOONSHOT_API_KEY=your_api_key_here
+```
 
 ### 3. Run the frontend
 

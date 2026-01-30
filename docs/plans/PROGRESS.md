@@ -2,8 +2,8 @@
 
 ## 当前状态
 
-**阶段**: Phase 1 - 完成
-**最后更新**: 2026-01-28
+**阶段**: Phase 2 - AI 对话模块完成
+**最后更新**: 2026-01-30
 
 ## 已完成
 
@@ -63,20 +63,35 @@
   - [x] 空状态组件 (el-empty)
   - [x] 错误提示优化 (ElMessage)
 
+### Phase 2 - AI 对话模块 ✅
+
+- [x] **AI 对话模块**
+  - [x] 多模型 LLM 集成 (OpenAI 兼容接口: DeepSeek, Moonshot 等)
+  - [x] SSE 流式响应 (SseEmitter + WebClient)
+  - [x] 对话历史持久化 (ai_conversation 表, Flyway V5)
+  - [x] AI 财务建议功能 (系统 Prompt + 用户财务上下文注入)
+  - [x] 运行时模型切换 (LlmProviderManager)
+  - [x] Redis 每日速率限制 (10次/天)
+  - [x] JWT query param 回退 (SSE EventSource 兼容)
+  - [x] 前端聊天页面 (消息气泡、打字指示器、快捷词、Markdown 渲染)
+  - [x] 前端模型切换下拉框
+  - [x] 37 个后端单元测试 + 12 个前端测试
+
 ## 待完成
 
-### Phase 2 - AI 对话和智能功能
+### Phase 2 - 高级功能 (未开始)
 
-- [ ] **AI 对话模块**
-  - [ ] DeepSeek API 集成
-  - [ ] 流式响应 (SSE)
-  - [ ] 对话历史管理
-  - [ ] AI 财务建议功能
+- [ ] **账单导入 (OCR)**
+  - [ ] Baidu OCR API 集成
+  - [ ] 票据识别和自动记账
 
-- [ ] **高级功能**
-  - [ ] 账单导入 (OCR)
-  - [ ] 理财目标规划
-  - [ ] 副业推荐
+- [ ] **理财目标规划**
+  - [ ] 目标设置和跟踪
+  - [ ] 进度可视化
+
+- [ ] **副业推荐**
+  - [ ] AI 副业匹配
+  - [ ] 技能评估
 
 ## 技术架构总结
 
@@ -88,6 +103,7 @@
 | finance-planner-auth | 用户认证、JWT、Spring Security |
 | finance-planner-accounting | 分类管理、交易记录 CRUD |
 | finance-planner-analysis | 统计分析、健康评分 |
+| finance-planner-ai | AI 对话、多模型 LLM 集成、SSE 流式传输 |
 | finance-planner-app | 主应用入口 |
 
 ### 健康评分算法
@@ -111,6 +127,7 @@
 | /accounting/edit/:id | 编辑记录 | 修改交易 |
 | /analysis/monthly | 月度报表 | 收支统计图表 |
 | /analysis/health | 健康评分 | 财务健康分析 |
+| /ai/chat | AI 顾问 | AI 对话、流式回复、模型切换 |
 
 ## 启动项目
 
