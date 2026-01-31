@@ -19,10 +19,10 @@ AI-powered personal finance planning application targeting Chinese middle-class 
 - Redis-based daily rate limiting (10 chats/day)
 - Full chat UI with typing indicator, quick actions, markdown rendering
 
-**Phase 2 — Advanced (Planned)**
-- Receipt OCR recognition via Baidu OCR
-- Financial goal planning and tracking
-- Side hustle / career recommendations
+**Phase 2 — Advanced (Completed)**
+- Financial goal planning with progress tracking, AI savings plans, ECharts visualization
+- Receipt OCR recognition via Baidu OCR with auto-categorization and transaction creation
+- Side hustle / career recommendations with AI matching, 90-day startup plans, income tracking
 
 ## Tech Stack
 
@@ -31,7 +31,7 @@ AI-powered personal finance planning application targeting Chinese middle-class 
 | Backend | Java 17, Spring Boot 3.2, Spring Data JPA, Spring Security, JWT, WebFlux (WebClient) |
 | Frontend | Vue 3.4, TypeScript 5, Vite 5, Element Plus, Pinia, ECharts |
 | Database | PostgreSQL 14, Redis 7, Flyway migrations |
-| AI | DeepSeek V3 API, Baidu OCR API |
+| AI | DeepSeek V3 API, Baidu OCR API (receipt recognition) |
 | Infra | Docker Compose, Nginx, Aliyun (ECS, OSS, RDS) |
 
 ## Project Structure
@@ -43,7 +43,9 @@ come-rich/
 │   ├── finance-planner-auth/         # Authentication & JWT security
 │   ├── finance-planner-accounting/   # Transaction & category management
 │   ├── finance-planner-analysis/     # Statistics & health score
-│   ├── finance-planner-ai/          # AI chat & multi-model LLM integration
+│   ├── finance-planner-ai/          # AI chat, multi-model LLM, OCR import
+│   ├── finance-planner-goal/        # Financial goal planning & tracking
+│   ├── finance-planner-career/      # Side hustle recommendations & income tracking
 │   └── finance-planner-app/          # Main application entry & Flyway migrations
 ├── finance-planner-frontend/         # Vue 3 + TypeScript SPA
 │   └── src/
@@ -91,6 +93,10 @@ For AI chat functionality, set the LLM API key environment variable:
 export DEEPSEEK_API_KEY=your_api_key_here
 # Or for Moonshot:
 # export MOONSHOT_API_KEY=your_api_key_here
+
+# For OCR receipt recognition (optional):
+export BAIDU_OCR_API_KEY=your_baidu_api_key
+export BAIDU_OCR_SECRET_KEY=your_baidu_secret_key
 ```
 
 ### 3. Run the frontend

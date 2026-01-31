@@ -44,6 +44,60 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '编辑', hidden: true }
       },
       {
+        path: 'accounting/ocr',
+        name: 'OcrImport',
+        component: () => import('@/views/accounting/OcrImportPage.vue'),
+        meta: { title: '拍照记账', hidden: true }
+      },
+      {
+        path: 'goals',
+        name: 'GoalList',
+        component: () => import('@/views/goal/GoalListPage.vue'),
+        meta: { title: '理财目标', icon: 'Flag' }
+      },
+      {
+        path: 'goals/new',
+        name: 'GoalNew',
+        component: () => import('@/views/goal/GoalFormPage.vue'),
+        meta: { title: '新建目标', hidden: true }
+      },
+      {
+        path: 'goals/:id',
+        name: 'GoalDetail',
+        component: () => import('@/views/goal/GoalDetailPage.vue'),
+        meta: { title: '目标详情', hidden: true }
+      },
+      {
+        path: 'goals/edit/:id',
+        name: 'GoalEdit',
+        component: () => import('@/views/goal/GoalFormPage.vue'),
+        meta: { title: '编辑目标', hidden: true }
+      },
+      {
+        path: 'career',
+        name: 'CareerRecommendations',
+        component: () => import('@/views/career/RecommendationPage.vue'),
+        meta: { title: 'AI推荐', icon: 'Opportunity' }
+      },
+      {
+        path: 'career/plans',
+        name: 'CareerPlanList',
+        component: () => import('@/views/career/CareerPlanListPage.vue'),
+        meta: { title: '我的计划', hidden: true }
+      },
+      {
+        path: 'career/plans/:id',
+        name: 'CareerPlanDetail',
+        component: () => import('@/views/career/CareerPlanDetailPage.vue'),
+        meta: { title: '计划详情', hidden: true }
+      },
+      {
+        path: 'career/profile',
+        name: 'CareerProfile',
+        component: () => import('@/views/career/ProfilePage.vue'),
+        meta: { title: '个人资料', hidden: true }
+      },
+      {
         path: 'ai/chat',
         name: 'AiChat',
         component: () => import('@/views/ai/ChatPage.vue'),

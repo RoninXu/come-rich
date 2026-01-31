@@ -32,6 +32,14 @@
             <groupId>com.finance.planner</groupId>
             <artifactId>finance-planner-ai</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.finance.planner</groupId>
+            <artifactId>finance-planner-goal</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.finance.planner</groupId>
+            <artifactId>finance-planner-career</artifactId>
+        </dependency>
 
         <!-- Spring Boot Starters -->
         <dependency>

@@ -19,6 +19,19 @@
           <el-icon><Wallet /></el-icon>
           <span>记账</span>
         </el-menu-item>
+        <el-menu-item index="/goals">
+          <el-icon><Flag /></el-icon>
+          <span>理财目标</span>
+        </el-menu-item>
+        <el-sub-menu index="career">
+          <template #title>
+            <el-icon><Opportunity /></el-icon>
+            <span>副业规划</span>
+          </template>
+          <el-menu-item index="/career">AI推荐</el-menu-item>
+          <el-menu-item index="/career/plans">我的计划</el-menu-item>
+          <el-menu-item index="/career/profile">个人资料</el-menu-item>
+        </el-sub-menu>
         <el-menu-item index="/ai/chat">
           <el-icon><ChatDotRound /></el-icon>
           <span>AI 顾问</span>
@@ -62,7 +75,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { HomeFilled, Wallet, DataLine, ChatDotRound } from '@element-plus/icons-vue'
+import { HomeFilled, Wallet, DataLine, ChatDotRound, Flag, Opportunity } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()

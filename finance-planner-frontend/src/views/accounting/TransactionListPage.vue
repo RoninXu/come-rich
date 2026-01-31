@@ -2,10 +2,16 @@
   <div class="transaction-list-page">
     <div class="page-header">
       <h2>记账记录</h2>
-      <el-button type="primary" @click="goToNew">
-        <el-icon><Plus /></el-icon>
-        记一笔
-      </el-button>
+      <div style="display: flex; gap: 8px">
+        <el-button type="primary" @click="goToNew">
+          <el-icon><Plus /></el-icon>
+          记一笔
+        </el-button>
+        <el-button @click="goToOcr">
+          <el-icon><Camera /></el-icon>
+          拍照记账
+        </el-button>
+      </div>
     </div>
 
     <el-card class="filter-card">
@@ -91,7 +97,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, Camera } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 import { getTransactions, deleteTransaction } from '@/api/transaction'
 import type { Transaction, TransactionQueryParams } from '@/types/accounting'
@@ -150,6 +156,10 @@ async function fetchTransactions() {
 
 function goToNew() {
   router.push('/accounting/new')
+}
+
+function goToOcr() {
+  router.push('/accounting/ocr')
 }
 
 function handleFilter() {

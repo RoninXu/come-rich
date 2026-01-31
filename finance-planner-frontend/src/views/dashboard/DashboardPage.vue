@@ -88,6 +88,10 @@
               <el-icon><TrendCharts /></el-icon>
               健康评分
             </el-button>
+            <el-button size="large" @click="goToOcr">
+              <el-icon><Camera /></el-icon>
+              拍照记账
+            </el-button>
           </div>
         </el-card>
       </el-col>
@@ -125,7 +129,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 import dayjs from 'dayjs'
-import { TrendCharts, Wallet, Money, DataLine, Plus } from '@element-plus/icons-vue'
+import { TrendCharts, Wallet, Money, DataLine, Plus, Camera } from '@element-plus/icons-vue'
 import { getDashboard } from '@/api/analysis'
 import type { Dashboard } from '@/types/analysis'
 
@@ -174,6 +178,10 @@ function goToMonthlyReport() {
 
 function goToHealthScore() {
   router.push('/analysis/health')
+}
+
+function goToOcr() {
+  router.push('/accounting/ocr')
 }
 </script>
 
