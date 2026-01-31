@@ -43,7 +43,27 @@ public enum ErrorCode {
     AI_MESSAGE_TOO_LONG(4004, "消息超出最大长度"),
     AI_PROVIDER_NOT_FOUND(4005, "AI 模型提供商不存在"),
 
-    // Server Errors (5xxx)
+    // Goal Errors (5xxx - business)
+    GOAL_NOT_FOUND(5001, "理财目标不存在"),
+    GOAL_ALREADY_COMPLETED(5002, "该目标已完成"),
+    GOAL_DEADLINE_PAST(5003, "目标截止日期已过"),
+    GOAL_INVALID_AMOUNT(5004, "目标金额无效"),
+
+    // OCR Errors (6xxx)
+    OCR_RECOGNITION_FAILED(6001, "OCR识别失败"),
+    OCR_EMPTY_RESULT(6002, "未识别到有效信息"),
+    OCR_RECORD_NOT_FOUND(6003, "OCR记录不存在"),
+    OCR_ALREADY_CONFIRMED(6004, "该记录已确认"),
+    OCR_ALREADY_REJECTED(6005, "该记录已拒绝"),
+    OCR_FILE_TOO_LARGE(6006, "文件大小超出限制"),
+
+    // Career Errors (7xxx)
+    CAREER_PLAN_NOT_FOUND(7001, "副业计划不存在"),
+    CAREER_PROFILE_INCOMPLETE(7002, "请先完善个人资料"),
+    CAREER_PROFILE_NOT_FOUND(7003, "个人资料不存在"),
+    CAREER_RECOMMENDATION_FAILED(7004, "AI推荐生成失败"),
+
+    // Server Errors
     INTERNAL_ERROR(500, "Internal server error"),
     SERVICE_UNAVAILABLE(503, "Service temporarily unavailable");
 

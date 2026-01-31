@@ -2,8 +2,8 @@
 
 ## 当前状态
 
-**阶段**: Phase 2 - AI 对话模块完成
-**最后更新**: 2026-01-30
+**阶段**: Phase 2 - 全部高级功能完成
+**最后更新**: 2026-01-31
 
 ## 已完成
 
@@ -77,21 +77,48 @@
   - [x] 前端模型切换下拉框
   - [x] 37 个后端单元测试 + 12 个前端测试
 
+### Phase 2 - 高级功能 ✅
+
+- [x] **理财目标规划**
+  - [x] 目标 CRUD (创建/查看/编辑/删除)
+  - [x] 进度记录和自动完成检测
+  - [x] ECharts 存款趋势图
+  - [x] AI 理财计划生成 (DeepSeek)
+  - [x] 目标列表 (状态筛选、优先级标签、进度条)
+  - [x] 目标详情 (统计卡片、存款时间线、AI 建议面板)
+  - [x] 15 个后端单元测试
+  - [x] Flyway V6 迁移 (financial_goal + goal_progress 表)
+
+- [x] **账单导入 (OCR)**
+  - [x] Baidu OCR API 集成 (通用文字识别)
+  - [x] 票据金额/商户/日期自动提取 (正则)
+  - [x] 智能分类建议 (关键词匹配)
+  - [x] OCR 预览/确认/拒绝工作流
+  - [x] 拖拽上传界面 + 待处理列表
+  - [x] 仪表盘和记账页快捷入口
+  - [x] 8 个后端单元测试
+  - [x] Flyway V7 迁移 (ocr_record 表)
+
+- [x] **副业推荐**
+  - [x] 用户资料管理 (职业/技能/经验/时间/兴趣)
+  - [x] AI 副业推荐 (DeepSeek, 匹配度评分)
+  - [x] 副业计划 CRUD + 状态管理 (探索/进行/暂停/完成)
+  - [x] 收入记录和月度收入统计
+  - [x] AI 90天启动计划生成
+  - [x] ECharts 月度收入趋势图
+  - [x] 推荐卡片页面 (匹配度环形图、采纳对话框)
+  - [x] 计划列表和详情页面
+  - [x] 7 个后端单元测试
+  - [x] Flyway V8 迁移 (user_profile + career_plan + career_income 表)
+
 ## 待完成
 
-### Phase 2 - 高级功能 (未开始)
+### Phase 3 (规划中)
 
-- [ ] **账单导入 (OCR)**
-  - [ ] Baidu OCR API 集成
-  - [ ] 票据识别和自动记账
-
-- [ ] **理财目标规划**
-  - [ ] 目标设置和跟踪
-  - [ ] 进度可视化
-
-- [ ] **副业推荐**
-  - [ ] AI 副业匹配
-  - [ ] 技能评估
+- [ ] 预算管理
+- [ ] 投资组合跟踪
+- [ ] 数据导出
+- [ ] 多语言支持
 
 ## 技术架构总结
 
@@ -103,7 +130,9 @@
 | finance-planner-auth | 用户认证、JWT、Spring Security |
 | finance-planner-accounting | 分类管理、交易记录 CRUD |
 | finance-planner-analysis | 统计分析、健康评分 |
-| finance-planner-ai | AI 对话、多模型 LLM 集成、SSE 流式传输 |
+| finance-planner-ai | AI 对话、多模型 LLM 集成、SSE 流式传输、OCR 导入 |
+| finance-planner-goal | 理财目标规划、进度跟踪、AI 理财计划 |
+| finance-planner-career | 副业推荐、用户资料、收入跟踪、AI 启动计划 |
 | finance-planner-app | 主应用入口 |
 
 ### 健康评分算法
@@ -128,6 +157,15 @@
 | /analysis/monthly | 月度报表 | 收支统计图表 |
 | /analysis/health | 健康评分 | 财务健康分析 |
 | /ai/chat | AI 顾问 | AI 对话、流式回复、模型切换 |
+| /accounting/ocr | 拍照记账 | OCR 票据识别、自动记账 |
+| /goals | 目标列表 | 理财目标管理、状态筛选 |
+| /goals/new | 新建目标 | 创建理财目标 |
+| /goals/:id | 目标详情 | 进度图表、存款记录、AI 建议 |
+| /goals/edit/:id | 编辑目标 | 修改理财目标 |
+| /career | AI推荐 | AI 副业推荐卡片 |
+| /career/plans | 我的计划 | 副业计划列表 |
+| /career/plans/:id | 计划详情 | 收入跟踪、AI 90天启动计划 |
+| /career/profile | 个人资料 | 用户资料编辑 |
 
 ## 启动项目
 

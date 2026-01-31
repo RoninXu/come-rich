@@ -49,7 +49,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Come Rich (AI个人理财规划师) is an AI-powered personal finance planning application targeting Chinese middle-class users. The project helps users track expenses, receive AI-driven financial coaching, and discover income growth opportunities.
 
-**Current Status**: Phase 2 AI chat module completed - Multi-model LLM integration, SSE streaming, conversation history, rate limiting, full chat UI.
+**Current Status**: Phase 2 fully completed - AI chat, financial goal planning, OCR bill import, side hustle recommendations all implemented with full frontend and backend.
 
 ## Technology Stack
 
@@ -91,7 +91,9 @@ come-rich/
 │   ├── finance-planner-auth/             # Authentication & authorization
 │   ├── finance-planner-accounting/       # Transaction management
 │   ├── finance-planner-analysis/         # Statistics & health score
-│   ├── finance-planner-ai/              # AI chat & multi-model LLM integration
+│   ├── finance-planner-ai/              # AI chat, multi-model LLM, OCR import
+│   ├── finance-planner-goal/            # Financial goal planning & tracking
+│   ├── finance-planner-career/          # Side hustle recommendations & income
 │   └── finance-planner-app/              # Main application entry
 │       └── src/main/resources/
 │           ├── application.yml
@@ -118,16 +120,18 @@ come-rich/
 - `finance-planner-auth` - User authentication, JWT, Spring Security
 - `finance-planner-accounting` - Transaction CRUD, category management
 - `finance-planner-analysis` - Monthly statistics, health score calculation
-- `finance-planner-ai` - AI chat, multi-model LLM integration (DeepSeek, Moonshot), SSE streaming
-- `finance-planner-career` - Side hustle recommendations (Phase 2 Advanced - planned)
-- `finance-planner-goal` - Goal planning and tracking (Phase 2 Advanced - planned)
+- `finance-planner-ai` - AI chat, multi-model LLM integration (DeepSeek, Moonshot), SSE streaming, OCR bill import
+- `finance-planner-goal` - Financial goal planning, progress tracking, AI savings plans
+- `finance-planner-career` - Side hustle recommendations, user profile, income tracking, AI startup plans
 
 ### Frontend Views
 - `auth/` - Login and registration pages
 - `dashboard/` - Home dashboard with summary
-- `accounting/` - Transaction list and form
+- `accounting/` - Transaction list, form, and OCR import page
 - `analysis/` - Monthly report and health score
 - `ai/` - AI financial advisor chat with SSE streaming
+- `goal/` - Goal list, form, and detail pages with progress charts
+- `career/` - Profile, AI recommendations, plan list, and plan detail pages
 
 ## Development Commands
 
