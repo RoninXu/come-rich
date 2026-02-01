@@ -2,8 +2,8 @@
 
 ## 当前状态
 
-**阶段**: Phase 2 - 全部高级功能完成
-**最后更新**: 2026-01-31
+**阶段**: Phase 3 - 预算管理 + 投资建议 + 数据导出 完成
+**最后更新**: 2026-02-01
 
 ## 已完成
 
@@ -111,14 +111,62 @@
   - [x] 7 个后端单元测试
   - [x] Flyway V8 迁移 (user_profile + career_plan + career_income 表)
 
+### Phase 3 - 预算管理 + 投资建议 + 数据导出 ✅
+
+- [x] **预算管理**
+  - [x] 预算 CRUD (按分类设置月度预算)
+  - [x] 预算总额设置
+  - [x] 预算 vs 实际对比 (使用率计算、超支检测)
+  - [x] 复制上月预算
+  - [x] 预算趋势 (近6月对比)
+  - [x] AI 预算优化建议 (DeepSeek)
+  - [x] 预算概览页 (汇总卡片、分类表格、进度条、ECharts 柱状图)
+  - [x] 预算设置表单页 (分类批量编辑)
+  - [x] 预算趋势页 (折线图 + 对比表格)
+  - [x] 10 个后端单元测试
+  - [x] Flyway V9 迁移 (budget + budget_total 表)
+
+- [x] **投资建议引擎**
+  - [x] 风险评估问卷 (8题, 0-32分, 3档风险等级)
+  - [x] 风险评估历史记录
+  - [x] AI 投资组合推荐 (DeepSeek, 3-5个投资方向)
+  - [x] 资产配置饼图数据
+  - [x] 风险评估页 (el-steps 8步问卷)
+  - [x] 投资建议页 (风险卡片、ECharts 饼图、推荐列表、免责声明)
+  - [x] 评估历史页 (el-timeline)
+  - [x] 7 个后端单元测试
+  - [x] Flyway V10 迁移 (risk_assessment + investment_recommendation 表)
+
+- [x] **数据导出**
+  - [x] 交易记录导出 Excel (Apache POI SXSSFWorkbook 流式写入)
+  - [x] 交易记录导出 CSV (UTF-8 BOM)
+  - [x] 月度报表导出 (多工作表: 概要 + 分类 + 日趋势 + 明细)
+  - [x] 年度报表导出 (12月趋势)
+  - [x] 记账列表页添加导出下拉按钮 (Excel/CSV)
+  - [x] 月度报表页添加导出按钮
+  - [x] 健康评分页添加导出按钮
+  - [x] 5 个后端单元测试
+
+- [x] **仪表盘更新**
+  - [x] 预算使用率卡片
+  - [x] 风险画像卡片
+  - [x] 侧边栏新增预算管理 + 投资建议菜单
+  - [x] 路由新增 6 条 (预算3 + 投资3)
+
+- [x] **前端单元测试**
+  - [x] budget API 测试 (10 tests)
+  - [x] investment API 测试 (7 tests)
+  - [x] export API 测试 (5 tests)
+  - [x] budget store 测试 (4 tests)
+  - [x] investment store 测试 (5 tests)
+
 ## 待完成
 
-### Phase 3 (规划中)
+### Phase 4 (规划中)
 
-- [ ] 预算管理
-- [ ] 投资组合跟踪
-- [ ] 数据导出
 - [ ] 多语言支持
+- [ ] 移动端适配
+- [ ] 数据备份/恢复
 
 ## 技术架构总结
 
@@ -133,6 +181,8 @@
 | finance-planner-ai | AI 对话、多模型 LLM 集成、SSE 流式传输、OCR 导入 |
 | finance-planner-goal | 理财目标规划、进度跟踪、AI 理财计划 |
 | finance-planner-career | 副业推荐、用户资料、收入跟踪、AI 启动计划 |
+| finance-planner-budget | 预算管理、预算对比、AI 优化建议 |
+| finance-planner-investment | 风险评估、投资组合推荐、资产配置 |
 | finance-planner-app | 主应用入口 |
 
 ### 健康评分算法
@@ -166,6 +216,12 @@
 | /career/plans | 我的计划 | 副业计划列表 |
 | /career/plans/:id | 计划详情 | 收入跟踪、AI 90天启动计划 |
 | /career/profile | 个人资料 | 用户资料编辑 |
+| /budget | 预算概览 | 预算 vs 实际对比、分类进度条 |
+| /budget/edit | 设置预算 | 分类预算批量编辑 |
+| /budget/trend | 预算趋势 | 近6月预算使用率趋势 |
+| /investment | 投资建议 | 风险画像、资产配置饼图、推荐列表 |
+| /investment/quiz | 风险评估 | 8题问卷、实时计分 |
+| /investment/history | 评估历史 | 历次评估时间线 |
 
 ## 启动项目
 

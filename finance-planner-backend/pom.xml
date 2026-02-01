@@ -19,6 +19,8 @@
         <module>finance-planner-ai</module>
         <module>finance-planner-goal</module>
         <module>finance-planner-career</module>
+        <module>finance-planner-budget</module>
+        <module>finance-planner-investment</module>
         <module>finance-planner-app</module>
     </modules>
 
@@ -79,6 +81,16 @@
             <dependency>
                 <groupId>com.finance.planner</groupId>
                 <artifactId>finance-planner-career</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.finance.planner</groupId>
+                <artifactId>finance-planner-budget</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.finance.planner</groupId>
+                <artifactId>finance-planner-investment</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

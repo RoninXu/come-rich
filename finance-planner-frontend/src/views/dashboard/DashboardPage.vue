@@ -69,6 +69,46 @@
       </el-col>
     </el-row>
 
+    <el-row :gutter="20" style="margin-bottom: 20px">
+      <el-col :span="12">
+        <el-card class="mini-card" @click="router.push('/budget')" style="cursor: pointer">
+          <template #header>
+            <div class="card-header">
+              <span>预算使用情况</span>
+              <el-button link type="primary" @click.stop="router.push('/budget')">查看详情</el-button>
+            </div>
+          </template>
+          <div v-if="budgetSummary" class="budget-mini">
+            <el-progress
+              :percentage="Math.min(Number(budgetSummary.overallUtilization), 100)"
+              :color="budgetSummary.overallUtilization > 100 ? '#F56C6C' : budgetSummary.overallUtilization > 80 ? '#E6A23C' : '#67C23A'"
+              :stroke-width="16"
+            />
+            <div class="budget-info">
+              <span>已用 ¥{{ Number(budgetSummary.totalSpent).toFixed(0) }}</span>
+              <span>/ 预算 ¥{{ Number(budgetSummary.totalBudget).toFixed(0) }}</span>
+            </div>
+          </div>
+          <el-empty v-else :image-size="40" description="未设置预算" />
+        </el-card>
+      </el-col>
+      <el-col :span="12">
+        <el-card class="mini-card" @click="router.push('/investment')" style="cursor: pointer">
+          <template #header>
+            <div class="card-header">
+              <span>风险画像</span>
+              <el-button link type="primary" @click.stop="router.push('/investment')">查看详情</el-button>
+            </div>
+          </template>
+          <div v-if="riskAssessment" class="risk-mini">
+            <span class="risk-level" :class="getRiskClass(riskAssessment.riskLevel)">{{ riskAssessment.riskLevel }}</span>
+            <span class="risk-score">得分: {{ riskAssessment.riskScore }}/32</span>
+          </div>
+          <el-empty v-else :image-size="40" description="未完成风险评估" />
+        </el-card>
+      </el-col>
+    </el-row>
+
     <el-row :gutter="20">
       <el-col :span="12">
         <el-card class="quick-actions">
@@ -131,18 +171,25 @@ import { ElMessage } from 'element-plus'
 import dayjs from 'dayjs'
 import { TrendCharts, Wallet, Money, DataLine, Plus, Camera } from '@element-plus/icons-vue'
 import { getDashboard } from '@/api/analysis'
+import { getBudgetSummary } from '@/api/budget'
+import { getLatestAssessment } from '@/api/investment'
 import type { Dashboard } from '@/types/analysis'
+import type { BudgetSummary } from '@/types/budget'
+import type { RiskAssessment } from '@/types/investment'
 
 const router = useRouter()
 const userStore = useUserStore()
 
 const loading = ref(false)
 const dashboard = ref<Dashboard | null>(null)
+const budgetSummary = ref<BudgetSummary | null>(null)
+const riskAssessment = ref<RiskAssessment | null>(null)
 
 const today = computed(() => dayjs().format('YYYY年MM月DD日'))
 
 onMounted(async () => {
   await fetchDashboard()
+  fetchBudgetAndRisk()
 })
 
 async function fetchDashboard() {
@@ -157,6 +204,32 @@ async function fetchDashboard() {
   } finally {
     loading.value = false
   }
+}
+
+async function fetchBudgetAndRisk() {
+  const currentMonth = dayjs().format('YYYY-MM')
+  try {
+    const budgetRes = await getBudgetSummary(currentMonth)
+    if (budgetRes.data.code === 200) {
+      budgetSummary.value = budgetRes.data.data
+    }
+  } catch {
+    // No budget set
+  }
+  try {
+    const riskRes = await getLatestAssessment()
+    if (riskRes.data.code === 200) {
+      riskAssessment.value = riskRes.data.data
+    }
+  } catch {
+    // No assessment
+  }
+}
+
+function getRiskClass(level: string): string {
+  if (level === '保守型') return 'conservative'
+  if (level === '稳健型') return 'moderate'
+  return 'aggressive'
 }
 
 function formatNumber(value: number | undefined | null): string {
@@ -274,6 +347,44 @@ function goToOcr() {
 
     &.health .stat-icon {
       background: linear-gradient(135deg, #AB47BC, #8E24AA);
+    }
+  }
+
+  .mini-card {
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .budget-mini {
+      .budget-info {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 8px;
+        font-size: 13px;
+        color: #999;
+      }
+    }
+
+    .risk-mini {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+
+      .risk-level {
+        font-size: 20px;
+        font-weight: bold;
+
+        &.conservative { color: #67C23A; }
+        &.moderate { color: #E6A23C; }
+        &.aggressive { color: #F56C6C; }
+      }
+
+      .risk-score {
+        color: #999;
+        font-size: 14px;
+      }
     }
   }
 

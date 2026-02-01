@@ -24,6 +24,12 @@ AI-powered personal finance planning application targeting Chinese middle-class 
 - Receipt OCR recognition via Baidu OCR with auto-categorization and transaction creation
 - Side hustle / career recommendations with AI matching, 90-day startup plans, income tracking
 
+
+**Phase 3 — Budget, Investment & Export (Completed)**
+- Budget management: per-category monthly budgets, budget-vs-actual tracking, AI optimization suggestions
+- Investment advice engine: 8-question risk assessment quiz, AI-powered asset allocation recommendations
+- Data export: Excel/CSV transaction export, monthly/annual report generation (Apache POI)
+
 ## Tech Stack
 
 | Layer | Technologies |
@@ -31,7 +37,7 @@ AI-powered personal finance planning application targeting Chinese middle-class 
 | Backend | Java 17, Spring Boot 3.2, Spring Data JPA, Spring Security, JWT, WebFlux (WebClient) |
 | Frontend | Vue 3.4, TypeScript 5, Vite 5, Element Plus, Pinia, ECharts |
 | Database | PostgreSQL 14, Redis 7, Flyway migrations |
-| AI | DeepSeek V3 API, Baidu OCR API (receipt recognition) |
+| AI | DeepSeek V3 API, Baidu OCR API (receipt recognition), Apache POI (Excel export) |
 | Infra | Docker Compose, Nginx, Aliyun (ECS, OSS, RDS) |
 
 ## Project Structure
@@ -46,6 +52,8 @@ come-rich/
 │   ├── finance-planner-ai/          # AI chat, multi-model LLM, OCR import
 │   ├── finance-planner-goal/        # Financial goal planning & tracking
 │   ├── finance-planner-career/      # Side hustle recommendations & income tracking
+│   ├── finance-planner-budget/      # Budget management & AI optimization
+│   ├── finance-planner-investment/  # Risk assessment & investment advice
 │   └── finance-planner-app/          # Main application entry & Flyway migrations
 ├── finance-planner-frontend/         # Vue 3 + TypeScript SPA
 │   └── src/

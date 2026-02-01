@@ -40,6 +40,14 @@
             <groupId>com.finance.planner</groupId>
             <artifactId>finance-planner-career</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.finance.planner</groupId>
+            <artifactId>finance-planner-budget</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.finance.planner</groupId>
+            <artifactId>finance-planner-investment</artifactId>
+        </dependency>
 
         <!-- Spring Boot Starters -->
         <dependency>
