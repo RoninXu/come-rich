@@ -24,6 +24,7 @@ AI-powered personal finance planning application targeting Chinese middle-class 
 - Receipt OCR recognition via Baidu OCR with auto-categorization and transaction creation
 - Side hustle / career recommendations with AI matching, 90-day startup plans, income tracking
 
+
 **Phase 3 — Budget, Investment & Export (Completed)**
 - Budget management: per-category monthly budgets, budget-vs-actual tracking, AI optimization suggestions
 - Investment advice engine: 8-question risk assessment quiz, AI-powered asset allocation recommendations
