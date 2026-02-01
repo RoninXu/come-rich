@@ -46,13 +46,16 @@ request.interceptors.response.use(
     return response
   },
   (error) => {
-    const message = error.response?.data?.message || error.message || 'Network error'
-    ElMessage.error(message)
+    const status = error.response?.status
 
-    if (error.response?.status === 401) {
+    if (status === 401 || status === 403) {
       clearAuth()
       router.push('/login')
+      return Promise.reject(error)
     }
+
+    const message = error.response?.data?.message || error.message || 'Network error'
+    ElMessage.error(message)
 
     return Promise.reject(error)
   }
