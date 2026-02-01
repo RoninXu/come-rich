@@ -49,7 +49,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Come Rich (AI个人理财规划师) is an AI-powered personal finance planning application targeting Chinese middle-class users. The project helps users track expenses, receive AI-driven financial coaching, and discover income growth opportunities.
 
-**Current Status**: Phase 2 fully completed - AI chat, financial goal planning, OCR bill import, side hustle recommendations all implemented with full frontend and backend.
+**Current Status**: Phase 3 fully completed - Budget management, investment advice engine, and data export all implemented with full frontend and backend, on top of Phase 1-2 features (AI chat, financial goals, OCR, career recommendations).
 
 ## Technology Stack
 
@@ -94,6 +94,8 @@ come-rich/
 │   ├── finance-planner-ai/              # AI chat, multi-model LLM, OCR import
 │   ├── finance-planner-goal/            # Financial goal planning & tracking
 │   ├── finance-planner-career/          # Side hustle recommendations & income
+│   ├── finance-planner-budget/          # Budget management & AI optimization
+│   ├── finance-planner-investment/      # Risk assessment & investment advice
 │   └── finance-planner-app/              # Main application entry
 │       └── src/main/resources/
 │           ├── application.yml
@@ -123,15 +125,19 @@ come-rich/
 - `finance-planner-ai` - AI chat, multi-model LLM integration (DeepSeek, Moonshot), SSE streaming, OCR bill import
 - `finance-planner-goal` - Financial goal planning, progress tracking, AI savings plans
 - `finance-planner-career` - Side hustle recommendations, user profile, income tracking, AI startup plans
+- `finance-planner-budget` - Budget management per category, budget-vs-actual comparison, AI optimization suggestions
+- `finance-planner-investment` - Risk assessment quiz (8 questions), AI investment track recommendations, asset allocation
 
 ### Frontend Views
 - `auth/` - Login and registration pages
-- `dashboard/` - Home dashboard with summary
-- `accounting/` - Transaction list, form, and OCR import page
-- `analysis/` - Monthly report and health score
+- `dashboard/` - Home dashboard with summary, budget utilization card, risk profile card
+- `accounting/` - Transaction list (with Excel/CSV export), form, and OCR import page
+- `analysis/` - Monthly report (with export) and health score (with export)
 - `ai/` - AI financial advisor chat with SSE streaming
 - `goal/` - Goal list, form, and detail pages with progress charts
 - `career/` - Profile, AI recommendations, plan list, and plan detail pages
+- `budget/` - Budget overview, budget form (batch edit), budget trend chart
+- `investment/` - Investment advice (pie chart, recommendations), risk quiz (8-step), assessment history
 
 ## Development Commands
 

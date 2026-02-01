@@ -2,14 +2,20 @@
   <div class="monthly-report-page" v-loading="loading">
     <div class="page-header">
       <h2>月度报表</h2>
-      <el-date-picker
-        v-model="selectedMonth"
-        type="month"
-        placeholder="选择月份"
-        format="YYYY年MM月"
-        value-format="YYYY-MM"
-        @change="fetchData"
-      />
+      <div style="display: flex; gap: 8px; align-items: center">
+        <el-date-picker
+          v-model="selectedMonth"
+          type="month"
+          placeholder="选择月份"
+          format="YYYY年MM月"
+          value-format="YYYY-MM"
+          @change="fetchData"
+        />
+        <el-button @click="handleExportReport" :loading="exporting">
+          <el-icon><Download /></el-icon>
+          导出报表
+        </el-button>
+      </div>
     </div>
 
     <el-row :gutter="20" class="summary-cards">
@@ -61,11 +67,15 @@ import { ref, reactive, onMounted, nextTick } from 'vue'
 import dayjs from 'dayjs'
 import * as echarts from 'echarts'
 import { ElMessage } from 'element-plus'
+import { Download } from '@element-plus/icons-vue'
 import { getMonthlySummary, getCategoryStats, getDailyStats } from '@/api/analysis'
+import { exportMonthlyReport } from '@/api/export'
+import { downloadBlob } from '@/utils/export'
 import type { MonthlySummary, CategoryStat, DailyStat } from '@/types/analysis'
 
 const selectedMonth = ref(dayjs().format('YYYY-MM'))
 const loading = ref(false)
+const exporting = ref(false)
 
 const summary = reactive({
   totalIncome: 0,
@@ -139,6 +149,20 @@ async function fetchData() {
     ElMessage.error('加载数据失败')
   } finally {
     loading.value = false
+  }
+}
+
+async function handleExportReport() {
+  exporting.value = true
+  try {
+    const [year, month] = selectedMonth.value.split('-').map(Number)
+    const res = await exportMonthlyReport(year, month)
+    downloadBlob(new Blob([res.data]), `月度报表_${selectedMonth.value}.xlsx`)
+    ElMessage.success('导出成功')
+  } catch {
+    ElMessage.error('导出失败')
+  } finally {
+    exporting.value = false
   }
 }
 

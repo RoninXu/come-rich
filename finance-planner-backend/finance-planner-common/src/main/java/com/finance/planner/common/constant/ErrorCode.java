@@ -63,6 +63,18 @@ public enum ErrorCode {
     CAREER_PROFILE_NOT_FOUND(7003, "个人资料不存在"),
     CAREER_RECOMMENDATION_FAILED(7004, "AI推荐生成失败"),
 
+    // Budget Errors (8xxx)
+    BUDGET_NOT_FOUND(8001, "预算记录不存在"),
+    BUDGET_DUPLICATE(8002, "该分类本月预算已存在"),
+    BUDGET_INVALID_MONTH(8003, "无效的月份格式"),
+    BUDGET_NO_PREVIOUS(8004, "上月没有预算记录可复制"),
+
+    // Investment Errors (9xxx)
+    RISK_ASSESSMENT_NOT_FOUND(9001, "风险评估不存在"),
+    RISK_QUIZ_INVALID(9002, "风险评估问卷答案无效"),
+    INVESTMENT_RECOMMENDATION_FAILED(9003, "投资建议生成失败"),
+    INVESTMENT_NO_ASSESSMENT(9004, "请先完成风险评估"),
+
     // Server Errors
     INTERNAL_ERROR(500, "Internal server error"),
     SERVICE_UNAVAILABLE(503, "Service temporarily unavailable");

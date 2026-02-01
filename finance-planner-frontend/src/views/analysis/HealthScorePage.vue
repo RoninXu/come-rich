@@ -1,5 +1,11 @@
 <template>
   <div class="health-score-page" v-loading="loading">
+    <div class="page-header" style="display: flex; justify-content: flex-end; margin-bottom: 16px">
+      <el-button @click="handleExportHealth" :loading="exporting">
+        <el-icon><Download /></el-icon>
+        导出报告
+      </el-button>
+    </div>
     <el-row :gutter="20">
       <el-col :span="12">
         <el-card class="score-card">
@@ -113,12 +119,16 @@
 import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import * as echarts from 'echarts'
 import { ElMessage } from 'element-plus'
+import { Download } from '@element-plus/icons-vue'
 import { getHealthScore } from '@/api/analysis'
+import { exportAnnualReport } from '@/api/export'
+import { downloadBlob } from '@/utils/export'
 import type { HealthScore, ScoreDetail } from '@/types/analysis'
 
 const gaugeRef = ref<HTMLElement>()
 let gaugeChart: echarts.ECharts | null = null
 const loading = ref(false)
+const exporting = ref(false)
 
 const healthScore = reactive({
   totalScore: 0,
@@ -249,6 +259,20 @@ function initGaugeChart() {
   }
 
   gaugeChart.setOption(option)
+}
+
+async function handleExportHealth() {
+  exporting.value = true
+  try {
+    const year = new Date().getFullYear()
+    const res = await exportAnnualReport(year)
+    downloadBlob(new Blob([res.data]), `年度报表_${year}.xlsx`)
+    ElMessage.success('导出成功')
+  } catch {
+    ElMessage.error('导出失败')
+  } finally {
+    exporting.value = false
+  }
 }
 
 function getProgressColor(status?: string): string {

@@ -50,6 +50,24 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '拍照记账', hidden: true }
       },
       {
+        path: 'budget',
+        name: 'BudgetOverview',
+        component: () => import('@/views/budget/BudgetOverviewPage.vue'),
+        meta: { title: '预算管理', icon: 'Coin' }
+      },
+      {
+        path: 'budget/edit',
+        name: 'BudgetForm',
+        component: () => import('@/views/budget/BudgetFormPage.vue'),
+        meta: { title: '设置预算', hidden: true }
+      },
+      {
+        path: 'budget/trend',
+        name: 'BudgetTrend',
+        component: () => import('@/views/budget/BudgetTrendPage.vue'),
+        meta: { title: '预算趋势', hidden: true }
+      },
+      {
         path: 'goals',
         name: 'GoalList',
         component: () => import('@/views/goal/GoalListPage.vue'),
@@ -72,6 +90,24 @@ const routes: RouteRecordRaw[] = [
         name: 'GoalEdit',
         component: () => import('@/views/goal/GoalFormPage.vue'),
         meta: { title: '编辑目标', hidden: true }
+      },
+      {
+        path: 'investment',
+        name: 'InvestmentAdvice',
+        component: () => import('@/views/investment/InvestmentAdvicePage.vue'),
+        meta: { title: '投资建议', icon: 'TrendCharts' }
+      },
+      {
+        path: 'investment/quiz',
+        name: 'RiskQuiz',
+        component: () => import('@/views/investment/RiskQuizPage.vue'),
+        meta: { title: '风险评估', hidden: true }
+      },
+      {
+        path: 'investment/history',
+        name: 'AssessmentHistory',
+        component: () => import('@/views/investment/AssessmentHistoryPage.vue'),
+        meta: { title: '评估历史', hidden: true }
       },
       {
         path: 'career',

@@ -11,6 +11,18 @@
           <el-icon><Camera /></el-icon>
           拍照记账
         </el-button>
+        <el-dropdown @command="handleExport" trigger="click">
+          <el-button>
+            <el-icon><Download /></el-icon>
+            导出
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="excel">导出Excel</el-dropdown-item>
+              <el-dropdown-item command="csv">导出CSV</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </div>
     </div>
 
@@ -97,9 +109,11 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { Plus, Camera } from '@element-plus/icons-vue'
+import { Plus, Camera, Download } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 import { getTransactions, deleteTransaction } from '@/api/transaction'
+import { exportTransactionsExcel, exportTransactionsCsv } from '@/api/export'
+import { downloadBlob } from '@/utils/export'
 import type { Transaction, TransactionQueryParams } from '@/types/accounting'
 
 const router = useRouter()
@@ -238,6 +252,29 @@ function handleSizeChange() {
 
 function handlePageChange() {
   fetchTransactions()
+}
+
+async function handleExport(command: string) {
+  const startDate = filterForm.dateRange?.[0]
+    ? dayjs(filterForm.dateRange[0]).format('YYYY-MM-DD')
+    : dayjs().startOf('month').format('YYYY-MM-DD')
+  const endDate = filterForm.dateRange?.[1]
+    ? dayjs(filterForm.dateRange[1]).format('YYYY-MM-DD')
+    : dayjs().format('YYYY-MM-DD')
+  const type = filterForm.type ?? undefined
+
+  try {
+    if (command === 'excel') {
+      const res = await exportTransactionsExcel(startDate, endDate, type)
+      downloadBlob(new Blob([res.data]), `交易记录_${startDate}_${endDate}.xlsx`)
+    } else {
+      const res = await exportTransactionsCsv(startDate, endDate, type)
+      downloadBlob(new Blob([res.data]), `交易记录_${startDate}_${endDate}.csv`)
+    }
+    ElMessage.success('导出成功')
+  } catch {
+    ElMessage.error('导出失败')
+  }
 }
 </script>
 
