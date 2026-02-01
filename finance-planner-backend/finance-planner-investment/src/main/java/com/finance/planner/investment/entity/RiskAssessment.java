@@ -22,7 +22,7 @@ public class RiskAssessment {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "jsonb")
     private String answers;
 
     @Column(name = "risk_score", nullable = false)
