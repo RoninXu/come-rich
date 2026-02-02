@@ -1,176 +1,164 @@
 <template>
-  <div class="career-plan-detail-page" v-loading="loading">
-    <div class="page-header">
-      <div class="header-left">
-        <el-button link @click="goBack">
-          <el-icon><ArrowLeft /></el-icon>
-          返回
-        </el-button>
-        <h2>{{ plan?.title }}</h2>
-        <el-tag v-if="plan" :type="statusTag(plan.status)" size="small">
-          {{ statusLabel(plan.status) }}
-        </el-tag>
-      </div>
-      <div class="header-actions" v-if="plan">
-        <el-select v-model="plan.status" size="small" @change="handleStatusChange" style="width: 120px">
-          <el-option :value="1" label="探索中" />
-          <el-option :value="2" label="进行中" />
-          <el-option :value="3" label="已暂停" />
-          <el-option :value="4" label="已完成" />
-        </el-select>
-        <el-button type="danger" @click="handleDelete">删除</el-button>
-      </div>
-    </div>
-
-    <template v-if="plan">
-      <el-row :gutter="20">
-        <el-col :span="16">
-          <!-- Income Overview -->
-          <el-card class="income-card">
-            <template #header>
-              <div class="card-header">
-                <span>收入概览</span>
-                <el-button type="primary" size="small" @click="showAddIncome = true">
-                  <el-icon><Plus /></el-icon>
-                  记录收入
-                </el-button>
-              </div>
-            </template>
-            <el-row :gutter="20" class="stats-row">
-              <el-col :span="8">
-                <div class="stat-item">
-                  <div class="stat-label">目标月收入</div>
-                  <div class="stat-value">¥{{ formatNumber(plan.targetMonthlyIncome) }}</div>
-                </div>
-              </el-col>
-              <el-col :span="8">
-                <div class="stat-item">
-                  <div class="stat-label">本月实际收入</div>
-                  <div class="stat-value income">¥{{ formatNumber(plan.actualMonthlyIncome) }}</div>
-                </div>
-              </el-col>
-              <el-col :span="8">
-                <div class="stat-item">
-                  <div class="stat-label">完成度</div>
-                  <div class="stat-value">{{ incomeProgress }}%</div>
-                </div>
-              </el-col>
-            </el-row>
-            <el-progress
-              :percentage="Math.min(100, incomeProgress)"
-              :stroke-width="12"
-              :color="incomeProgress >= 100 ? '#67C23A' : '#409EFF'"
-              style="margin-top: 16px"
+  <div class="career-plan-detail-page">
+    <n-spin :show="loading">
+      <PageHeader :title="plan?.title || '计划详情'" show-back>
+        <template #actions>
+          <template v-if="plan">
+            <n-tag :type="statusTag(plan.status)" size="small">{{ statusLabel(plan.status) }}</n-tag>
+            <n-select
+              v-model:value="plan.status"
+              :options="statusOptions"
+              size="small"
+              style="width: 120px"
+              @update:value="handleStatusChange"
             />
+            <n-button type="error" @click="handleDelete">删除</n-button>
+          </template>
+        </template>
+      </PageHeader>
 
-            <!-- Income Chart -->
-            <div ref="chartRef" style="width: 100%; height: 300px; margin-top: 20px"></div>
-          </el-card>
+      <template v-if="plan">
+        <n-grid :x-gap="20" :y-gap="20" :cols="24">
+          <n-gi :span="16">
+            <!-- Income Overview -->
+            <GlassCard>
+              <template #header>
+                <div class="card-header">
+                  <span>收入概览</span>
+                  <n-button type="primary" size="small" @click="showAddIncome = true">
+                    <template #icon><n-icon><Add /></n-icon></template>
+                    记录收入
+                  </n-button>
+                </div>
+              </template>
+              <n-grid :x-gap="20" :cols="3" class="stats-row">
+                <n-gi>
+                  <div class="stat-item">
+                    <div class="stat-label">目标月收入</div>
+                    <div class="stat-value">¥{{ formatNumber(plan.targetMonthlyIncome) }}</div>
+                  </div>
+                </n-gi>
+                <n-gi>
+                  <div class="stat-item">
+                    <div class="stat-label">本月实际收入</div>
+                    <div class="stat-value income">¥{{ formatNumber(plan.actualMonthlyIncome) }}</div>
+                  </div>
+                </n-gi>
+                <n-gi>
+                  <div class="stat-item">
+                    <div class="stat-label">完成度</div>
+                    <div class="stat-value">{{ incomeProgress }}%</div>
+                  </div>
+                </n-gi>
+              </n-grid>
+              <n-progress
+                type="line"
+                :percentage="Math.min(100, incomeProgress)"
+                :height="12"
+                :border-radius="6"
+                :color="incomeProgress >= 100 ? '#34C759' : '#007AFF'"
+                style="margin-top: 16px"
+              />
 
-          <!-- Income History -->
-          <el-card class="history-card" style="margin-top: 20px">
-            <template #header>
-              <span>收入记录</span>
-            </template>
-            <el-empty v-if="incomeHistory.length === 0" description="暂无收入记录" />
-            <el-table v-else :data="incomeHistory" stripe>
-              <el-table-column prop="incomeDate" label="日期" width="120" />
-              <el-table-column prop="amount" label="金额" width="120">
-                <template #default="{ row }">
-                  <span class="amount-text">+¥{{ Number(row.amount).toFixed(2) }}</span>
-                </template>
-              </el-table-column>
-              <el-table-column prop="description" label="描述">
-                <template #default="{ row }">
-                  {{ row.description || '-' }}
-                </template>
-              </el-table-column>
-            </el-table>
-          </el-card>
-        </el-col>
+              <!-- Income Chart -->
+              <div ref="chartRef" style="width: 100%; height: 300px; margin-top: 20px"></div>
+            </GlassCard>
 
-        <el-col :span="8">
-          <!-- Plan Info -->
-          <el-card class="info-card">
-            <template #header>计划详情</template>
-            <el-descriptions :column="1" border>
-              <el-descriptions-item label="副业类型" v-if="plan.careerType">
-                {{ plan.careerType }}
-              </el-descriptions-item>
-              <el-descriptions-item label="匹配度" v-if="plan.matchScore">
-                <el-progress
-                  :percentage="plan.matchScore"
-                  :stroke-width="6"
-                  :color="scoreColor(plan.matchScore)"
-                  style="width: 100px"
-                />
-              </el-descriptions-item>
-              <el-descriptions-item label="开始日期" v-if="plan.startDate">
-                {{ plan.startDate }}
-              </el-descriptions-item>
-              <el-descriptions-item label="创建时间">
-                {{ formatDate(plan.createdAt) }}
-              </el-descriptions-item>
-              <el-descriptions-item label="描述" v-if="plan.description">
-                {{ plan.description }}
-              </el-descriptions-item>
-            </el-descriptions>
-          </el-card>
+            <!-- Income History -->
+            <GlassCard style="margin-top: 20px">
+              <template #header>收入记录</template>
+              <n-empty v-if="incomeHistory.length === 0" description="暂无收入记录" />
+              <n-data-table v-else :columns="incomeColumns" :data="incomeHistory" :bordered="false" striped />
+            </GlassCard>
+          </n-gi>
 
-          <!-- AI Startup Plan -->
-          <el-card class="ai-card" style="margin-top: 20px">
-            <template #header>
-              <div class="card-header">
-                <span>AI 90天启动计划</span>
-              </div>
-            </template>
-            <el-button
-              type="primary"
-              :loading="aiLoading"
-              @click="handleGenerateStartupPlan"
-              style="width: 100%"
-              v-if="!plan.startupPlan"
-            >
-              生成启动计划
-            </el-button>
-            <div v-if="plan.startupPlan" class="startup-plan-content" v-html="renderMarkdown(plan.startupPlan)"></div>
-          </el-card>
-        </el-col>
-      </el-row>
-    </template>
+          <n-gi :span="8">
+            <!-- Plan Info -->
+            <GlassCard>
+              <template #header>计划详情</template>
+              <n-descriptions :column="1" bordered label-placement="left">
+                <n-descriptions-item label="副业类型" v-if="plan.careerType">
+                  {{ plan.careerType }}
+                </n-descriptions-item>
+                <n-descriptions-item label="匹配度" v-if="plan.matchScore">
+                  <n-progress
+                    :percentage="plan.matchScore"
+                    :height="6"
+                    :border-radius="3"
+                    :color="scoreColor(plan.matchScore)"
+                    style="width: 100px"
+                  />
+                </n-descriptions-item>
+                <n-descriptions-item label="开始日期" v-if="plan.startDate">
+                  {{ plan.startDate }}
+                </n-descriptions-item>
+                <n-descriptions-item label="创建时间">
+                  {{ formatDate(plan.createdAt) }}
+                </n-descriptions-item>
+                <n-descriptions-item label="描述" v-if="plan.description">
+                  {{ plan.description }}
+                </n-descriptions-item>
+              </n-descriptions>
+            </GlassCard>
 
-    <!-- Add Income Dialog -->
-    <el-dialog v-model="showAddIncome" title="记录收入" width="400px">
-      <el-form :model="incomeForm" label-width="80px">
-        <el-form-item label="金额" required>
-          <el-input-number
-            v-model="incomeForm.amount"
-            :min="0.01"
-            :precision="2"
-            :controls="false"
-            style="width: 100%"
-          />
-        </el-form-item>
-        <el-form-item label="日期" required>
-          <el-date-picker v-model="incomeForm.incomeDate" type="date" style="width: 100%" />
-        </el-form-item>
-        <el-form-item label="描述">
-          <el-input v-model="incomeForm.description" placeholder="收入来源描述" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showAddIncome = false">取消</el-button>
-        <el-button type="primary" @click="handleAddIncome" :loading="incomeSubmitting">确定</el-button>
+            <!-- AI Startup Plan -->
+            <GlassCard style="margin-top: 20px">
+              <template #header>AI 90天启动计划</template>
+              <n-button
+                type="primary"
+                :loading="aiLoading"
+                @click="handleGenerateStartupPlan"
+                block
+                v-if="!plan.startupPlan"
+              >
+                生成启动计划
+              </n-button>
+              <div v-if="plan.startupPlan" class="startup-plan-content" v-html="renderMarkdown(plan.startupPlan)"></div>
+            </GlassCard>
+          </n-gi>
+        </n-grid>
       </template>
-    </el-dialog>
+
+      <!-- Add Income Dialog -->
+      <n-modal v-model:show="showAddIncome" preset="card" title="记录收入" style="width: 400px">
+        <n-form :model="incomeForm" label-placement="left" label-width="80">
+          <n-form-item label="金额" required>
+            <n-input-number
+              v-model:value="incomeForm.amount"
+              :min="0.01"
+              :precision="2"
+              :show-button="false"
+              style="width: 100%"
+            />
+          </n-form-item>
+          <n-form-item label="日期" required>
+            <n-date-picker v-model:value="incomeForm.incomeDate" type="date" style="width: 100%" />
+          </n-form-item>
+          <n-form-item label="描述">
+            <n-input v-model:value="incomeForm.description" placeholder="收入来源描述" />
+          </n-form-item>
+        </n-form>
+        <template #footer>
+          <n-space justify="end">
+            <n-button @click="showAddIncome = false">取消</n-button>
+            <n-button type="primary" @click="handleAddIncome" :loading="incomeSubmitting">确定</n-button>
+          </n-space>
+        </template>
+      </n-modal>
+    </n-spin>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { ArrowLeft, Plus } from '@element-plus/icons-vue'
+import {
+  NSpin, NGrid, NGi, NButton, NIcon, NTag, NProgress, NEmpty,
+  NDataTable, NDescriptions, NDescriptionsItem, NSelect,
+  NModal, NForm, NFormItem, NInput, NInputNumber, NDatePicker, NSpace,
+  useMessage, useDialog, type DataTableColumns,
+} from 'naive-ui'
+import { Add } from '@vicons/ionicons5'
 import dayjs from 'dayjs'
 import * as echarts from 'echarts'
 import {
@@ -182,9 +170,13 @@ import {
   generateStartupPlan
 } from '@/api/career'
 import type { CareerPlan, CareerIncome } from '@/types/career'
+import GlassCard from '@/components/common/GlassCard.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const route = useRoute()
 const router = useRouter()
+const message = useMessage()
+const dialog = useDialog()
 
 const loading = ref(false)
 const plan = ref<CareerPlan | null>(null)
@@ -196,9 +188,28 @@ const chartRef = ref<HTMLElement>()
 
 const incomeForm = reactive({
   amount: undefined as number | undefined,
-  incomeDate: new Date() as string | Date,
+  incomeDate: Date.now() as number | null,
   description: ''
 })
+
+const statusOptions = [
+  { label: '探索中', value: 1 },
+  { label: '进行中', value: 2 },
+  { label: '已暂停', value: 3 },
+  { label: '已完成', value: 4 },
+]
+
+const incomeColumns: DataTableColumns<CareerIncome> = [
+  { title: '日期', key: 'incomeDate', width: 120 },
+  {
+    title: '金额', key: 'amount', width: 120,
+    render: (row) => h('span', { style: { color: 'var(--cr-success)', fontWeight: 'bold' } }, `+¥${Number(row.amount).toFixed(2)}`)
+  },
+  {
+    title: '描述', key: 'description',
+    render: (row) => row.description || '-'
+  },
+]
 
 const incomeProgress = computed(() => {
   if (!plan.value?.targetMonthlyIncome || plan.value.targetMonthlyIncome === 0) return 0
@@ -226,8 +237,8 @@ async function fetchPlanData() {
       await nextTick()
       renderChart()
     }
-  } catch (error) {
-    ElMessage.error('加载计划详情失败')
+  } catch {
+    message.error('加载计划详情失败')
   } finally {
     loading.value = false
   }
@@ -237,7 +248,6 @@ function renderChart() {
   if (!chartRef.value || incomeHistory.value.length === 0) return
 
   const chart = echarts.init(chartRef.value)
-  // Group income by month
   const monthlyMap = new Map<string, number>()
   for (const income of incomeHistory.value) {
     const month = dayjs(income.incomeDate).format('YYYY-MM')
@@ -255,12 +265,12 @@ function renderChart() {
     series: [{
       type: 'bar',
       data: values,
-      itemStyle: { color: '#67C23A', borderRadius: [4, 4, 0, 0] },
+      itemStyle: { color: '#34C759', borderRadius: [4, 4, 0, 0] },
       markLine: plan.value?.targetMonthlyIncome ? {
         data: [{
           yAxis: Number(plan.value.targetMonthlyIncome),
           name: '目标',
-          lineStyle: { color: '#E6A23C', type: 'dashed' }
+          lineStyle: { color: '#FF9500', type: 'dashed' }
         }]
       } : undefined
     }]
@@ -269,7 +279,7 @@ function renderChart() {
 
 async function handleAddIncome() {
   if (!incomeForm.amount || !incomeForm.incomeDate) {
-    ElMessage.warning('请填写金额和日期')
+    message.warning('请填写金额和日期')
     return
   }
   incomeSubmitting.value = true
@@ -279,13 +289,13 @@ async function handleAddIncome() {
       description: incomeForm.description || undefined,
       incomeDate: dayjs(incomeForm.incomeDate).format('YYYY-MM-DD')
     })
-    ElMessage.success('收入已记录')
+    message.success('收入已记录')
     showAddIncome.value = false
     incomeForm.amount = undefined
     incomeForm.description = ''
-    incomeForm.incomeDate = new Date()
+    incomeForm.incomeDate = Date.now()
     await fetchPlanData()
-  } catch (error) {
+  } catch {
     // Handled by interceptor
   } finally {
     incomeSubmitting.value = false
@@ -301,8 +311,8 @@ async function handleStatusChange(newStatus: number) {
       description: plan.value.description || undefined,
       targetMonthlyIncome: plan.value.targetMonthlyIncome || undefined
     })
-    ElMessage.success('状态已更新')
-  } catch (error) {
+    message.success('状态已更新')
+  } catch {
     // Handled by interceptor
   }
 }
@@ -314,40 +324,38 @@ async function handleGenerateStartupPlan() {
     if (res.data.code === 200 && plan.value) {
       plan.value.startupPlan = res.data.data
     }
-  } catch (error) {
-    ElMessage.error('AI 计划生成失败')
+  } catch {
+    message.error('AI 计划生成失败')
   } finally {
     aiLoading.value = false
   }
 }
 
-async function handleDelete() {
-  try {
-    await ElMessageBox.confirm('确定要删除这个副业计划吗？相关收入记录也会被删除。', '提示', {
-      type: 'warning'
-    })
-    await deleteCareerPlan(Number(route.params.id))
-    ElMessage.success('计划已删除')
-    router.push('/career/plans')
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      console.error('Delete error:', error)
+function handleDelete() {
+  dialog.warning({
+    title: '提示',
+    content: '确定要删除这个副业计划吗？相关收入记录也会被删除。',
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        await deleteCareerPlan(Number(route.params.id))
+        message.success('计划已删除')
+        router.push('/career/plans')
+      } catch {
+        // Handled by interceptor
+      }
     }
-  }
+  })
 }
 
 function renderMarkdown(text: string): string {
-  // Simple markdown-like rendering for the startup plan
   return text
     .replace(/\n/g, '<br>')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/#{3}\s(.*?)(?:<br>|$)/g, '<h4>$1</h4>')
     .replace(/#{2}\s(.*?)(?:<br>|$)/g, '<h3>$1</h3>')
     .replace(/#{1}\s(.*?)(?:<br>|$)/g, '<h3>$1</h3>')
-}
-
-function goBack() {
-  router.push('/career/plans')
 }
 
 function formatNumber(value: number | null | undefined): string {
@@ -364,40 +372,23 @@ function statusLabel(status: number): string {
   return map[status] || '未知'
 }
 
-function statusTag(status: number): '' | 'success' | 'warning' | 'danger' | 'info' {
-  const map: Record<number, '' | 'success' | 'warning' | 'info'> = { 1: 'info', 2: '', 3: 'warning', 4: 'success' }
-  return map[status] || ''
+function statusTag(status: number): 'default' | 'success' | 'warning' | 'error' | 'info' {
+  const map: Record<number, 'info' | 'default' | 'warning' | 'success'> = { 1: 'info', 2: 'default', 3: 'warning', 4: 'success' }
+  return map[status] || 'default'
 }
 
 function scoreColor(score: number | null): string {
-  if (!score) return '#909399'
-  if (score >= 80) return '#67C23A'
-  if (score >= 60) return '#E6A23C'
-  return '#F56C6C'
+  if (!score) return '#86868B'
+  if (score >= 80) return '#34C759'
+  if (score >= 60) return '#FF9500'
+  return '#FF3B30'
 }
 </script>
 
 <style scoped lang="scss">
 .career-plan-detail-page {
-  .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      h2 { margin: 0; }
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-  }
+  max-width: 1200px;
+  margin: 0 auto;
 
   .card-header {
     display: flex;
@@ -411,44 +402,37 @@ function scoreColor(score: number | null): string {
 
       .stat-label {
         font-size: 13px;
-        color: #999;
+        color: var(--cr-text-tertiary);
         margin-bottom: 4px;
       }
 
       .stat-value {
         font-size: 20px;
         font-weight: bold;
-        color: #333;
+        color: var(--cr-text-primary);
 
-        &.income {
-          color: #67C23A;
-        }
+        &.income { color: var(--cr-success); }
       }
     }
-  }
-
-  .amount-text {
-    color: #67C23A;
-    font-weight: bold;
   }
 
   .startup-plan-content {
     font-size: 14px;
     line-height: 1.8;
-    color: #333;
+    color: var(--cr-text-primary);
 
     :deep(h3) {
       margin: 16px 0 8px;
-      color: #409EFF;
+      color: var(--cr-primary);
     }
 
     :deep(h4) {
       margin: 12px 0 6px;
-      color: #333;
+      color: var(--cr-text-primary);
     }
 
     :deep(strong) {
-      color: #333;
+      color: var(--cr-text-primary);
     }
   }
 }

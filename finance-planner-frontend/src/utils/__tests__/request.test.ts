@@ -1,13 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// Mock element-plus before any imports that use it
-vi.mock('element-plus', () => ({
-  ElMessage: {
-    error: vi.fn(),
-    success: vi.fn(),
-    warning: vi.fn(),
-    info: vi.fn()
-  }
+// Mock message object shared across test
+const mockMessage = {
+  error: vi.fn(),
+  success: vi.fn(),
+  warning: vi.fn(),
+  info: vi.fn()
+}
+
+// Mock naive-ui before any imports that use it
+vi.mock('naive-ui', () => ({
+  createDiscreteApi: vi.fn(() => ({
+    message: mockMessage
+  }))
 }))
 
 // Mock router
@@ -25,7 +30,6 @@ vi.mock('../auth', () => ({
 
 import { getToken, clearAuth } from '../auth'
 import router from '@/router'
-import { ElMessage } from 'element-plus'
 
 describe('request utils', () => {
   beforeEach(() => {
@@ -104,7 +108,7 @@ describe('request utils', () => {
     const mockResponse = { data: { code: 500, message: 'Internal error' } }
 
     await expect(Promise.resolve().then(() => fulfilled(mockResponse))).rejects.toThrow('Internal error')
-    expect(ElMessage.error).toHaveBeenCalledWith('Internal error')
+    expect(mockMessage.error).toHaveBeenCalledWith('Internal error')
   })
 
   it('response interceptor handles 401 by clearing auth and redirecting', async () => {
@@ -132,6 +136,6 @@ describe('request utils', () => {
     const error = { message: 'Network Error', response: undefined }
 
     await expect(Promise.resolve().then(() => rejected(error))).rejects.toEqual(error)
-    expect(ElMessage.error).toHaveBeenCalledWith('Network Error')
+    expect(mockMessage.error).toHaveBeenCalledWith('Network Error')
   })
 })

@@ -1,0 +1,156 @@
+import type { GlobalThemeOverrides } from 'naive-ui'
+import { colors, radius, typography } from './tokens'
+
+export const lightThemeOverrides: GlobalThemeOverrides = {
+  common: {
+    primaryColor: colors.light.primary,
+    primaryColorHover: colors.light.primaryHover,
+    primaryColorPressed: colors.light.primaryPressed,
+    primaryColorSuppl: colors.light.primary,
+    successColor: colors.light.success,
+    warningColor: colors.light.warning,
+    errorColor: colors.light.error,
+    infoColor: colors.light.info,
+    textColorBase: colors.light.textPrimary,
+    textColor1: colors.light.textPrimary,
+    textColor2: colors.light.textSecondary,
+    textColor3: colors.light.textTertiary,
+    bodyColor: colors.light.bgPage,
+    cardColor: colors.light.bgCardSolid,
+    modalColor: colors.light.bgCardSolid,
+    popoverColor: colors.light.bgCardSolid,
+    borderColor: colors.light.border,
+    dividerColor: colors.light.divider,
+    inputColor: colors.light.bgInput,
+    borderRadius: radius.md,
+    borderRadiusSmall: radius.sm,
+    fontFamily: typography.fontFamily,
+    fontSize: typography.fontSizeMd,
+    fontSizeMini: typography.fontSizeXs,
+    fontSizeTiny: typography.fontSizeSm,
+    fontSizeSmall: typography.fontSizeSm,
+    fontSizeMedium: typography.fontSizeMd,
+    fontSizeLarge: typography.fontSizeLg,
+    fontSizeHuge: typography.fontSizeXl,
+    heightMedium: '36px',
+    heightSmall: '30px',
+    heightLarge: '42px',
+  },
+  Card: {
+    borderRadius: radius.xl,
+    paddingMedium: '20px',
+    paddingLarge: '24px',
+  },
+  Button: {
+    borderRadiusMedium: radius.md,
+    borderRadiusSmall: radius.sm,
+    borderRadiusLarge: radius.md,
+    heightMedium: '36px',
+    heightLarge: '42px',
+    fontWeightStrong: String(typography.fontWeightSemibold),
+  },
+  Input: {
+    borderRadius: radius.md,
+    heightMedium: '36px',
+    heightLarge: '42px',
+  },
+  Menu: {
+    borderRadius: radius.md,
+    itemHeight: '40px',
+  },
+  DataTable: {
+    borderRadius: radius.xl,
+  },
+  Tag: {
+    borderRadius: radius.sm,
+  },
+  Tabs: {
+    tabBorderRadius: radius.md,
+  },
+  Dialog: {
+    borderRadius: radius.xl,
+  },
+  Pagination: {
+    itemBorderRadius: radius.sm,
+  },
+  Progress: {
+    borderRadius: radius.full,
+  },
+}
+
+export const darkThemeOverrides: GlobalThemeOverrides = {
+  common: {
+    primaryColor: colors.dark.primary,
+    primaryColorHover: colors.dark.primaryHover,
+    primaryColorPressed: colors.dark.primaryPressed,
+    primaryColorSuppl: colors.dark.primary,
+    successColor: colors.dark.success,
+    warningColor: colors.dark.warning,
+    errorColor: colors.dark.error,
+    infoColor: colors.dark.info,
+    textColorBase: colors.dark.textPrimary,
+    textColor1: colors.dark.textPrimary,
+    textColor2: colors.dark.textSecondary,
+    textColor3: colors.dark.textTertiary,
+    bodyColor: colors.dark.bgPage,
+    cardColor: colors.dark.bgCardSolid,
+    modalColor: colors.dark.bgCardSolid,
+    popoverColor: colors.dark.bgCardSolid,
+    borderColor: colors.dark.border,
+    dividerColor: colors.dark.divider,
+    inputColor: colors.dark.bgInput,
+    borderRadius: radius.md,
+    borderRadiusSmall: radius.sm,
+    fontFamily: typography.fontFamily,
+    fontSize: typography.fontSizeMd,
+    fontSizeMini: typography.fontSizeXs,
+    fontSizeTiny: typography.fontSizeSm,
+    fontSizeSmall: typography.fontSizeSm,
+    fontSizeMedium: typography.fontSizeMd,
+    fontSizeLarge: typography.fontSizeLg,
+    fontSizeHuge: typography.fontSizeXl,
+    heightMedium: '36px',
+    heightSmall: '30px',
+    heightLarge: '42px',
+  },
+  Card: {
+    borderRadius: radius.xl,
+    paddingMedium: '20px',
+    paddingLarge: '24px',
+  },
+  Button: {
+    borderRadiusMedium: radius.md,
+    borderRadiusSmall: radius.sm,
+    borderRadiusLarge: radius.md,
+    heightMedium: '36px',
+    heightLarge: '42px',
+    fontWeightStrong: String(typography.fontWeightSemibold),
+  },
+  Input: {
+    borderRadius: radius.md,
+    heightMedium: '36px',
+    heightLarge: '42px',
+  },
+  Menu: {
+    borderRadius: radius.md,
+    itemHeight: '40px',
+  },
+  DataTable: {
+    borderRadius: radius.xl,
+  },
+  Tag: {
+    borderRadius: radius.sm,
+  },
+  Tabs: {
+    tabBorderRadius: radius.md,
+  },
+  Dialog: {
+    borderRadius: radius.xl,
+  },
+  Pagination: {
+    itemBorderRadius: radius.sm,
+  },
+  Progress: {
+    borderRadius: radius.full,
+  },
+}

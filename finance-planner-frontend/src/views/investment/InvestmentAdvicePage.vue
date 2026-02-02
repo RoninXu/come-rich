@@ -1,88 +1,90 @@
 <template>
-  <div class="investment-advice-page" v-loading="loading">
-    <div class="page-header">
-      <h2>投资建议</h2>
-      <div style="display: flex; gap: 8px">
-        <el-button @click="router.push('/investment/quiz')">
-          {{ hasAssessment ? '重新评估' : '开始评估' }}
-        </el-button>
-        <el-button v-if="hasAssessment" type="primary" @click="handleGenerate" :loading="generating">
-          生成AI建议
-        </el-button>
-      </div>
-    </div>
+  <div class="investment-advice-page">
+    <n-spin :show="loading">
+      <PageHeader title="投资建议">
+        <template #actions>
+          <n-button @click="router.push('/investment/quiz')">
+            {{ hasAssessment ? '重新评估' : '开始评估' }}
+          </n-button>
+          <n-button v-if="hasAssessment" type="primary" @click="handleGenerate" :loading="generating">
+            生成AI建议
+          </n-button>
+        </template>
+      </PageHeader>
 
-    <!-- No assessment -->
-    <el-card v-if="!hasAssessment && !loading">
-      <el-empty description="您还没有完成风险评估">
-        <el-button type="primary" @click="router.push('/investment/quiz')">开始风险评估</el-button>
-      </el-empty>
-    </el-card>
+      <!-- No assessment -->
+      <GlassCard v-if="!hasAssessment && !loading">
+        <n-empty description="您还没有完成风险评估">
+          <template #extra>
+            <n-button type="primary" @click="router.push('/investment/quiz')">开始风险评估</n-button>
+          </template>
+        </n-empty>
+      </GlassCard>
 
-    <!-- Risk profile card -->
-    <el-card v-if="hasAssessment" class="profile-card">
-      <template #header>我的风险画像</template>
-      <div class="profile-content">
-        <div class="score-badge" :class="riskClass">
-          <span class="score">{{ assessment!.riskScore }}</span>
-          <span class="max">/32</span>
-        </div>
-        <div class="profile-info">
-          <div class="risk-level" :class="riskClass">{{ assessment!.riskLevel }}</div>
-          <div class="assessment-date">评估日期：{{ assessment!.assessmentDate }}</div>
-        </div>
-      </div>
-    </el-card>
-
-    <el-row v-if="recommendations.length > 0" :gutter="20" style="margin-top: 16px">
-      <el-col :span="10">
-        <el-card>
-          <template #header>资产配置</template>
-          <div ref="pieChartRef" class="chart-container"></div>
-        </el-card>
-      </el-col>
-      <el-col :span="14">
-        <el-card>
-          <template #header>投资方向推荐</template>
-          <div class="recommendation-list">
-            <el-card
-              v-for="rec in recommendations"
-              :key="rec.id"
-              shadow="hover"
-              class="rec-card"
-            >
-              <div class="rec-header">
-                <span class="track-name">{{ rec.trackName }}</span>
-                <el-tag size="small">{{ rec.allocationPercentage }}%</el-tag>
-              </div>
-              <p v-if="rec.description" class="rec-desc">{{ rec.description }}</p>
-              <p v-if="rec.rationale" class="rec-rationale">{{ rec.rationale }}</p>
-              <div class="rec-meta">
-                <span v-if="rec.riskLevel">风险：{{ rec.riskLevel }}</span>
-                <span v-if="rec.expectedAnnualReturn">预期年化：{{ rec.expectedAnnualReturn }}</span>
-              </div>
-            </el-card>
+      <!-- Risk profile card -->
+      <GlassCard v-if="hasAssessment" class="profile-card">
+        <template #header>我的风险画像</template>
+        <div class="profile-content">
+          <div class="score-badge" :class="riskClass">
+            <span class="score">{{ assessment!.riskScore }}</span>
+            <span class="max">/32</span>
           </div>
-        </el-card>
-      </el-col>
-    </el-row>
+          <div class="profile-info">
+            <div class="risk-level" :class="riskClass">{{ assessment!.riskLevel }}</div>
+            <div class="assessment-date">评估日期：{{ assessment!.assessmentDate }}</div>
+          </div>
+        </div>
+      </GlassCard>
 
-    <!-- Disclaimers -->
-    <el-alert
-      v-if="recommendations.length > 0"
-      title="投资有风险，入市需谨慎。以上建议仅供参考，不构成具体投资建议。本平台不推荐具体金融产品，仅提供投资类别方向参考。"
-      type="warning"
-      :closable="false"
-      show-icon
-      style="margin-top: 16px"
-    />
+      <n-grid v-if="recommendations.length > 0" :x-gap="20" :y-gap="16" :cols="24" style="margin-top: 16px">
+        <n-gi :span="10">
+          <GlassCard>
+            <template #header>资产配置</template>
+            <div ref="pieChartRef" class="chart-container"></div>
+          </GlassCard>
+        </n-gi>
+        <n-gi :span="14">
+          <GlassCard>
+            <template #header>投资方向推荐</template>
+            <div class="recommendation-list">
+              <GlassCard
+                v-for="rec in recommendations"
+                :key="rec.id"
+                hoverable
+                class="rec-card"
+              >
+                <div class="rec-header">
+                  <span class="track-name">{{ rec.trackName }}</span>
+                  <n-tag size="small">{{ rec.allocationPercentage }}%</n-tag>
+                </div>
+                <p v-if="rec.description" class="rec-desc">{{ rec.description }}</p>
+                <p v-if="rec.rationale" class="rec-rationale">{{ rec.rationale }}</p>
+                <div class="rec-meta">
+                  <span v-if="rec.riskLevel">风险：{{ rec.riskLevel }}</span>
+                  <span v-if="rec.expectedAnnualReturn">预期年化：{{ rec.expectedAnnualReturn }}</span>
+                </div>
+              </GlassCard>
+            </div>
+          </GlassCard>
+        </n-gi>
+      </n-grid>
+
+      <!-- Disclaimers -->
+      <n-alert
+        v-if="recommendations.length > 0"
+        title="投资有风险，入市需谨慎。以上建议仅供参考，不构成具体投资建议。本平台不推荐具体金融产品，仅提供投资类别方向参考。"
+        type="warning"
+        :closable="false"
+        style="margin-top: 16px"
+      />
+    </n-spin>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { useMessage } from 'naive-ui'
 import * as echarts from 'echarts'
 import {
   getLatestAssessment,
@@ -91,8 +93,11 @@ import {
   generateRecommendations
 } from '@/api/investment'
 import type { RiskAssessment, InvestmentRecommendation } from '@/types/investment'
+import GlassCard from '@/components/common/GlassCard.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const router = useRouter()
+const message = useMessage()
 const loading = ref(false)
 const generating = ref(false)
 const assessment = ref<RiskAssessment | null>(null)
@@ -153,11 +158,11 @@ async function handleGenerate() {
     const res = await generateRecommendations()
     if (res.data.code === 200 && res.data.data) {
       recommendations.value = res.data.data.recommendations || []
-      ElMessage.success('投资建议已生成')
+      message.success('投资建议已生成')
       nextTick(() => updatePieChart())
     }
   } catch {
-    ElMessage.error('生成建议失败')
+    message.error('生成建议失败')
   } finally {
     generating.value = false
   }
@@ -206,14 +211,6 @@ async function updatePieChart() {
 
 <style scoped lang="scss">
 .investment-advice-page {
-  .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    h2 { margin: 0; }
-  }
-
   .profile-card {
     .profile-content {
       display: flex;
@@ -230,9 +227,9 @@ async function updatePieChart() {
         justify-content: center;
         color: #fff;
 
-        &.conservative { background: linear-gradient(135deg, #67C23A, #43A047); }
-        &.moderate { background: linear-gradient(135deg, #E6A23C, #F57C00); }
-        &.aggressive { background: linear-gradient(135deg, #F56C6C, #D32F2F); }
+        &.conservative { background: linear-gradient(135deg, var(--cr-success), #43A047); }
+        &.moderate { background: linear-gradient(135deg, var(--cr-warning), #F57C00); }
+        &.aggressive { background: linear-gradient(135deg, var(--cr-error), #D32F2F); }
 
         .score { font-size: 24px; font-weight: bold; }
         .max { font-size: 12px; opacity: 0.8; }
@@ -244,12 +241,12 @@ async function updatePieChart() {
           font-weight: bold;
           margin-bottom: 4px;
 
-          &.conservative { color: #67C23A; }
-          &.moderate { color: #E6A23C; }
-          &.aggressive { color: #F56C6C; }
+          &.conservative { color: var(--cr-success); }
+          &.moderate { color: var(--cr-warning); }
+          &.aggressive { color: var(--cr-error); }
         }
 
-        .assessment-date { color: #999; font-size: 14px; }
+        .assessment-date { color: var(--cr-text-secondary); font-size: 14px; }
       }
     }
   }
@@ -266,16 +263,16 @@ async function updatePieChart() {
         align-items: center;
         margin-bottom: 8px;
 
-        .track-name { font-size: 16px; font-weight: bold; }
+        .track-name { font-size: 16px; font-weight: bold; color: var(--cr-text-primary); }
       }
 
-      .rec-desc { color: #666; font-size: 14px; margin: 4px 0; }
-      .rec-rationale { color: #999; font-size: 13px; margin: 4px 0; }
+      .rec-desc { color: var(--cr-text-secondary); font-size: 14px; margin: 4px 0; }
+      .rec-rationale { color: var(--cr-text-secondary); font-size: 13px; margin: 4px 0; opacity: 0.8; }
 
       .rec-meta {
         display: flex;
         gap: 16px;
-        color: #999;
+        color: var(--cr-text-secondary);
         font-size: 12px;
         margin-top: 8px;
       }

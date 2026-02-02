@@ -1,0 +1,65 @@
+// macOS-style transition utilities.
+
+// Spring-like easing curves
+$ease-spring: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+$ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+$ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+// Duration tokens
+$duration-fast: 150ms;
+$duration-normal: 250ms;
+$duration-slow: 350ms;
+
+// Vue transition classes — usage: <transition name="cr-fade">
+.cr-fade-enter-active,
+.cr-fade-leave-active {
+  transition: opacity $duration-normal $ease-in-out;
+}
+.cr-fade-enter-from,
+.cr-fade-leave-to {
+  opacity: 0;
+}
+
+.cr-slide-up-enter-active,
+.cr-slide-up-leave-active {
+  transition: transform $duration-normal $ease-spring,
+              opacity $duration-normal $ease-in-out;
+}
+.cr-slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.cr-slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.cr-scale-enter-active,
+.cr-scale-leave-active {
+  transition: transform $duration-normal $ease-spring,
+              opacity $duration-normal $ease-in-out;
+}
+.cr-scale-enter-from {
+  opacity: 0;
+  transform: scale(0.95);
+}
+.cr-scale-leave-to {
+  opacity: 0;
+  transform: scale(0.98);
+}
+
+// Page transition
+.cr-page-enter-active {
+  transition: opacity $duration-slow $ease-out-expo,
+              transform $duration-slow $ease-out-expo;
+}
+.cr-page-leave-active {
+  transition: opacity $duration-fast $ease-in-out;
+}
+.cr-page-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.cr-page-leave-to {
+  opacity: 0;
+}

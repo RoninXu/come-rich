@@ -1,103 +1,174 @@
 <template>
-  <el-container class="app-layout">
-    <el-aside width="200px" class="app-sidebar">
-      <div class="logo">
-        <span class="logo-text">Come Rich</span>
+  <n-layout class="app-layout" has-sider>
+    <n-layout-sider
+      bordered
+      :width="220"
+      :collapsed-width="0"
+      collapse-mode="width"
+      class="app-sidebar"
+      content-class="app-sidebar__content"
+    >
+      <div class="app-sidebar__logo">
+        <span class="app-sidebar__logo-text">Come Rich</span>
+        <span class="app-sidebar__logo-sub">AI</span>
       </div>
-      <el-menu
-        :default-active="activeMenu"
-        router
-        background-color="#304156"
-        text-color="#bfcbd9"
-        active-text-color="#409EFF"
-      >
-        <el-menu-item index="/dashboard">
-          <el-icon><HomeFilled /></el-icon>
-          <span>首页</span>
-        </el-menu-item>
-        <el-menu-item index="/accounting">
-          <el-icon><Wallet /></el-icon>
-          <span>记账</span>
-        </el-menu-item>
-        <el-menu-item index="/budget">
-          <el-icon><Coin /></el-icon>
-          <span>预算管理</span>
-        </el-menu-item>
-        <el-menu-item index="/goals">
-          <el-icon><Flag /></el-icon>
-          <span>理财目标</span>
-        </el-menu-item>
-        <el-sub-menu index="investment">
-          <template #title>
-            <el-icon><TrendCharts /></el-icon>
-            <span>投资建议</span>
-          </template>
-          <el-menu-item index="/investment">资产配置</el-menu-item>
-          <el-menu-item index="/investment/quiz">风险评估</el-menu-item>
-          <el-menu-item index="/investment/history">评估历史</el-menu-item>
-        </el-sub-menu>
-        <el-sub-menu index="career">
-          <template #title>
-            <el-icon><Opportunity /></el-icon>
-            <span>副业规划</span>
-          </template>
-          <el-menu-item index="/career">AI推荐</el-menu-item>
-          <el-menu-item index="/career/plans">我的计划</el-menu-item>
-          <el-menu-item index="/career/profile">个人资料</el-menu-item>
-        </el-sub-menu>
-        <el-menu-item index="/ai/chat">
-          <el-icon><ChatDotRound /></el-icon>
-          <span>AI 顾问</span>
-        </el-menu-item>
-        <el-sub-menu index="analysis">
-          <template #title>
-            <el-icon><DataLine /></el-icon>
-            <span>统计分析</span>
-          </template>
-          <el-menu-item index="/analysis/monthly">月度报表</el-menu-item>
-          <el-menu-item index="/analysis/health">财务健康</el-menu-item>
-        </el-sub-menu>
-      </el-menu>
-    </el-aside>
+      <n-menu
+        :value="activeMenu"
+        :options="menuOptions"
+        :root-indent="20"
+        :indent="16"
+        @update:value="handleMenuSelect"
+      />
+    </n-layout-sider>
 
-    <el-container>
-      <el-header class="app-header">
-        <div class="header-right">
-          <el-dropdown @command="handleCommand">
-            <span class="user-info">
-              <el-avatar :size="32" icon="UserFilled" />
-              <span class="username">{{ userStore.username }}</span>
-            </span>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="logout">退出登录</el-dropdown-item>
-              </el-dropdown-menu>
+    <n-layout>
+      <n-layout-header bordered class="app-header">
+        <div class="app-header__right">
+          <n-button quaternary circle size="small" @click="toggleTheme">
+            <template #icon>
+              <n-icon :size="18">
+                <Moon v-if="!isDark" />
+                <Sunny v-else />
+              </n-icon>
             </template>
-          </el-dropdown>
-        </div>
-      </el-header>
+          </n-button>
 
-      <el-main class="app-main">
-        <router-view />
-      </el-main>
-    </el-container>
-  </el-container>
+          <n-dropdown :options="userMenuOptions" @select="handleUserMenuSelect">
+            <div class="app-header__user">
+              <n-avatar :size="32" round>
+                <n-icon><Person /></n-icon>
+              </n-avatar>
+              <span class="app-header__username">{{ userStore.username }}</span>
+            </div>
+          </n-dropdown>
+        </div>
+      </n-layout-header>
+
+      <n-layout-content class="app-main">
+        <router-view v-slot="{ Component }">
+          <transition name="cr-page" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
+      </n-layout-content>
+    </n-layout>
+  </n-layout>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import {
+  NLayout,
+  NLayoutSider,
+  NLayoutHeader,
+  NLayoutContent,
+  NMenu,
+  NDropdown,
+  NAvatar,
+  NButton,
+  NIcon,
+} from 'naive-ui'
+import type { MenuOption } from 'naive-ui'
+import {
+  Home,
+  Wallet,
+  Cash,
+  Flag,
+  TrendingUp,
+  Rocket,
+  Chatbubbles,
+  StatsChart,
+  Moon,
+  Sunny,
+  Person,
+  LogOut,
+} from '@vicons/ionicons5'
 import { useUserStore } from '@/stores/user'
-import { HomeFilled, Wallet, DataLine, ChatDotRound, Flag, Opportunity, Coin, TrendCharts } from '@element-plus/icons-vue'
+import { useTheme } from '@/composables/useTheme'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const { isDark, toggleTheme } = useTheme()
 
 const activeMenu = computed(() => route.path)
 
-function handleCommand(command: string) {
-  if (command === 'logout') {
+function renderIcon(icon: any) {
+  return () => h(NIcon, null, { default: () => h(icon) })
+}
+
+const menuOptions: MenuOption[] = [
+  {
+    label: '首页',
+    key: '/dashboard',
+    icon: renderIcon(Home),
+  },
+  {
+    label: '记账',
+    key: '/accounting',
+    icon: renderIcon(Wallet),
+  },
+  {
+    label: '预算管理',
+    key: '/budget',
+    icon: renderIcon(Cash),
+  },
+  {
+    label: '理财目标',
+    key: '/goals',
+    icon: renderIcon(Flag),
+  },
+  {
+    label: '投资建议',
+    key: 'investment',
+    icon: renderIcon(TrendingUp),
+    children: [
+      { label: '资产配置', key: '/investment' },
+      { label: '风险评估', key: '/investment/quiz' },
+      { label: '评估历史', key: '/investment/history' },
+    ],
+  },
+  {
+    label: '副业规划',
+    key: 'career',
+    icon: renderIcon(Rocket),
+    children: [
+      { label: 'AI推荐', key: '/career' },
+      { label: '我的计划', key: '/career/plans' },
+      { label: '个人资料', key: '/career/profile' },
+    ],
+  },
+  {
+    label: 'AI 顾问',
+    key: '/ai/chat',
+    icon: renderIcon(Chatbubbles),
+  },
+  {
+    label: '统计分析',
+    key: 'analysis',
+    icon: renderIcon(StatsChart),
+    children: [
+      { label: '月度报表', key: '/analysis/monthly' },
+      { label: '财务健康', key: '/analysis/health' },
+    ],
+  },
+]
+
+function handleMenuSelect(key: string) {
+  router.push(key)
+}
+
+const userMenuOptions = [
+  {
+    label: '退出登录',
+    key: 'logout',
+    icon: renderIcon(LogOut),
+  },
+]
+
+function handleUserMenuSelect(key: string) {
+  if (key === 'logout') {
     userStore.logout()
     router.push('/login')
   }
@@ -110,51 +181,82 @@ function handleCommand(command: string) {
 }
 
 .app-sidebar {
-  background-color: #304156;
+  background: var(--cr-bg-sidebar) !important;
+  backdrop-filter: blur(var(--cr-blur-lg));
+  -webkit-backdrop-filter: blur(var(--cr-blur-lg));
 
-  .logo {
+  &__content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__logo {
     height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #263445;
-
-    .logo-text {
-      color: #fff;
-      font-size: 20px;
-      font-weight: bold;
-    }
+    gap: 6px;
+    border-bottom: 1px solid var(--cr-border-light);
   }
 
-  .el-menu {
-    border-right: none;
+  &__logo-text {
+    color: var(--cr-text-primary);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  &__logo-sub {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--cr-primary);
+    background: rgba(0, 122, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    line-height: 1;
   }
 }
 
 .app-header {
-  background-color: #fff;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   padding: 0 20px;
+  background: var(--cr-bg-header) !important;
+  backdrop-filter: blur(var(--cr-blur-md));
+  -webkit-backdrop-filter: blur(var(--cr-blur-md));
 
-  .header-right {
-    .user-info {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
+  &__right {
+    display: flex;
+    align-items: center;
+    gap: var(--cr-space-md);
+  }
 
-      .username {
-        margin-left: 8px;
-        color: #333;
-      }
+  &__user {
+    display: flex;
+    align-items: center;
+    gap: var(--cr-space-sm);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: var(--cr-radius-md);
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: var(--cr-bg-hover);
     }
+  }
+
+  &__username {
+    color: var(--cr-text-primary);
+    font-size: 14px;
+    font-weight: 500;
   }
 }
 
 .app-main {
-  background-color: #f5f7fa;
-  padding: 20px;
+  padding: var(--cr-space-xxl);
+  background: var(--cr-bg-page) !important;
+  overflow-y: auto;
 }
 </style>

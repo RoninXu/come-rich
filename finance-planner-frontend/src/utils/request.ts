@@ -1,8 +1,10 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
-import { ElMessage } from 'element-plus'
+import axios, { AxiosInstance, AxiosResponse } from 'axios'
+import { createDiscreteApi } from 'naive-ui'
 import { getToken, clearAuth } from './auth'
 import router from '@/router'
 import type { ApiResponse } from '@/types/api'
+
+const { message } = createDiscreteApi(['message'])
 
 const request: AxiosInstance = axios.create({
   baseURL: '/api',
@@ -32,7 +34,7 @@ request.interceptors.response.use(
     const res = response.data
 
     if (res.code !== 200) {
-      ElMessage.error(res.message || 'Request failed')
+      message.error(res.message || 'Request failed')
 
       // Handle specific error codes
       if (res.code === 401 || res.code === 1005 || res.code === 1006) {
@@ -54,8 +56,8 @@ request.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    const message = error.response?.data?.message || error.message || 'Network error'
-    ElMessage.error(message)
+    const msg = error.response?.data?.message || error.message || 'Network error'
+    message.error(msg)
 
     return Promise.reject(error)
   }
