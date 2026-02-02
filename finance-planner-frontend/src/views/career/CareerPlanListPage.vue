@@ -1,29 +1,32 @@
 <template>
   <div class="career-plan-list-page">
-    <div class="page-header">
-      <h2>我的副业计划</h2>
-      <el-button type="primary" @click="goToRecommendations">
-        <el-icon><Plus /></el-icon>
-        获取 AI 推荐
-      </el-button>
-    </div>
+    <n-spin :show="loading">
+      <PageHeader title="我的副业计划">
+        <template #actions>
+          <n-button type="primary" @click="goToRecommendations">
+            <template #icon><n-icon><Add /></n-icon></template>
+            获取 AI 推荐
+          </n-button>
+        </template>
+      </PageHeader>
 
-    <div v-loading="loading">
-      <el-empty v-if="!loading && plans.length === 0" description="暂无副业计划">
-        <el-button type="primary" @click="goToRecommendations">去获取推荐</el-button>
-      </el-empty>
+      <n-empty v-if="!loading && plans.length === 0" description="暂无副业计划">
+        <template #extra>
+          <n-button type="primary" @click="goToRecommendations">去获取推荐</n-button>
+        </template>
+      </n-empty>
 
-      <el-row :gutter="20">
-        <el-col :span="8" v-for="plan in plans" :key="plan.id">
-          <el-card class="plan-card" shadow="hover" @click="goToDetail(plan.id)">
+      <n-grid :x-gap="20" :y-gap="20" :cols="3">
+        <n-gi v-for="plan in plans" :key="plan.id">
+          <GlassCard hoverable class="plan-card" @click="goToDetail(plan.id)">
             <div class="plan-header">
               <div class="plan-title">
-                <el-tag v-if="plan.careerType" size="small" type="info">{{ plan.careerType }}</el-tag>
+                <n-tag v-if="plan.careerType" size="small" type="info">{{ plan.careerType }}</n-tag>
                 <span class="title-text">{{ plan.title }}</span>
               </div>
-              <el-tag :type="statusTag(plan.status)" size="small">
+              <n-tag :type="statusTag(plan.status)" size="small">
                 {{ statusLabel(plan.status) }}
-              </el-tag>
+              </n-tag>
             </div>
 
             <p class="plan-description" v-if="plan.description">{{ plan.description }}</p>
@@ -31,10 +34,10 @@
             <div class="plan-stats">
               <div class="stat-item" v-if="plan.matchScore">
                 <span class="stat-label">匹配度</span>
-                <el-progress
+                <n-progress
                   :percentage="plan.matchScore"
-                  :stroke-width="6"
-                  :show-text="true"
+                  :height="6"
+                  :border-radius="3"
                   :color="scoreColor(plan.matchScore)"
                   style="width: 120px"
                 />
@@ -49,28 +52,29 @@
               </div>
             </div>
 
-            <div class="plan-footer">
-              <span v-if="plan.startDate" class="start-date">
-                <el-icon><Calendar /></el-icon>
-                {{ plan.startDate }}
-              </span>
+            <div class="plan-footer" v-if="plan.startDate">
+              <n-icon><Calendar /></n-icon>
+              <span>{{ plan.startDate }}</span>
             </div>
-          </el-card>
-        </el-col>
-      </el-row>
-    </div>
+          </GlassCard>
+        </n-gi>
+      </n-grid>
+    </n-spin>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { Plus, Calendar } from '@element-plus/icons-vue'
+import { NSpin, NGrid, NGi, NButton, NIcon, NTag, NProgress, NEmpty, useMessage } from 'naive-ui'
+import { Add, Calendar } from '@vicons/ionicons5'
 import { getCareerPlans } from '@/api/career'
 import type { CareerPlan } from '@/types/career'
+import GlassCard from '@/components/common/GlassCard.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const router = useRouter()
+const message = useMessage()
 const loading = ref(false)
 const plans = ref<CareerPlan[]>([])
 
@@ -85,8 +89,8 @@ async function fetchPlans() {
     if (res.data.code === 200) {
       plans.value = res.data.data
     }
-  } catch (error) {
-    ElMessage.error('加载计划列表失败')
+  } catch {
+    message.error('加载计划列表失败')
   } finally {
     loading.value = false
   }
@@ -110,38 +114,26 @@ function statusLabel(status: number): string {
   return map[status] || '未知'
 }
 
-function statusTag(status: number): '' | 'success' | 'warning' | 'danger' | 'info' {
-  const map: Record<number, '' | 'success' | 'warning' | 'info'> = { 1: 'info', 2: '', 3: 'warning', 4: 'success' }
-  return map[status] || ''
+function statusTag(status: number): 'default' | 'success' | 'warning' | 'error' | 'info' {
+  const map: Record<number, 'info' | 'default' | 'warning' | 'success'> = { 1: 'info', 2: 'default', 3: 'warning', 4: 'success' }
+  return map[status] || 'default'
 }
 
 function scoreColor(score: number | null): string {
-  if (!score) return '#909399'
-  if (score >= 80) return '#67C23A'
-  if (score >= 60) return '#E6A23C'
-  return '#F56C6C'
+  if (!score) return '#86868B'
+  if (score >= 80) return '#34C759'
+  if (score >= 60) return '#FF9500'
+  return '#FF3B30'
 }
 </script>
 
 <style scoped lang="scss">
 .career-plan-list-page {
-  .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-
-    h2 { margin: 0; }
-  }
+  max-width: 1200px;
+  margin: 0 auto;
 
   .plan-card {
-    margin-bottom: 20px;
     cursor: pointer;
-    transition: transform 0.2s;
-
-    &:hover {
-      transform: translateY(-2px);
-    }
 
     .plan-header {
       display: flex;
@@ -157,13 +149,13 @@ function scoreColor(score: number | null): string {
         .title-text {
           font-weight: 600;
           font-size: 16px;
-          color: #333;
+          color: var(--cr-text-primary);
         }
       }
     }
 
     .plan-description {
-      color: #666;
+      color: var(--cr-text-secondary);
       font-size: 13px;
       line-height: 1.5;
       margin: 0 0 12px;
@@ -181,32 +173,23 @@ function scoreColor(score: number | null): string {
         padding: 6px 0;
         font-size: 14px;
 
-        .stat-label {
-          color: #999;
-        }
-
+        .stat-label { color: var(--cr-text-tertiary); }
         .stat-value {
-          color: #333;
+          color: var(--cr-text-primary);
           font-weight: 500;
 
-          &.income {
-            color: #67C23A;
-            font-weight: bold;
-          }
+          &.income { color: var(--cr-success); font-weight: bold; }
         }
       }
     }
 
     .plan-footer {
+      display: flex;
+      align-items: center;
+      gap: 4px;
       margin-top: 12px;
       font-size: 13px;
-      color: #999;
-
-      .start-date {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-      }
+      color: var(--cr-text-tertiary);
     }
   }
 }

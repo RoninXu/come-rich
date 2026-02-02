@@ -4,26 +4,20 @@
     <div class="chat-header">
       <div class="header-left">
         <h3>AI 财务顾问</h3>
-        <el-tag type="info" size="small" class="remaining-tag">
+        <n-tag type="info" size="small">
           今日剩余 {{ chatStore.remainingChats }} 次
-        </el-tag>
+        </n-tag>
       </div>
       <div class="header-right">
-        <el-select
-          v-model="selectedProvider"
+        <n-select
+          v-model:value="selectedProvider"
           size="small"
           placeholder="选择模型"
-          class="provider-select"
-          @change="handleProviderChange"
-        >
-          <el-option
-            v-for="p in chatStore.providers"
-            :key="p"
-            :label="p"
-            :value="p"
-          />
-        </el-select>
-        <el-button size="small" @click="handleNewSession">新对话</el-button>
+          :options="providerOptions"
+          style="width: 140px"
+          @update:value="handleProviderChange"
+        />
+        <n-button size="small" @click="handleNewSession">新对话</n-button>
       </div>
     </div>
 
@@ -32,12 +26,12 @@
       <!-- Empty state -->
       <div v-if="chatStore.messages.length === 0" class="empty-state">
         <div class="welcome-icon">
-          <el-icon :size="48"><ChatDotRound /></el-icon>
+          <n-icon :size="48"><Chatbubbles /></n-icon>
         </div>
         <h4>你好！我是你的 AI 财务顾问</h4>
         <p>我可以帮你分析消费习惯、制定预算计划、评估财务健康。试试下面的问题：</p>
         <div class="quick-actions">
-          <el-button
+          <n-button
             v-for="suggestion in suggestions"
             :key="suggestion"
             round
@@ -45,7 +39,7 @@
             @click="handleQuickAction(suggestion)"
           >
             {{ suggestion }}
-          </el-button>
+          </n-button>
         </div>
       </div>
 
@@ -56,13 +50,19 @@
         :class="['message-item', msg.role === 'user' ? 'message-user' : 'message-assistant']"
       >
         <div class="message-avatar">
-          <el-avatar
+          <n-avatar
             :size="32"
-            :icon="msg.role === 'user' ? 'User' : 'Monitor'"
+            round
             :style="{
-              backgroundColor: msg.role === 'user' ? '#409EFF' : '#67C23A'
+              backgroundColor: msg.role === 'user' ? 'var(--cr-primary)' : 'var(--cr-success)',
+              fontSize: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }"
-          />
+          >
+            {{ msg.role === 'user' ? '我' : 'AI' }}
+          </n-avatar>
         </div>
         <div class="message-bubble">
           <div class="message-content" v-html="renderMarkdown(msg.content)"></div>
@@ -75,36 +75,42 @@
 
     <!-- Input Area -->
     <div class="chat-input">
-      <el-input
-        v-model="inputMessage"
+      <n-input
+        v-model:value="inputMessage"
         type="textarea"
-        :rows="2"
+        :autosize="{ minRows: 2, maxRows: 4 }"
         placeholder="输入你的财务问题..."
         :disabled="chatStore.isStreaming"
-        resize="none"
         @keydown.enter.exact.prevent="handleSend"
       />
-      <el-button
+      <n-button
         type="primary"
         :disabled="!inputMessage.trim() || chatStore.isStreaming"
         :loading="chatStore.isStreaming"
         @click="handleSend"
+        class="send-btn"
       >
         发送
-      </el-button>
+      </n-button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick, watch } from 'vue'
-import { ChatDotRound } from '@element-plus/icons-vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
+import { NButton, NTag, NSelect, NInput, NAvatar, NIcon, useMessage } from 'naive-ui'
+import { Chatbubbles } from '@vicons/ionicons5'
 import { useChatStore } from '@/stores/chat'
 
 const chatStore = useChatStore()
+const message = useMessage()
 const inputMessage = ref('')
 const messageListRef = ref<HTMLDivElement | null>(null)
 const selectedProvider = ref('')
+
+const providerOptions = computed(() =>
+  chatStore.providers.map(p => ({ label: p, value: p }))
+)
 
 const suggestions = [
   '分析我本月的消费',
@@ -122,13 +128,10 @@ onMounted(async () => {
 watch(
   () => chatStore.messages.length,
   () => {
-    nextTick(() => {
-      scrollToBottom()
-    })
+    nextTick(() => { scrollToBottom() })
   }
 )
 
-// Also watch the last message content for streaming updates
 watch(
   () => {
     const msgs = chatStore.messages
@@ -136,9 +139,7 @@ watch(
     return msgs[msgs.length - 1].content
   },
   () => {
-    nextTick(() => {
-      scrollToBottom()
-    })
+    nextTick(() => { scrollToBottom() })
   }
 )
 
@@ -149,11 +150,11 @@ function scrollToBottom() {
 }
 
 async function handleSend() {
-  const message = inputMessage.value.trim()
-  if (!message || chatStore.isStreaming) return
+  const msg = inputMessage.value.trim()
+  if (!msg || chatStore.isStreaming) return
 
   inputMessage.value = ''
-  await chatStore.sendMessage(message)
+  await chatStore.sendMessage(msg)
   await chatStore.fetchRemainingChats()
 }
 
@@ -173,11 +174,8 @@ async function handleProviderChange(name: string) {
 function renderMarkdown(content: string): string {
   if (!content) return ''
   return content
-    // Bold: **text**
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    // Inline code: `code`
     .replace(/`([^`]+)`/g, '<code>$1</code>')
-    // Line breaks
     .replace(/\n/g, '<br>')
 }
 </script>
@@ -187,8 +185,10 @@ function renderMarkdown(content: string): string {
   display: flex;
   flex-direction: column;
   height: calc(100vh - 100px);
-  background: #fff;
-  border-radius: 8px;
+  background: var(--cr-bg-card);
+  backdrop-filter: blur(var(--cr-blur-md));
+  border: 1px solid var(--cr-border-light);
+  border-radius: var(--cr-radius-xl);
   overflow: hidden;
 }
 
@@ -197,7 +197,7 @@ function renderMarkdown(content: string): string {
   justify-content: space-between;
   align-items: center;
   padding: 12px 20px;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid var(--cr-divider);
 
   .header-left {
     display: flex;
@@ -207,6 +207,7 @@ function renderMarkdown(content: string): string {
     h3 {
       margin: 0;
       font-size: 16px;
+      color: var(--cr-text-primary);
     }
   }
 
@@ -214,10 +215,6 @@ function renderMarkdown(content: string): string {
     display: flex;
     align-items: center;
     gap: 8px;
-
-    .provider-select {
-      width: 140px;
-    }
   }
 }
 
@@ -233,16 +230,16 @@ function renderMarkdown(content: string): string {
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #909399;
+  color: var(--cr-text-tertiary);
 
   .welcome-icon {
     margin-bottom: 16px;
-    color: #409EFF;
+    color: var(--cr-primary);
   }
 
   h4 {
     margin: 0 0 8px;
-    color: #303133;
+    color: var(--cr-text-primary);
   }
 
   p {
@@ -269,15 +266,21 @@ function renderMarkdown(content: string): string {
     flex-direction: row-reverse;
 
     .message-bubble {
-      background: #ecf5ff;
-      border-color: #d9ecff;
+      background: var(--cr-primary);
+      color: #fff;
+      border-color: transparent;
+
+      :deep(code) {
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+      }
     }
   }
 
   &.message-assistant {
     .message-bubble {
-      background: #f4f4f5;
-      border-color: #e9e9eb;
+      background: var(--cr-bg-elevated, var(--cr-bg-card));
+      border-color: var(--cr-border-light);
     }
   }
 }
@@ -289,7 +292,7 @@ function renderMarkdown(content: string): string {
 .message-bubble {
   max-width: 70%;
   padding: 10px 14px;
-  border-radius: 8px;
+  border-radius: var(--cr-radius-lg);
   border: 1px solid;
   line-height: 1.6;
 
@@ -297,7 +300,7 @@ function renderMarkdown(content: string): string {
     word-break: break-word;
 
     :deep(code) {
-      background: #e8e8e8;
+      background: var(--cr-bg-page);
       padding: 1px 4px;
       border-radius: 3px;
       font-size: 13px;
@@ -317,7 +320,7 @@ function renderMarkdown(content: string): string {
   span {
     width: 6px;
     height: 6px;
-    background: #909399;
+    background: var(--cr-text-tertiary);
     border-radius: 50%;
     animation: typing 1.4s infinite ease-in-out;
 
@@ -336,14 +339,14 @@ function renderMarkdown(content: string): string {
   display: flex;
   gap: 8px;
   padding: 12px 20px;
-  border-top: 1px solid #ebeef5;
+  border-top: 1px solid var(--cr-divider);
   align-items: flex-end;
 
-  .el-textarea {
+  :deep(.n-input) {
     flex: 1;
   }
 
-  .el-button {
+  .send-btn {
     height: 54px;
   }
 }

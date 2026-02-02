@@ -9,6 +9,9 @@ export default defineConfig({
       '@': resolve(__dirname, 'src')
     }
   },
+  optimizeDeps: {
+    include: ['naive-ui']
+  },
   server: {
     port: 5173,
     proxy: {

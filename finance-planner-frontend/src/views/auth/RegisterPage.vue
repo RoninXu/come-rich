@@ -6,70 +6,82 @@
         <p>创建您的账户</p>
       </div>
 
-      <el-form
+      <n-form
         ref="formRef"
         :model="form"
         :rules="rules"
         class="register-form"
         @keyup.enter="handleRegister"
       >
-        <el-form-item prop="username">
-          <el-input
-            v-model="form.username"
+        <n-form-item path="username">
+          <n-input
+            v-model:value="form.username"
             placeholder="用户名"
-            prefix-icon="User"
             size="large"
-          />
-        </el-form-item>
+          >
+            <template #prefix>
+              <n-icon :component="Person" />
+            </template>
+          </n-input>
+        </n-form-item>
 
-        <el-form-item prop="password">
-          <el-input
-            v-model="form.password"
+        <n-form-item path="password">
+          <n-input
+            v-model:value="form.password"
             type="password"
             placeholder="密码"
-            prefix-icon="Lock"
             size="large"
-            show-password
-          />
-        </el-form-item>
+            show-password-on="click"
+          >
+            <template #prefix>
+              <n-icon :component="LockClosed" />
+            </template>
+          </n-input>
+        </n-form-item>
 
-        <el-form-item prop="confirmPassword">
-          <el-input
-            v-model="form.confirmPassword"
+        <n-form-item path="confirmPassword">
+          <n-input
+            v-model:value="form.confirmPassword"
             type="password"
             placeholder="确认密码"
-            prefix-icon="Lock"
             size="large"
-            show-password
-          />
-        </el-form-item>
+            show-password-on="click"
+          >
+            <template #prefix>
+              <n-icon :component="LockClosed" />
+            </template>
+          </n-input>
+        </n-form-item>
 
-        <el-form-item prop="email">
-          <el-input
-            v-model="form.email"
+        <n-form-item path="email">
+          <n-input
+            v-model:value="form.email"
             placeholder="邮箱 (选填)"
-            prefix-icon="Message"
             size="large"
-          />
-        </el-form-item>
+          >
+            <template #prefix>
+              <n-icon :component="Mail" />
+            </template>
+          </n-input>
+        </n-form-item>
 
-        <el-form-item>
-          <el-button
+        <n-form-item>
+          <n-button
             type="primary"
             size="large"
             :loading="loading"
-            class="register-button"
+            block
             @click="handleRegister"
           >
             注册
-          </el-button>
-        </el-form-item>
+          </n-button>
+        </n-form-item>
 
         <div class="register-footer">
           <span>已有账号？</span>
           <router-link to="/login">立即登录</router-link>
         </div>
-      </el-form>
+      </n-form>
     </div>
   </div>
 </template>
@@ -77,13 +89,24 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, FormInstance, FormRules } from 'element-plus'
+import {
+  NForm,
+  NFormItem,
+  NInput,
+  NButton,
+  NIcon,
+  useMessage,
+  type FormInst,
+  type FormRules,
+} from 'naive-ui'
+import { Person, LockClosed, Mail } from '@vicons/ionicons5'
 import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
 const userStore = useUserStore()
+const message = useMessage()
 
-const formRef = ref<FormInstance>()
+const formRef = ref<FormInst | null>(null)
 const loading = ref(false)
 
 const form = reactive({
@@ -92,14 +115,6 @@ const form = reactive({
   confirmPassword: '',
   email: ''
 })
-
-const validateConfirmPassword = (_rule: any, value: string, callback: Function) => {
-  if (value !== form.password) {
-    callback(new Error('两次输入的密码不一致'))
-  } else {
-    callback()
-  }
-}
 
 const rules: FormRules = {
   username: [
@@ -112,7 +127,12 @@ const rules: FormRules = {
   ],
   confirmPassword: [
     { required: true, message: '请再次输入密码', trigger: 'blur' },
-    { validator: validateConfirmPassword, trigger: 'blur' }
+    {
+      validator: (_rule: any, value: string) => {
+        return value === form.password || new Error('两次输入的密码不一致')
+      },
+      trigger: 'blur'
+    }
   ],
   email: [
     { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
@@ -120,8 +140,11 @@ const rules: FormRules = {
 }
 
 async function handleRegister() {
-  const valid = await formRef.value?.validate().catch(() => false)
-  if (!valid) return
+  try {
+    await formRef.value?.validate()
+  } catch {
+    return
+  }
 
   loading.value = true
   try {
@@ -130,9 +153,9 @@ async function handleRegister() {
       password: form.password,
       email: form.email || undefined
     })
-    ElMessage.success('注册成功，请登录')
+    message.success('注册成功，请登录')
     router.push('/login')
-  } catch (error) {
+  } catch {
     // Error is handled by request interceptor
   } finally {
     loading.value = false
@@ -149,12 +172,19 @@ async function handleRegister() {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
+[data-theme='dark'] .register-container {
+  background: linear-gradient(135deg, #2d3561 0%, #4a2a6b 100%);
+}
+
 .register-box {
   width: 400px;
   padding: 40px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  background: var(--cr-bg-card);
+  backdrop-filter: blur(var(--cr-blur-md));
+  -webkit-backdrop-filter: blur(var(--cr-blur-md));
+  border: 1px solid var(--cr-border-light);
+  border-radius: var(--cr-radius-xxl);
+  box-shadow: var(--cr-shadow-xl);
 }
 
 .register-header {
@@ -163,30 +193,27 @@ async function handleRegister() {
 
   h1 {
     font-size: 28px;
-    color: #333;
+    color: var(--cr-text-primary);
+    font-weight: 700;
+    letter-spacing: -0.02em;
     margin-bottom: 8px;
   }
 
   p {
-    color: #999;
+    color: var(--cr-text-secondary);
     font-size: 14px;
-  }
-}
-
-.register-form {
-  .register-button {
-    width: 100%;
   }
 }
 
 .register-footer {
   text-align: center;
-  color: #999;
+  color: var(--cr-text-secondary);
   font-size: 14px;
 
   a {
-    color: #409eff;
+    color: var(--cr-primary);
     margin-left: 4px;
+    font-weight: 500;
   }
 }
 </style>

@@ -1,95 +1,77 @@
 <template>
-  <div class="budget-trend-page" v-loading="loading">
-    <div class="page-header">
-      <h2>预算趋势</h2>
-      <el-button @click="router.back()">返回</el-button>
-    </div>
+  <div class="budget-trend-page">
+    <n-spin :show="loading">
+      <PageHeader title="预算趋势" show-back />
 
-    <el-card>
-      <template #header>近6个月预算使用率趋势</template>
-      <div ref="trendChartRef" class="chart-container"></div>
-    </el-card>
+      <GlassCard>
+        <template #header>近6个月预算使用率趋势</template>
+        <div ref="trendChartRef" class="chart-container"></div>
+      </GlassCard>
 
-    <el-card style="margin-top: 16px">
-      <template #header>月度预算对比</template>
-      <el-table :data="trendData" stripe>
-        <el-table-column prop="yearMonth" label="月份" width="120" />
-        <el-table-column label="总预算" width="150">
-          <template #default="{ row }">
-            ¥{{ Number(row.totalBudget).toFixed(2) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="总支出" width="150">
-          <template #default="{ row }">
-            ¥{{ Number(row.totalSpent).toFixed(2) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="使用率" width="200">
-          <template #default="{ row }">
-            <el-progress
-              :percentage="Math.min(Number(row.overallUtilization), 100)"
-              :color="getProgressColor(Number(row.overallUtilization))"
-              :format="() => Number(row.overallUtilization).toFixed(1) + '%'"
-            />
-          </template>
-        </el-table-column>
-        <el-table-column label="剩余" width="150">
-          <template #default="{ row }">
-            <span :style="{ color: Number(row.totalRemaining) < 0 ? '#F56C6C' : '#67C23A' }">
-              ¥{{ Number(row.totalRemaining).toFixed(2) }}
-            </span>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-card>
+      <GlassCard style="margin-top: 16px">
+        <template #header>月度预算对比</template>
+        <n-data-table :columns="columns" :data="trendData" :bordered="false" striped />
+      </GlassCard>
+    </n-spin>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ref, onMounted, nextTick, h } from 'vue'
+import { NSpin, NDataTable, NProgress, useMessage, type DataTableColumns } from 'naive-ui'
 import * as echarts from 'echarts'
 import { getBudgetTrend } from '@/api/budget'
 import type { BudgetSummary } from '@/types/budget'
+import GlassCard from '@/components/common/GlassCard.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 
-const router = useRouter()
+const message = useMessage()
 const loading = ref(false)
 const trendData = ref<BudgetSummary[]>([])
 const trendChartRef = ref<HTMLElement>()
 let trendChart: echarts.ECharts | null = null
 
-onMounted(() => {
-  fetchTrend()
-})
+function getProgressColor(p: number): string { return p >= 100 ? '#FF3B30' : p >= 80 ? '#FF9500' : '#34C759' }
+
+const columns: DataTableColumns<BudgetSummary> = [
+  { title: '月份', key: 'yearMonth', width: 120 },
+  { title: '总预算', key: 'totalBudget', width: 150, render: (row) => `¥${Number(row.totalBudget).toFixed(2)}` },
+  { title: '总支出', key: 'totalSpent', width: 150, render: (row) => `¥${Number(row.totalSpent).toFixed(2)}` },
+  {
+    title: '使用率', key: 'utilization', width: 200,
+    render: (row) => h(NProgress, {
+      type: 'line', percentage: Math.min(Number(row.overallUtilization), 100),
+      color: getProgressColor(Number(row.overallUtilization)),
+    })
+  },
+  {
+    title: '剩余', key: 'totalRemaining', width: 150,
+    render: (row) => h('span', { style: { color: Number(row.totalRemaining) < 0 ? 'var(--cr-error)' : 'var(--cr-success)' } }, `¥${Number(row.totalRemaining).toFixed(2)}`)
+  },
+]
+
+onMounted(() => { fetchTrend() })
 
 async function fetchTrend() {
   loading.value = true
   try {
     const res = await getBudgetTrend(6)
-    if (res.data.code === 200) {
-      trendData.value = res.data.data || []
-    }
+    if (res.data.code === 200) trendData.value = res.data.data || []
     nextTick(() => updateChart())
-  } catch {
-    ElMessage.error('加载趋势数据失败')
-  } finally {
-    loading.value = false
-  }
+  } catch { message.error('加载趋势数据失败') }
+  finally { loading.value = false }
 }
 
 function updateChart() {
   if (!trendChartRef.value) return
-  if (!trendChart) {
-    trendChart = echarts.init(trendChartRef.value)
-  }
+  if (!trendChart) trendChart = echarts.init(trendChartRef.value)
 
   const months = trendData.value.map(d => d.yearMonth)
   const budgets = trendData.value.map(d => Number(d.totalBudget))
   const spents = trendData.value.map(d => Number(d.totalSpent))
   const utils = trendData.value.map(d => Number(d.overallUtilization))
 
-  const option: echarts.EChartsOption = {
+  trendChart.setOption({
     tooltip: { trigger: 'axis' },
     legend: { data: ['预算', '支出', '使用率(%)'] },
     grid: { left: '3%', right: '10%', bottom: '3%', containLabel: true },
@@ -99,34 +81,16 @@ function updateChart() {
       { type: 'value', name: '使用率(%)', max: 150, axisLabel: { formatter: '{value}%' } }
     ],
     series: [
-      { name: '预算', type: 'bar', data: budgets, itemStyle: { color: '#409EFF' } },
-      { name: '支出', type: 'bar', data: spents, itemStyle: { color: '#FF7043' } },
-      { name: '使用率(%)', type: 'line', yAxisIndex: 1, data: utils, itemStyle: { color: '#E6A23C' }, smooth: true }
+      { name: '预算', type: 'bar', data: budgets, itemStyle: { color: '#007AFF' } },
+      { name: '支出', type: 'bar', data: spents, itemStyle: { color: '#FF9500' } },
+      { name: '使用率(%)', type: 'line', yAxisIndex: 1, data: utils, itemStyle: { color: '#FF9F0A' }, smooth: true }
     ]
-  }
-  trendChart.setOption(option, true)
-}
-
-function getProgressColor(percentage: number): string {
-  if (percentage >= 100) return '#F56C6C'
-  if (percentage >= 80) return '#E6A23C'
-  return '#67C23A'
+  }, true)
 }
 </script>
 
 <style scoped lang="scss">
 .budget-trend-page {
-  .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-
-    h2 { margin: 0; }
-  }
-
-  .chart-container {
-    height: 350px;
-  }
+  .chart-container { height: 350px; }
 }
 </style>

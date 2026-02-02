@@ -1,127 +1,111 @@
 <template>
   <div class="transaction-list-page">
-    <div class="page-header">
-      <h2>记账记录</h2>
-      <div style="display: flex; gap: 8px">
-        <el-button type="primary" @click="goToNew">
-          <el-icon><Plus /></el-icon>
+    <PageHeader title="记账记录">
+      <template #actions>
+        <n-button type="primary" @click="goToNew">
+          <template #icon><n-icon><Add /></n-icon></template>
           记一笔
-        </el-button>
-        <el-button @click="goToOcr">
-          <el-icon><Camera /></el-icon>
+        </n-button>
+        <n-button @click="goToOcr">
+          <template #icon><n-icon><Camera /></n-icon></template>
           拍照记账
-        </el-button>
-        <el-dropdown @command="handleExport" trigger="click">
-          <el-button>
-            <el-icon><Download /></el-icon>
+        </n-button>
+        <n-dropdown :options="exportOptions" @select="handleExport">
+          <n-button>
+            <template #icon><n-icon><Download /></n-icon></template>
             导出
-          </el-button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item command="excel">导出Excel</el-dropdown-item>
-              <el-dropdown-item command="csv">导出CSV</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </div>
-    </div>
-
-    <el-card class="filter-card">
-      <el-form :inline="true" :model="filterForm">
-        <el-form-item label="快捷日期">
-          <el-button-group>
-            <el-button :type="isPresetActive('today') ? 'primary' : ''" size="small" @click="setDatePreset('today')">今天</el-button>
-            <el-button :type="isPresetActive('week') ? 'primary' : ''" size="small" @click="setDatePreset('week')">本周</el-button>
-            <el-button :type="isPresetActive('month') ? 'primary' : ''" size="small" @click="setDatePreset('month')">本月</el-button>
-          </el-button-group>
-        </el-form-item>
-        <el-form-item label="日期范围">
-          <el-date-picker
-            v-model="filterForm.dateRange"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            @change="handleDateRangeChange"
-          />
-        </el-form-item>
-        <el-form-item label="类型">
-          <el-select v-model="filterForm.type" placeholder="全部" clearable>
-            <el-option label="收入" :value="1" />
-            <el-option label="支出" :value="2" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleFilter">查询</el-button>
-          <el-button @click="resetFilter">重置</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
-
-    <el-card class="list-card" v-loading="loading">
-      <el-empty v-if="!loading && transactions.length === 0" description="暂无记录" />
-
-      <template v-else>
-        <el-table :data="transactions" stripe style="width: 100%">
-          <el-table-column prop="transactionDate" label="日期" width="120" />
-          <el-table-column label="分类" width="120">
-            <template #default="{ row }">
-              <span>{{ row.categoryName || '未分类' }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column prop="description" label="备注">
-            <template #default="{ row }">
-              <span>{{ row.description || '-' }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column prop="amount" label="金额" width="150">
-            <template #default="{ row }">
-              <span :class="row.type === 1 ? 'income' : 'expense'">
-                {{ row.type === 1 ? '+' : '-' }}¥{{ Number(row.amount).toFixed(2) }}
-              </span>
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" width="150">
-            <template #default="{ row }">
-              <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
-              <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-
-        <div class="pagination">
-          <el-pagination
-            v-model:current-page="pagination.page"
-            v-model:page-size="pagination.pageSize"
-            :total="pagination.total"
-            :page-sizes="[10, 20, 50]"
-            layout="total, sizes, prev, pager, next"
-            @size-change="handleSizeChange"
-            @current-change="handlePageChange"
-          />
-        </div>
+          </n-button>
+        </n-dropdown>
       </template>
-    </el-card>
+    </PageHeader>
+
+    <GlassCard class="filter-card">
+      <n-space align="center" :wrap="true">
+        <n-space :size="0">
+          <n-button
+            v-for="preset in datePresets"
+            :key="preset.key"
+            :type="filterForm.activePreset === preset.key ? 'primary' : 'default'"
+            size="small"
+            @click="setDatePreset(preset.key)"
+          >
+            {{ preset.label }}
+          </n-button>
+        </n-space>
+        <n-date-picker
+          v-model:value="filterForm.dateRange"
+          type="daterange"
+          clearable
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+          @update:value="handleDateRangeChange"
+        />
+        <n-select
+          v-model:value="filterForm.type"
+          :options="typeOptions"
+          placeholder="全部类型"
+          clearable
+          style="width: 120px"
+        />
+        <n-button type="primary" @click="handleFilter">查询</n-button>
+        <n-button @click="resetFilter">重置</n-button>
+      </n-space>
+    </GlassCard>
+
+    <GlassCard>
+      <n-spin :show="loading">
+        <n-empty v-if="!loading && transactions.length === 0" description="暂无记录" />
+        <template v-else>
+          <n-data-table
+            :columns="columns"
+            :data="transactions"
+            :bordered="false"
+            :single-line="false"
+            striped
+          />
+          <div class="pagination">
+            <n-pagination
+              v-model:page="pagination.page"
+              v-model:page-size="pagination.pageSize"
+              :item-count="pagination.total"
+              :page-sizes="[10, 20, 50]"
+              show-size-picker
+              @update:page="handlePageChange"
+              @update:page-size="handleSizeChange"
+            />
+          </div>
+        </template>
+      </n-spin>
+    </GlassCard>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, h } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessageBox, ElMessage } from 'element-plus'
-import { Plus, Camera, Download } from '@element-plus/icons-vue'
+import {
+  NSpin, NEmpty, NDataTable, NPagination, NDatePicker,
+  NSelect, NButton, NIcon, NDropdown, NSpace,
+  useMessage, useDialog,
+  type DataTableColumns,
+} from 'naive-ui'
+import { Add, Camera, Download } from '@vicons/ionicons5'
 import dayjs from 'dayjs'
 import { getTransactions, deleteTransaction } from '@/api/transaction'
 import { exportTransactionsExcel, exportTransactionsCsv } from '@/api/export'
 import { downloadBlob } from '@/utils/export'
 import type { Transaction, TransactionQueryParams } from '@/types/accounting'
+import GlassCard from '@/components/common/GlassCard.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const router = useRouter()
+const message = useMessage()
+const dialog = useDialog()
 
 const loading = ref(false)
 
 const filterForm = reactive({
-  dateRange: null as [Date, Date] | null,
+  dateRange: null as [number, number] | null,
   type: null as number | null,
   activePreset: null as string | null
 })
@@ -133,6 +117,51 @@ const pagination = reactive({
 })
 
 const transactions = ref<Transaction[]>([])
+
+const datePresets = [
+  { key: 'today', label: '今天' },
+  { key: 'week', label: '本周' },
+  { key: 'month', label: '本月' },
+]
+
+const typeOptions = [
+  { label: '收入', value: 1 },
+  { label: '支出', value: 2 },
+]
+
+const exportOptions = [
+  { label: '导出Excel', key: 'excel' },
+  { label: '导出CSV', key: 'csv' },
+]
+
+const columns: DataTableColumns<Transaction> = [
+  { title: '日期', key: 'transactionDate', width: 120 },
+  {
+    title: '分类', key: 'categoryName', width: 120,
+    render: (row) => row.categoryName || '未分类'
+  },
+  {
+    title: '备注', key: 'description',
+    render: (row) => row.description || '-'
+  },
+  {
+    title: '金额', key: 'amount', width: 150,
+    render: (row) => {
+      const cls = row.type === 1 ? 'income' : 'expense'
+      const prefix = row.type === 1 ? '+' : '-'
+      return h('span', { class: cls }, `${prefix}¥${Number(row.amount).toFixed(2)}`)
+    }
+  },
+  {
+    title: '操作', key: 'actions', width: 150,
+    render: (row) => {
+      return h(NSpace, { size: 'small' }, () => [
+        h(NButton, { text: true, type: 'primary', onClick: () => handleEdit(row) }, () => '编辑'),
+        h(NButton, { text: true, type: 'error', onClick: () => handleDelete(row) }, () => '删除'),
+      ])
+    }
+  },
+]
 
 onMounted(() => {
   fetchTransactions()
@@ -161,20 +190,15 @@ async function fetchTransactions() {
       transactions.value = pageData.list
       pagination.total = pageData.total
     }
-  } catch (error) {
-    ElMessage.error('加载记录失败')
+  } catch {
+    message.error('加载记录失败')
   } finally {
     loading.value = false
   }
 }
 
-function goToNew() {
-  router.push('/accounting/new')
-}
-
-function goToOcr() {
-  router.push('/accounting/ocr')
-}
+function goToNew() { router.push('/accounting/new') }
+function goToOcr() { router.push('/accounting/ocr') }
 
 function handleFilter() {
   pagination.page = 1
@@ -190,21 +214,21 @@ function resetFilter() {
 
 function setDatePreset(preset: string) {
   const today = dayjs()
-  let start: Date
-  let end: Date
+  let start: number
+  let end: number
 
   switch (preset) {
     case 'today':
-      start = today.startOf('day').toDate()
-      end = today.endOf('day').toDate()
+      start = today.startOf('day').valueOf()
+      end = today.endOf('day').valueOf()
       break
     case 'week':
-      start = today.startOf('week').toDate()
-      end = today.endOf('week').toDate()
+      start = today.startOf('week').valueOf()
+      end = today.endOf('week').valueOf()
       break
     case 'month':
-      start = today.startOf('month').toDate()
-      end = today.endOf('month').toDate()
+      start = today.startOf('month').valueOf()
+      end = today.endOf('month').valueOf()
       break
     default:
       return
@@ -215,12 +239,7 @@ function setDatePreset(preset: string) {
   handleFilter()
 }
 
-function isPresetActive(preset: string): boolean {
-  return filterForm.activePreset === preset
-}
-
 function handleDateRangeChange() {
-  // Clear active preset when user manually selects date range
   filterForm.activePreset = null
 }
 
@@ -228,33 +247,36 @@ function handleEdit(row: Transaction) {
   router.push(`/accounting/edit/${row.id}`)
 }
 
-async function handleDelete(row: Transaction) {
-  try {
-    await ElMessageBox.confirm('确定要删除这条记录吗？', '提示', {
-      type: 'warning'
-    })
-
-    await deleteTransaction(row.id)
-    ElMessage.success('删除成功')
-    fetchTransactions()
-  } catch (error: any) {
-    // User cancelled or API error (API error handled by interceptor)
-    if (error !== 'cancel') {
-      console.error('Delete error:', error)
+function handleDelete(row: Transaction) {
+  dialog.warning({
+    title: '提示',
+    content: '确定要删除这条记录吗？',
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        await deleteTransaction(row.id)
+        message.success('删除成功')
+        fetchTransactions()
+      } catch {
+        // API error handled by interceptor
+      }
     }
-  }
+  })
 }
 
-function handleSizeChange() {
+function handleSizeChange(pageSize: number) {
+  pagination.pageSize = pageSize
   pagination.page = 1
   fetchTransactions()
 }
 
-function handlePageChange() {
+function handlePageChange(page: number) {
+  pagination.page = page
   fetchTransactions()
 }
 
-async function handleExport(command: string) {
+async function handleExport(command: string | number) {
   const startDate = filterForm.dateRange?.[0]
     ? dayjs(filterForm.dateRange[0]).format('YYYY-MM-DD')
     : dayjs().startOf('month').format('YYYY-MM-DD')
@@ -271,46 +293,33 @@ async function handleExport(command: string) {
       const res = await exportTransactionsCsv(startDate, endDate, type)
       downloadBlob(new Blob([res.data]), `交易记录_${startDate}_${endDate}.csv`)
     }
-    ElMessage.success('导出成功')
+    message.success('导出成功')
   } catch {
-    ElMessage.error('导出失败')
+    message.error('导出失败')
   }
 }
 </script>
 
 <style scoped lang="scss">
 .transaction-list-page {
-  .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-
-    h2 {
-      margin: 0;
-    }
-  }
-
   .filter-card {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
   }
 
-  .list-card {
-    .income {
-      color: #66BB6A;
-      font-weight: bold;
-    }
+  .income {
+    color: var(--cr-success);
+    font-weight: 600;
+  }
 
-    .expense {
-      color: #FF7043;
-      font-weight: bold;
-    }
+  .expense {
+    color: var(--cr-error);
+    font-weight: 600;
+  }
 
-    .pagination {
-      margin-top: 20px;
-      display: flex;
-      justify-content: flex-end;
-    }
+  .pagination {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
   }
 }
 </style>

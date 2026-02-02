@@ -1,0 +1,99 @@
+// CSS custom properties synced from design tokens.
+// Switched by [data-theme="dark"] on <html>.
+
+:root,
+[data-theme='light'] {
+  // Brand
+  --cr-primary: #007AFF;
+  --cr-primary-hover: #0066D6;
+  --cr-primary-pressed: #004DB3;
+  --cr-success: #34C759;
+  --cr-warning: #FF9500;
+  --cr-error: #FF3B30;
+  --cr-info: #5AC8FA;
+
+  // Backgrounds
+  --cr-bg-page: #F2F2F7;
+  --cr-bg-card: rgba(255, 255, 255, 0.72);
+  --cr-bg-card-solid: #FFFFFF;
+  --cr-bg-sidebar: rgba(246, 246, 246, 0.80);
+  --cr-bg-header: rgba(255, 255, 255, 0.72);
+  --cr-bg-input: rgba(118, 118, 128, 0.08);
+  --cr-bg-hover: rgba(0, 0, 0, 0.04);
+
+  // Text
+  --cr-text-primary: #1D1D1F;
+  --cr-text-secondary: #86868B;
+  --cr-text-tertiary: #AEAEB2;
+  --cr-text-inverse: #FFFFFF;
+
+  // Borders
+  --cr-border: rgba(0, 0, 0, 0.08);
+  --cr-border-light: rgba(0, 0, 0, 0.04);
+  --cr-divider: rgba(0, 0, 0, 0.06);
+
+  // Shadows
+  --cr-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --cr-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --cr-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --cr-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.12);
+
+  // Radius
+  --cr-radius-xs: 4px;
+  --cr-radius-sm: 6px;
+  --cr-radius-md: 8px;
+  --cr-radius-lg: 12px;
+  --cr-radius-xl: 14px;
+  --cr-radius-xxl: 20px;
+
+  // Blur
+  --cr-blur-sm: 10px;
+  --cr-blur-md: 20px;
+  --cr-blur-lg: 40px;
+
+  // Spacing
+  --cr-space-xs: 4px;
+  --cr-space-sm: 8px;
+  --cr-space-md: 12px;
+  --cr-space-lg: 16px;
+  --cr-space-xl: 20px;
+  --cr-space-xxl: 24px;
+  --cr-space-xxxl: 32px;
+}
+
+[data-theme='dark'] {
+  // Brand
+  --cr-primary: #0A84FF;
+  --cr-primary-hover: #409CFF;
+  --cr-primary-pressed: #0066CC;
+  --cr-success: #30D158;
+  --cr-warning: #FF9F0A;
+  --cr-error: #FF453A;
+  --cr-info: #64D2FF;
+
+  // Backgrounds
+  --cr-bg-page: #1C1C1E;
+  --cr-bg-card: rgba(44, 44, 46, 0.72);
+  --cr-bg-card-solid: #2C2C2E;
+  --cr-bg-sidebar: rgba(28, 28, 30, 0.85);
+  --cr-bg-header: rgba(44, 44, 46, 0.72);
+  --cr-bg-input: rgba(118, 118, 128, 0.24);
+  --cr-bg-hover: rgba(255, 255, 255, 0.06);
+
+  // Text
+  --cr-text-primary: #F5F5F7;
+  --cr-text-secondary: #98989D;
+  --cr-text-tertiary: #636366;
+  --cr-text-inverse: #1D1D1F;
+
+  // Borders
+  --cr-border: rgba(255, 255, 255, 0.10);
+  --cr-border-light: rgba(255, 255, 255, 0.06);
+  --cr-divider: rgba(255, 255, 255, 0.08);
+
+  // Shadows
+  --cr-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.20);
+  --cr-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.30);
+  --cr-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.40);
+  --cr-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.50);
+}

@@ -1,50 +1,53 @@
 <template>
   <div class="goal-list-page">
-    <div class="page-header">
-      <h2>理财目标</h2>
-      <el-button type="primary" @click="goToNew">
-        <el-icon><Plus /></el-icon>
-        新建目标
-      </el-button>
-    </div>
+    <n-spin :show="loading">
+      <PageHeader title="理财目标">
+        <template #actions>
+          <n-button type="primary" @click="goToNew">
+            <template #icon><n-icon><AddOutline /></n-icon></template>
+            新建目标
+          </n-button>
+        </template>
+      </PageHeader>
 
-    <el-tabs v-model="activeTab" @tab-change="handleTabChange">
-      <el-tab-pane label="进行中" name="active" />
-      <el-tab-pane label="已完成" name="completed" />
-      <el-tab-pane label="已放弃" name="abandoned" />
-      <el-tab-pane label="全部" name="all" />
-    </el-tabs>
+      <n-tabs v-model:value="activeTab" type="line" @update:value="handleTabChange">
+        <n-tab-pane name="active" tab="进行中" />
+        <n-tab-pane name="completed" tab="已完成" />
+        <n-tab-pane name="abandoned" tab="已放弃" />
+        <n-tab-pane name="all" tab="全部" />
+      </n-tabs>
 
-    <div v-loading="loading">
-      <el-empty v-if="!loading && goals.length === 0" description="暂无目标，快去创建一个吧" />
+      <n-empty v-if="!loading && goals.length === 0" description="暂无目标，快去创建一个吧" style="margin-top: 40px" />
 
-      <el-row :gutter="20">
-        <el-col :span="8" v-for="goal in goals" :key="goal.id">
-          <el-card class="goal-card" shadow="hover" @click="goToDetail(goal.id)">
+      <n-grid :x-gap="16" :y-gap="16" :cols="3" class="goal-grid">
+        <n-gi v-for="goal in goals" :key="goal.id">
+          <GlassCard hoverable class="goal-card" @click="goToDetail(goal.id)">
             <div class="goal-header">
               <div class="goal-title">
-                <el-tag :type="priorityTag(goal.priority)" size="small">
+                <n-tag :type="priorityTag(goal.priority)" size="small">
                   {{ priorityLabel(goal.priority) }}
-                </el-tag>
+                </n-tag>
                 <span class="title-text">{{ goal.title }}</span>
               </div>
-              <el-tag :type="statusTag(goal.status)" size="small">
+              <n-tag :type="statusTag(goal.status)" size="small">
                 {{ statusLabel(goal.status) }}
-              </el-tag>
+              </n-tag>
             </div>
             <div class="goal-amounts">
               <span class="current">¥{{ formatNumber(goal.currentAmount) }}</span>
               <span class="separator">/</span>
               <span class="target">¥{{ formatNumber(goal.targetAmount) }}</span>
             </div>
-            <el-progress
+            <n-progress
+              type="line"
               :percentage="Math.min(100, Number(goal.progressPercentage))"
               :color="progressColor(goal.status)"
-              :stroke-width="10"
+              :height="10"
+              :border-radius="5"
             />
             <div class="goal-footer">
               <span class="deadline">
-                <el-icon><Calendar /></el-icon>
+                <n-icon :size="14"><CalendarOutline /></n-icon>
                 {{ goal.deadline }}
               </span>
               <span v-if="goal.status === 1" class="remaining">
@@ -54,22 +57,28 @@
             <div v-if="goal.status === 1 && goal.monthlySavingsNeeded > 0" class="monthly-hint">
               每月需存 ¥{{ formatNumber(goal.monthlySavingsNeeded) }}
             </div>
-          </el-card>
-        </el-col>
-      </el-row>
-    </div>
+          </GlassCard>
+        </n-gi>
+      </n-grid>
+    </n-spin>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { Plus, Calendar } from '@element-plus/icons-vue'
+import {
+  NSpin, NTabs, NTabPane, NButton, NIcon, NTag,
+  NProgress, NEmpty, NGrid, NGi, useMessage,
+} from 'naive-ui'
+import { AddOutline, CalendarOutline } from '@vicons/ionicons5'
 import { getGoals } from '@/api/goal'
 import type { Goal } from '@/types/goal'
+import GlassCard from '@/components/common/GlassCard.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const router = useRouter()
+const message = useMessage()
 const loading = ref(false)
 const goals = ref<Goal[]>([])
 const activeTab = ref('active')
@@ -92,7 +101,7 @@ async function fetchGoals() {
       goals.value = res.data.data
     }
   } catch (error) {
-    ElMessage.error('加载目标失败')
+    message.error('加载目标失败')
   } finally {
     loading.value = false
   }
@@ -120,8 +129,8 @@ function priorityLabel(priority: number): string {
   return map[priority] || '中'
 }
 
-function priorityTag(priority: number): '' | 'success' | 'warning' | 'danger' | 'info' {
-  const map: Record<number, '' | 'danger' | 'warning' | 'info'> = { 1: 'danger', 2: 'warning', 3: 'info' }
+function priorityTag(priority: number): 'error' | 'warning' | 'info' | 'default' {
+  const map: Record<number, 'error' | 'warning' | 'info'> = { 1: 'error', 2: 'warning', 3: 'info' }
   return map[priority] || 'warning'
 }
 
@@ -130,41 +139,30 @@ function statusLabel(status: number): string {
   return map[status] || '未知'
 }
 
-function statusTag(status: number): '' | 'success' | 'warning' | 'danger' | 'info' {
-  const map: Record<number, '' | 'success' | 'info'> = { 1: '', 2: 'success', 3: 'info' }
-  return map[status] || ''
+function statusTag(status: number): 'default' | 'success' | 'info' {
+  const map: Record<number, 'default' | 'success' | 'info'> = { 1: 'default', 2: 'success', 3: 'info' }
+  return map[status] || 'default'
 }
 
 function progressColor(status: number): string {
-  if (status === 2) return '#67C23A'
-  if (status === 3) return '#909399'
-  return '#409EFF'
+  if (status === 2) return 'var(--cr-success)'
+  if (status === 3) return 'var(--cr-text-tertiary)'
+  return 'var(--cr-primary)'
 }
 </script>
 
 <style scoped lang="scss">
 .goal-list-page {
-  .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  .n-tabs {
     margin-bottom: 20px;
-
-    h2 { margin: 0; }
   }
 
-  .el-tabs {
-    margin-bottom: 20px;
+  .goal-grid {
+    margin-top: 16px;
   }
 
   .goal-card {
-    margin-bottom: 20px;
     cursor: pointer;
-    transition: transform 0.2s;
-
-    &:hover {
-      transform: translateY(-2px);
-    }
 
     .goal-header {
       display: flex;
@@ -180,7 +178,7 @@ function progressColor(status: number): string {
         .title-text {
           font-weight: 600;
           font-size: 16px;
-          color: #333;
+          color: var(--cr-text-primary);
         }
       }
     }
@@ -191,17 +189,17 @@ function progressColor(status: number): string {
 
       .current {
         font-weight: bold;
-        color: #409EFF;
+        color: var(--cr-primary);
         font-size: 18px;
       }
 
       .separator {
         margin: 0 4px;
-        color: #ccc;
+        color: var(--cr-text-tertiary);
       }
 
       .target {
-        color: #999;
+        color: var(--cr-text-secondary);
       }
     }
 
@@ -210,7 +208,7 @@ function progressColor(status: number): string {
       justify-content: space-between;
       margin-top: 12px;
       font-size: 13px;
-      color: #999;
+      color: var(--cr-text-secondary);
 
       .deadline {
         display: flex;
@@ -219,15 +217,15 @@ function progressColor(status: number): string {
       }
 
       .remaining {
-        color: #E6A23C;
+        color: var(--cr-warning);
       }
     }
 
     .monthly-hint {
       margin-top: 8px;
       font-size: 12px;
-      color: #909399;
-      background: #f4f4f5;
+      color: var(--cr-text-secondary);
+      background: var(--cr-bg-card);
       padding: 4px 8px;
       border-radius: 4px;
     }

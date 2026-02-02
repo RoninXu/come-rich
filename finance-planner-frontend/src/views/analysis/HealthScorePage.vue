@@ -1,130 +1,147 @@
 <template>
-  <div class="health-score-page" v-loading="loading">
-    <div class="page-header" style="display: flex; justify-content: flex-end; margin-bottom: 16px">
-      <el-button @click="handleExportHealth" :loading="exporting">
-        <el-icon><Download /></el-icon>
-        导出报告
-      </el-button>
-    </div>
-    <el-row :gutter="20">
-      <el-col :span="12">
-        <el-card class="score-card">
-          <div class="score-display">
-            <div ref="gaugeRef" class="gauge-chart"></div>
-            <div class="score-text">
-              <span class="score">{{ healthScore.totalScore }}</span>
-              <span class="label">{{ scoreLevel }}</span>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="12">
-        <el-card class="breakdown-card">
-          <template #header>评分明细</template>
-          <div class="breakdown-list">
-            <div class="breakdown-item">
-              <div class="item-header">
-                <span class="name">储蓄能力</span>
-                <span class="score">{{ healthScore.savingAbility }}/30</span>
-              </div>
-              <el-progress
-                :percentage="(healthScore.savingAbility / 30) * 100"
-                :stroke-width="8"
-                :show-text="false"
-                :color="getProgressColor(healthScore.savingDetail?.status)"
-              />
-              <div v-if="healthScore.savingDetail" class="item-desc">{{ healthScore.savingDetail.description }}</div>
-            </div>
-            <div class="breakdown-item">
-              <div class="item-header">
-                <span class="name">收支平衡</span>
-                <span class="score">{{ healthScore.balanceRatio }}/25</span>
-              </div>
-              <el-progress
-                :percentage="(healthScore.balanceRatio / 25) * 100"
-                :stroke-width="8"
-                :show-text="false"
-                :color="getProgressColor(healthScore.balanceDetail?.status)"
-              />
-              <div v-if="healthScore.balanceDetail" class="item-desc">{{ healthScore.balanceDetail.description }}</div>
-            </div>
-            <div class="breakdown-item">
-              <div class="item-header">
-                <span class="name">消费结构</span>
-                <span class="score">{{ healthScore.consumptionStructure }}/20</span>
-              </div>
-              <el-progress
-                :percentage="(healthScore.consumptionStructure / 20) * 100"
-                :stroke-width="8"
-                :show-text="false"
-                :color="getProgressColor(healthScore.consumptionDetail?.status)"
-              />
-              <div v-if="healthScore.consumptionDetail" class="item-desc">{{ healthScore.consumptionDetail.description }}</div>
-            </div>
-            <div class="breakdown-item">
-              <div class="item-header">
-                <span class="name">资产增长</span>
-                <span class="score">{{ healthScore.assetGrowth }}/15</span>
-              </div>
-              <el-progress
-                :percentage="(healthScore.assetGrowth / 15) * 100"
-                :stroke-width="8"
-                :show-text="false"
-                :color="getProgressColor(healthScore.growthDetail?.status)"
-              />
-              <div v-if="healthScore.growthDetail" class="item-desc">{{ healthScore.growthDetail.description }}</div>
-            </div>
-            <div class="breakdown-item">
-              <div class="item-header">
-                <span class="name">记账习惯</span>
-                <span class="score">{{ healthScore.recordingHabit }}/10</span>
-              </div>
-              <el-progress
-                :percentage="(healthScore.recordingHabit / 10) * 100"
-                :stroke-width="8"
-                :show-text="false"
-                :color="getProgressColor(healthScore.habitDetail?.status)"
-              />
-              <div v-if="healthScore.habitDetail" class="item-desc">{{ healthScore.habitDetail.description }}</div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+  <div class="health-score-page">
+    <n-spin :show="loading">
+      <PageHeader title="财务健康评分">
+        <template #actions>
+          <n-button @click="handleExportHealth" :loading="exporting">
+            <template #icon><n-icon><Download /></n-icon></template>
+            导出报告
+          </n-button>
+        </template>
+      </PageHeader>
 
-    <el-card v-if="adviceList.length > 0" class="advice-card">
-      <template #header>改进建议</template>
-      <div class="advice-list">
-        <el-alert
-          v-for="(advice, index) in adviceList"
-          :key="index"
-          :title="advice.title"
-          :description="advice.description"
-          :type="advice.type"
-          :closable="false"
-          show-icon
-          class="advice-item"
-        />
-      </div>
-    </el-card>
+      <n-grid :x-gap="20" :y-gap="20" :cols="2">
+        <n-gi>
+          <GlassCard>
+            <div class="score-display">
+              <div ref="gaugeRef" class="gauge-chart"></div>
+              <div class="score-text">
+                <span class="score">{{ healthScore.totalScore }}</span>
+                <span class="label">{{ scoreLevel }}</span>
+              </div>
+            </div>
+          </GlassCard>
+        </n-gi>
+        <n-gi>
+          <GlassCard>
+            <template #header>评分明细</template>
+            <div class="breakdown-list">
+              <div class="breakdown-item">
+                <div class="item-header">
+                  <span class="name">储蓄能力</span>
+                  <span class="score-label">{{ healthScore.savingAbility }}/30</span>
+                </div>
+                <n-progress
+                  type="line"
+                  :percentage="(healthScore.savingAbility / 30) * 100"
+                  :height="8"
+                  :border-radius="4"
+                  :show-indicator="false"
+                  :color="getProgressColor(healthScore.savingDetail?.status)"
+                />
+                <div v-if="healthScore.savingDetail" class="item-desc">{{ healthScore.savingDetail.description }}</div>
+              </div>
+              <div class="breakdown-item">
+                <div class="item-header">
+                  <span class="name">收支平衡</span>
+                  <span class="score-label">{{ healthScore.balanceRatio }}/25</span>
+                </div>
+                <n-progress
+                  type="line"
+                  :percentage="(healthScore.balanceRatio / 25) * 100"
+                  :height="8"
+                  :border-radius="4"
+                  :show-indicator="false"
+                  :color="getProgressColor(healthScore.balanceDetail?.status)"
+                />
+                <div v-if="healthScore.balanceDetail" class="item-desc">{{ healthScore.balanceDetail.description }}</div>
+              </div>
+              <div class="breakdown-item">
+                <div class="item-header">
+                  <span class="name">消费结构</span>
+                  <span class="score-label">{{ healthScore.consumptionStructure }}/20</span>
+                </div>
+                <n-progress
+                  type="line"
+                  :percentage="(healthScore.consumptionStructure / 20) * 100"
+                  :height="8"
+                  :border-radius="4"
+                  :show-indicator="false"
+                  :color="getProgressColor(healthScore.consumptionDetail?.status)"
+                />
+                <div v-if="healthScore.consumptionDetail" class="item-desc">{{ healthScore.consumptionDetail.description }}</div>
+              </div>
+              <div class="breakdown-item">
+                <div class="item-header">
+                  <span class="name">资产增长</span>
+                  <span class="score-label">{{ healthScore.assetGrowth }}/15</span>
+                </div>
+                <n-progress
+                  type="line"
+                  :percentage="(healthScore.assetGrowth / 15) * 100"
+                  :height="8"
+                  :border-radius="4"
+                  :show-indicator="false"
+                  :color="getProgressColor(healthScore.growthDetail?.status)"
+                />
+                <div v-if="healthScore.growthDetail" class="item-desc">{{ healthScore.growthDetail.description }}</div>
+              </div>
+              <div class="breakdown-item">
+                <div class="item-header">
+                  <span class="name">记账习惯</span>
+                  <span class="score-label">{{ healthScore.recordingHabit }}/10</span>
+                </div>
+                <n-progress
+                  type="line"
+                  :percentage="(healthScore.recordingHabit / 10) * 100"
+                  :height="8"
+                  :border-radius="4"
+                  :show-indicator="false"
+                  :color="getProgressColor(healthScore.habitDetail?.status)"
+                />
+                <div v-if="healthScore.habitDetail" class="item-desc">{{ healthScore.habitDetail.description }}</div>
+              </div>
+            </div>
+          </GlassCard>
+        </n-gi>
+      </n-grid>
 
-    <el-card v-else class="advice-card">
-      <template #header>改进建议</template>
-      <el-empty description="暂无建议，请先记录一些交易数据" />
-    </el-card>
+      <GlassCard v-if="adviceList.length > 0" style="margin-top: 20px">
+        <template #header>改进建议</template>
+        <div class="advice-list">
+          <n-alert
+            v-for="(advice, index) in adviceList"
+            :key="index"
+            :title="advice.title"
+            :type="advice.type"
+            style="margin-bottom: 12px"
+          >
+            {{ advice.description }}
+          </n-alert>
+        </div>
+      </GlassCard>
+
+      <GlassCard v-else style="margin-top: 20px">
+        <template #header>改进建议</template>
+        <n-empty description="暂无建议，请先记录一些交易数据" />
+      </GlassCard>
+    </n-spin>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import * as echarts from 'echarts'
-import { ElMessage } from 'element-plus'
-import { Download } from '@element-plus/icons-vue'
+import { NSpin, NGrid, NGi, NButton, NIcon, NProgress, NAlert, NEmpty, useMessage } from 'naive-ui'
+import { Download } from '@vicons/ionicons5'
 import { getHealthScore } from '@/api/analysis'
 import { exportAnnualReport } from '@/api/export'
 import { downloadBlob } from '@/utils/export'
 import type { HealthScore, ScoreDetail } from '@/types/analysis'
+import GlassCard from '@/components/common/GlassCard.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 
+const message = useMessage()
 const gaugeRef = ref<HTMLElement>()
 let gaugeChart: echarts.ECharts | null = null
 const loading = ref(false)
@@ -164,7 +181,7 @@ interface Advice {
 const adviceList = computed<Advice[]>(() => {
   if (healthScore.suggestions.length > 0) {
     return healthScore.suggestions.map((suggestion, index) => ({
-      type: index === 0 ? 'warning' : 'info',
+      type: index === 0 ? 'warning' as const : 'info' as const,
       title: `建议 ${index + 1}`,
       description: suggestion
     }))
@@ -197,11 +214,9 @@ async function fetchHealthScoreData() {
       healthScore.suggestions = data.suggestions || []
     }
 
-    nextTick(() => {
-      initGaugeChart()
-    })
-  } catch (error) {
-    ElMessage.error('加载健康评分失败')
+    nextTick(() => { initGaugeChart() })
+  } catch {
+    message.error('加载健康评分失败')
   } finally {
     loading.value = false
   }
@@ -212,53 +227,33 @@ function initGaugeChart() {
 
   gaugeChart = echarts.init(gaugeRef.value)
 
-  const option: echarts.EChartsOption = {
-    series: [
-      {
-        type: 'gauge',
-        startAngle: 180,
-        endAngle: 0,
-        min: 0,
-        max: 100,
-        splitNumber: 10,
-        axisLine: {
-          lineStyle: {
-            width: 20,
-            color: [
-              [0.5, '#FF6B6B'],
-              [0.7, '#FFA726'],
-              [0.9, '#66BB6A'],
-              [1, '#43A047']
-            ]
-          }
-        },
-        pointer: {
-          itemStyle: {
-            color: '#333'
-          }
-        },
-        axisTick: {
-          show: false
-        },
-        splitLine: {
-          show: false
-        },
-        axisLabel: {
-          show: false
-        },
-        detail: {
-          show: false
-        },
-        data: [
-          {
-            value: healthScore.totalScore
-          }
-        ]
-      }
-    ]
-  }
-
-  gaugeChart.setOption(option)
+  gaugeChart.setOption({
+    series: [{
+      type: 'gauge',
+      startAngle: 180,
+      endAngle: 0,
+      min: 0,
+      max: 100,
+      splitNumber: 10,
+      axisLine: {
+        lineStyle: {
+          width: 20,
+          color: [
+            [0.5, '#FF3B30'],
+            [0.7, '#FF9500'],
+            [0.9, '#34C759'],
+            [1, '#30D158']
+          ]
+        }
+      },
+      pointer: { itemStyle: { color: 'var(--cr-text-primary, #333)' } },
+      axisTick: { show: false },
+      splitLine: { show: false },
+      axisLabel: { show: false },
+      detail: { show: false },
+      data: [{ value: healthScore.totalScore }]
+    }]
+  })
 }
 
 async function handleExportHealth() {
@@ -267,9 +262,9 @@ async function handleExportHealth() {
     const year = new Date().getFullYear()
     const res = await exportAnnualReport(year)
     downloadBlob(new Blob([res.data]), `年度报表_${year}.xlsx`)
-    ElMessage.success('导出成功')
+    message.success('导出成功')
   } catch {
-    ElMessage.error('导出失败')
+    message.error('导出失败')
   } finally {
     exporting.value = false
   }
@@ -277,96 +272,74 @@ async function handleExportHealth() {
 
 function getProgressColor(status?: string): string {
   switch (status) {
-    case 'good':
-      return '#66BB6A'
-    case 'average':
-      return '#FFA726'
-    case 'poor':
-      return '#FF6B6B'
-    default:
-      return '#409EFF'
+    case 'good': return '#34C759'
+    case 'average': return '#FF9500'
+    case 'poor': return '#FF3B30'
+    default: return '#007AFF'
   }
 }
 </script>
 
 <style scoped lang="scss">
 .health-score-page {
-  .score-card {
-    .score-display {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
 
-      .gauge-chart {
-        width: 100%;
-        height: 200px;
+  .score-display {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .gauge-chart {
+      width: 100%;
+      height: 200px;
+    }
+
+    .score-text {
+      position: absolute;
+      bottom: 30px;
+      text-align: center;
+
+      .score {
+        display: block;
+        font-size: 48px;
+        font-weight: bold;
+        color: var(--cr-text-primary);
       }
 
-      .score-text {
-        position: absolute;
-        bottom: 30px;
-        text-align: center;
-
-        .score {
-          display: block;
-          font-size: 48px;
-          font-weight: bold;
-          color: #333;
-        }
-
-        .label {
-          font-size: 16px;
-          color: #999;
-        }
+      .label {
+        font-size: 16px;
+        color: var(--cr-text-tertiary);
       }
     }
   }
 
-  .breakdown-card {
-    .breakdown-list {
-      .breakdown-item {
-        margin-bottom: 20px;
+  .breakdown-list {
+    .breakdown-item {
+      margin-bottom: 20px;
 
-        &:last-child {
-          margin-bottom: 0;
-        }
+      &:last-child { margin-bottom: 0; }
 
-        .item-header {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 8px;
+      .item-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
 
-          .name {
-            color: #333;
-          }
+        .name { color: var(--cr-text-primary); }
+        .score-label { color: var(--cr-text-tertiary); }
+      }
 
-          .score {
-            color: #999;
-          }
-        }
-
-        .item-desc {
-          font-size: 12px;
-          color: #999;
-          margin-top: 4px;
-        }
+      .item-desc {
+        font-size: 12px;
+        color: var(--cr-text-tertiary);
+        margin-top: 4px;
       }
     }
   }
 
-  .advice-card {
-    margin-top: 20px;
-
-    .advice-list {
-      .advice-item {
-        margin-bottom: 12px;
-
-        &:last-child {
-          margin-bottom: 0;
-        }
-      }
-    }
+  .advice-list {
+    .n-alert:last-child { margin-bottom: 0; }
   }
 }
 </style>

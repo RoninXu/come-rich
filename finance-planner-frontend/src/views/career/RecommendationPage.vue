@@ -1,47 +1,48 @@
 <template>
   <div class="recommendation-page">
-    <div class="page-header">
-      <h2>AI 副业推荐</h2>
-      <div class="header-actions">
-        <el-button @click="goToProfile">
-          <el-icon><User /></el-icon>
-          编辑资料
-        </el-button>
-        <el-button type="primary" @click="fetchRecommendations" :loading="loading">
-          <el-icon><Refresh /></el-icon>
-          重新推荐
-        </el-button>
-      </div>
-    </div>
+    <n-spin :show="loading">
+      <PageHeader title="AI 副业推荐">
+        <template #actions>
+          <n-button @click="goToProfile">
+            <template #icon><n-icon><Person /></n-icon></template>
+            编辑资料
+          </n-button>
+          <n-button type="primary" @click="fetchRecommendations" :loading="loading">
+            <template #icon><n-icon><Refresh /></n-icon></template>
+            重新推荐
+          </n-button>
+        </template>
+      </PageHeader>
 
-    <el-alert
-      title="AI 推荐基于您的个人资料生成，请先完善个人资料以获得更精准的推荐。"
-      type="info"
-      :closable="false"
-      show-icon
-      style="margin-bottom: 20px"
-    />
+      <n-alert
+        title="AI 推荐基于您的个人资料生成，请先完善个人资料以获得更精准的推荐。"
+        type="info"
+        :closable="false"
+        style="margin-bottom: 20px"
+      />
 
-    <div v-loading="loading">
-      <el-empty v-if="!loading && recommendations.length === 0" description="暂无推荐，请先完善个人资料">
-        <el-button type="primary" @click="goToProfile">去完善资料</el-button>
-      </el-empty>
+      <n-empty v-if="!loading && recommendations.length === 0" description="暂无推荐，请先完善个人资料">
+        <template #extra>
+          <n-button type="primary" @click="goToProfile">去完善资料</n-button>
+        </template>
+      </n-empty>
 
-      <el-row :gutter="20">
-        <el-col :span="8" v-for="(rec, index) in recommendations" :key="index">
-          <el-card class="recommendation-card" shadow="hover">
+      <n-grid :x-gap="20" :y-gap="20" :cols="3">
+        <n-gi v-for="(rec, index) in recommendations" :key="index">
+          <GlassCard hoverable>
             <div class="card-top">
               <div class="match-score">
-                <el-progress
+                <n-progress
                   type="circle"
                   :percentage="rec.matchScore || 0"
-                  :width="60"
+                  :circle-gap="0"
                   :stroke-width="5"
                   :color="scoreColor(rec.matchScore)"
+                  style="width: 60px"
                 />
               </div>
               <div class="card-info">
-                <el-tag size="small" type="info">{{ rec.careerType }}</el-tag>
+                <n-tag size="small" type="info">{{ rec.careerType }}</n-tag>
                 <h3 class="title">{{ rec.title }}</h3>
               </div>
             </div>
@@ -63,61 +64,71 @@
               </div>
             </div>
 
-            <el-button
+            <n-button
               type="primary"
-              style="width: 100%; margin-top: 16px"
+              block
+              style="margin-top: 16px"
               @click="handleAdopt(rec)"
             >
               采纳为计划
-            </el-button>
-          </el-card>
-        </el-col>
-      </el-row>
-    </div>
+            </n-button>
+          </GlassCard>
+        </n-gi>
+      </n-grid>
 
-    <!-- Adopt Dialog -->
-    <el-dialog v-model="showAdoptDialog" title="创建副业计划" width="500px">
-      <el-form :model="adoptForm" label-width="100px">
-        <el-form-item label="计划名称">
-          <el-input v-model="adoptForm.title" />
-        </el-form-item>
-        <el-form-item label="副业类型">
-          <el-input v-model="adoptForm.careerType" disabled />
-        </el-form-item>
-        <el-form-item label="描述">
-          <el-input v-model="adoptForm.description" type="textarea" :rows="3" />
-        </el-form-item>
-        <el-form-item label="目标月收入">
-          <el-input-number
-            v-model="adoptForm.targetMonthlyIncome"
-            :min="0"
-            :precision="0"
-            :controls="false"
-            style="width: 100%"
-          />
-        </el-form-item>
-        <el-form-item label="开始日期">
-          <el-date-picker v-model="adoptForm.startDate" type="date" style="width: 100%" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showAdoptDialog = false">取消</el-button>
-        <el-button type="primary" @click="confirmAdopt" :loading="adopting">创建计划</el-button>
-      </template>
-    </el-dialog>
+      <!-- Adopt Dialog -->
+      <n-modal v-model:show="showAdoptDialog" preset="card" title="创建副业计划" style="width: 500px">
+        <n-form :model="adoptForm" label-placement="left" label-width="100">
+          <n-form-item label="计划名称">
+            <n-input v-model:value="adoptForm.title" />
+          </n-form-item>
+          <n-form-item label="副业类型">
+            <n-input v-model:value="adoptForm.careerType" disabled />
+          </n-form-item>
+          <n-form-item label="描述">
+            <n-input v-model:value="adoptForm.description" type="textarea" :autosize="{ minRows: 3, maxRows: 5 }" />
+          </n-form-item>
+          <n-form-item label="目标月收入">
+            <n-input-number
+              v-model:value="adoptForm.targetMonthlyIncome"
+              :min="0"
+              :precision="0"
+              :show-button="false"
+              style="width: 100%"
+            />
+          </n-form-item>
+          <n-form-item label="开始日期">
+            <n-date-picker v-model:value="adoptForm.startDate" type="date" style="width: 100%" />
+          </n-form-item>
+        </n-form>
+        <template #footer>
+          <n-space justify="end">
+            <n-button @click="showAdoptDialog = false">取消</n-button>
+            <n-button type="primary" @click="confirmAdopt" :loading="adopting">创建计划</n-button>
+          </n-space>
+        </template>
+      </n-modal>
+    </n-spin>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { User, Refresh } from '@element-plus/icons-vue'
+import {
+  NSpin, NGrid, NGi, NButton, NIcon, NTag, NProgress, NAlert, NEmpty,
+  NModal, NForm, NFormItem, NInput, NInputNumber, NDatePicker, NSpace,
+  useMessage,
+} from 'naive-ui'
+import { Person, Refresh } from '@vicons/ionicons5'
 import dayjs from 'dayjs'
 import { getRecommendations, createCareerPlan } from '@/api/career'
 import type { CareerRecommendation } from '@/types/career'
+import GlassCard from '@/components/common/GlassCard.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const router = useRouter()
+const message = useMessage()
 const loading = ref(false)
 const recommendations = ref<CareerRecommendation[]>([])
 const showAdoptDialog = ref(false)
@@ -129,7 +140,7 @@ const adoptForm = reactive({
   description: '',
   matchScore: undefined as number | undefined,
   targetMonthlyIncome: undefined as number | undefined,
-  startDate: new Date() as string | Date
+  startDate: Date.now() as number | null
 })
 
 onMounted(async () => {
@@ -143,8 +154,8 @@ async function fetchRecommendations() {
     if (res.data.code === 200) {
       recommendations.value = res.data.data
     }
-  } catch (error) {
-    ElMessage.error('获取推荐失败，请先完善个人资料')
+  } catch {
+    message.error('获取推荐失败，请先完善个人资料')
   } finally {
     loading.value = false
   }
@@ -156,13 +167,13 @@ function handleAdopt(rec: CareerRecommendation) {
   adoptForm.description = rec.description || ''
   adoptForm.matchScore = rec.matchScore || undefined
   adoptForm.targetMonthlyIncome = rec.estimatedMonthlyIncome || undefined
-  adoptForm.startDate = new Date()
+  adoptForm.startDate = Date.now()
   showAdoptDialog.value = true
 }
 
 async function confirmAdopt() {
   if (!adoptForm.title) {
-    ElMessage.warning('请填写计划名称')
+    message.warning('请填写计划名称')
     return
   }
   adopting.value = true
@@ -175,10 +186,10 @@ async function confirmAdopt() {
       targetMonthlyIncome: adoptForm.targetMonthlyIncome,
       startDate: dayjs(adoptForm.startDate).format('YYYY-MM-DD')
     })
-    ElMessage.success('计划已创建')
+    message.success('计划已创建')
     showAdoptDialog.value = false
     router.push('/career/plans')
-  } catch (error) {
+  } catch {
     // Handled by interceptor
   } finally {
     adopting.value = false
@@ -186,10 +197,10 @@ async function confirmAdopt() {
 }
 
 function scoreColor(score: number | null): string {
-  if (!score) return '#909399'
-  if (score >= 80) return '#67C23A'
-  if (score >= 60) return '#E6A23C'
-  return '#F56C6C'
+  if (!score) return '#86868B'
+  if (score >= 80) return '#34C759'
+  if (score >= 60) return '#FF9500'
+  return '#FF3B30'
 }
 
 function goToProfile() {
@@ -199,72 +210,49 @@ function goToProfile() {
 
 <style scoped lang="scss">
 .recommendation-page {
-  .page-header {
+  max-width: 1200px;
+  margin: 0 auto;
+
+  .card-top {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    gap: 16px;
+    margin-bottom: 12px;
 
-    h2 { margin: 0; }
+    .card-info {
+      flex: 1;
 
-    .header-actions {
-      display: flex;
-      gap: 8px;
+      .title {
+        margin: 8px 0 0;
+        font-size: 16px;
+        color: var(--cr-text-primary);
+      }
     }
   }
 
-  .recommendation-card {
-    margin-bottom: 20px;
+  .description {
+    color: var(--cr-text-secondary);
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0 0 16px;
+  }
 
-    .card-top {
+  .detail-items {
+    .detail-item {
       display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 12px;
-
-      .card-info {
-        flex: 1;
-
-        .title {
-          margin: 8px 0 0;
-          font-size: 16px;
-          color: #333;
-        }
-      }
-    }
-
-    .description {
-      color: #666;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--cr-divider);
       font-size: 14px;
-      line-height: 1.6;
-      margin: 0 0 16px;
-    }
 
-    .detail-items {
-      .detail-item {
-        display: flex;
-        justify-content: space-between;
-        padding: 8px 0;
-        border-bottom: 1px solid #f0f0f0;
-        font-size: 14px;
+      &:last-child { border-bottom: none; }
 
-        &:last-child {
-          border-bottom: none;
-        }
+      .detail-label { color: var(--cr-text-tertiary); }
+      .detail-value {
+        color: var(--cr-text-primary);
+        font-weight: 500;
 
-        .detail-label {
-          color: #999;
-        }
-
-        .detail-value {
-          color: #333;
-          font-weight: 500;
-
-          &.income {
-            color: #67C23A;
-            font-weight: bold;
-          }
-        }
+        &.income { color: var(--cr-success); font-weight: bold; }
       }
     }
   }

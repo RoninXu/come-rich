@@ -1,186 +1,189 @@
 <template>
-  <div class="goal-detail-page" v-loading="loading">
-    <div class="page-header">
-      <div class="header-left">
-        <el-button link @click="goBack">
-          <el-icon><ArrowLeft /></el-icon>
-          返回
-        </el-button>
-        <h2>{{ goal?.title }}</h2>
-      </div>
-      <div class="header-actions">
-        <el-button @click="goToEdit" v-if="goal?.status === 1">编辑</el-button>
-        <el-button type="danger" @click="handleDelete">删除</el-button>
-      </div>
-    </div>
+  <div class="goal-detail-page">
+    <n-spin :show="loading">
+      <PageHeader :title="goal?.title ?? ''" show-back>
+        <template #actions>
+          <n-button v-if="goal?.status === 1" @click="goToEdit">编辑</n-button>
+          <n-button type="error" @click="handleDelete">删除</n-button>
+        </template>
+      </PageHeader>
 
-    <template v-if="goal">
-      <el-row :gutter="20">
-        <el-col :span="16">
-          <el-card class="progress-card">
-            <template #header>
-              <div class="card-header">
-                <span>目标进度</span>
-                <el-tag :type="statusTag(goal.status)">{{ statusLabel(goal.status) }}</el-tag>
+      <template v-if="goal">
+        <n-grid :x-gap="16" :y-gap="16" :cols="24">
+          <n-gi :span="16">
+            <GlassCard>
+              <template #header>
+                <div class="card-header">
+                  <span>目标进度</span>
+                  <n-tag :type="statusTag(goal.status)" size="small">{{ statusLabel(goal.status) }}</n-tag>
+                </div>
+              </template>
+              <div class="progress-summary">
+                <div class="amount-display">
+                  <span class="current-amount">¥{{ formatNumber(goal.currentAmount) }}</span>
+                  <span class="divider">/</span>
+                  <span class="target-amount">¥{{ formatNumber(goal.targetAmount) }}</span>
+                </div>
+                <n-progress
+                  type="line"
+                  :percentage="Math.min(100, Number(goal.progressPercentage))"
+                  :height="16"
+                  :border-radius="8"
+                  :color="goal.status === 2 ? 'var(--cr-success)' : 'var(--cr-primary)'"
+                />
+                <n-grid :x-gap="16" :cols="3" class="stats-row">
+                  <n-gi>
+                    <div class="stat-item">
+                      <div class="stat-label">剩余天数</div>
+                      <div class="stat-value">{{ goal.remainingDays }} 天</div>
+                    </div>
+                  </n-gi>
+                  <n-gi>
+                    <div class="stat-item">
+                      <div class="stat-label">完成进度</div>
+                      <div class="stat-value">{{ goal.progressPercentage }}%</div>
+                    </div>
+                  </n-gi>
+                  <n-gi>
+                    <div class="stat-item">
+                      <div class="stat-label">每月需存</div>
+                      <div class="stat-value">¥{{ formatNumber(goal.monthlySavingsNeeded) }}</div>
+                    </div>
+                  </n-gi>
+                </n-grid>
               </div>
-            </template>
-            <div class="progress-summary">
-              <div class="amount-display">
-                <span class="current-amount">¥{{ formatNumber(goal.currentAmount) }}</span>
-                <span class="divider">/</span>
-                <span class="target-amount">¥{{ formatNumber(goal.targetAmount) }}</span>
-              </div>
-              <el-progress
-                :percentage="Math.min(100, Number(goal.progressPercentage))"
-                :stroke-width="16"
-                :color="goal.status === 2 ? '#67C23A' : '#409EFF'"
-              />
-              <el-row :gutter="20" class="stats-row">
-                <el-col :span="8">
-                  <div class="stat-item">
-                    <div class="stat-label">剩余天数</div>
-                    <div class="stat-value">{{ goal.remainingDays }} 天</div>
-                  </div>
-                </el-col>
-                <el-col :span="8">
-                  <div class="stat-item">
-                    <div class="stat-label">完成进度</div>
-                    <div class="stat-value">{{ goal.progressPercentage }}%</div>
-                  </div>
-                </el-col>
-                <el-col :span="8">
-                  <div class="stat-item">
-                    <div class="stat-label">每月需存</div>
-                    <div class="stat-value">¥{{ formatNumber(goal.monthlySavingsNeeded) }}</div>
-                  </div>
-                </el-col>
-              </el-row>
-            </div>
 
-            <!-- Progress Chart -->
-            <div ref="chartRef" style="width: 100%; height: 300px; margin-top: 20px"></div>
-          </el-card>
+              <!-- Progress Chart -->
+              <div ref="chartRef" style="width: 100%; height: 300px; margin-top: 20px"></div>
+            </GlassCard>
 
-          <!-- Progress History -->
-          <el-card class="history-card" style="margin-top: 20px">
-            <template #header>
-              <div class="card-header">
-                <span>存款记录</span>
-                <el-button type="primary" size="small" @click="showAddProgress = true" v-if="goal.status === 1">
-                  <el-icon><Plus /></el-icon>
+            <!-- Progress History -->
+            <GlassCard style="margin-top: 16px">
+              <template #header>
+                <div class="card-header">
+                  <span>存款记录</span>
+                </div>
+              </template>
+              <template #header-extra>
+                <n-button v-if="goal.status === 1" type="primary" size="small" @click="showAddProgress = true">
+                  <template #icon><n-icon><AddOutline /></n-icon></template>
                   添加存款
-                </el-button>
-              </div>
-            </template>
-            <el-empty v-if="progressHistory.length === 0" description="暂无存款记录" />
-            <el-timeline v-else>
-              <el-timeline-item
-                v-for="item in progressHistory"
-                :key="item.id"
-                :timestamp="item.recordDate"
-                placement="top"
-              >
-                <el-card shadow="never">
+                </n-button>
+              </template>
+              <n-empty v-if="progressHistory.length === 0" description="暂无存款记录" />
+              <n-timeline v-else>
+                <n-timeline-item
+                  v-for="item in progressHistory"
+                  :key="item.id"
+                  :time="item.recordDate"
+                >
                   <div class="progress-item">
                     <span class="progress-amount">+¥{{ formatNumber(item.amount) }}</span>
                     <span class="progress-note" v-if="item.note">{{ item.note }}</span>
                   </div>
-                </el-card>
-              </el-timeline-item>
-            </el-timeline>
-          </el-card>
-        </el-col>
+                </n-timeline-item>
+              </n-timeline>
+            </GlassCard>
+          </n-gi>
 
-        <el-col :span="8">
-          <el-card class="info-card">
-            <template #header>目标详情</template>
-            <el-descriptions :column="1" border>
-              <el-descriptions-item label="优先级">
-                <el-tag :type="priorityTag(goal.priority)" size="small">
-                  {{ priorityLabel(goal.priority) }}
-                </el-tag>
-              </el-descriptions-item>
-              <el-descriptions-item label="截止日期">{{ goal.deadline }}</el-descriptions-item>
-              <el-descriptions-item label="创建时间">{{ formatDate(goal.createdAt) }}</el-descriptions-item>
-              <el-descriptions-item label="描述" v-if="goal.description">
-                {{ goal.description }}
-              </el-descriptions-item>
-            </el-descriptions>
-          </el-card>
+          <n-gi :span="8">
+            <GlassCard>
+              <template #header>目标详情</template>
+              <n-descriptions :column="1" bordered label-placement="left">
+                <n-descriptions-item label="优先级">
+                  <n-tag :type="priorityTag(goal.priority)" size="small">
+                    {{ priorityLabel(goal.priority) }}
+                  </n-tag>
+                </n-descriptions-item>
+                <n-descriptions-item label="截止日期">{{ goal.deadline }}</n-descriptions-item>
+                <n-descriptions-item label="创建时间">{{ formatDate(goal.createdAt) }}</n-descriptions-item>
+                <n-descriptions-item v-if="goal.description" label="描述">
+                  {{ goal.description }}
+                </n-descriptions-item>
+              </n-descriptions>
+            </GlassCard>
 
-          <!-- AI Plan -->
-          <el-card class="ai-card" style="margin-top: 20px">
-            <template #header>
-              <div class="card-header">
-                <span>AI 理财建议</span>
+            <!-- AI Plan -->
+            <GlassCard style="margin-top: 16px">
+              <template #header>AI 理财建议</template>
+              <n-button
+                type="primary"
+                :loading="aiLoading"
+                @click="handleGenerateAiPlan"
+                block
+                v-if="!aiPlan"
+              >
+                生成 AI 理财计划
+              </n-button>
+              <div v-if="aiPlan" class="ai-plan-content">
+                <h4>总结</h4>
+                <p>{{ aiPlan.summary }}</p>
+                <h4 v-if="aiPlan.steps.length > 0">实施步骤</h4>
+                <ol>
+                  <li v-for="(step, idx) in aiPlan.steps" :key="idx">{{ step }}</li>
+                </ol>
+                <h4 v-if="aiPlan.tips.length > 0">小贴士</h4>
+                <ul>
+                  <li v-for="(tip, idx) in aiPlan.tips" :key="idx">{{ tip }}</li>
+                </ul>
+                <n-alert :title="aiPlan.riskWarning" type="warning" style="margin-top: 16px" />
               </div>
-            </template>
-            <el-button
-              type="primary"
-              :loading="aiLoading"
-              @click="handleGenerateAiPlan"
-              style="width: 100%"
-              v-if="!aiPlan"
-            >
-              生成 AI 理财计划
-            </el-button>
-            <div v-if="aiPlan" class="ai-plan-content">
-              <h4>总结</h4>
-              <p>{{ aiPlan.summary }}</p>
-              <h4 v-if="aiPlan.steps.length > 0">实施步骤</h4>
-              <ol>
-                <li v-for="(step, idx) in aiPlan.steps" :key="idx">{{ step }}</li>
-              </ol>
-              <h4 v-if="aiPlan.tips.length > 0">小贴士</h4>
-              <ul>
-                <li v-for="(tip, idx) in aiPlan.tips" :key="idx">{{ tip }}</li>
-              </ul>
-              <el-alert :title="aiPlan.riskWarning" type="warning" :closable="false" show-icon />
-            </div>
-          </el-card>
-        </el-col>
-      </el-row>
-    </template>
-
-    <!-- Add Progress Dialog -->
-    <el-dialog v-model="showAddProgress" title="添加存款记录" width="400px">
-      <el-form :model="progressForm" label-width="80px">
-        <el-form-item label="存入金额" required>
-          <el-input-number
-            v-model="progressForm.amount"
-            :min="0.01"
-            :precision="2"
-            :controls="false"
-            style="width: 100%"
-          />
-        </el-form-item>
-        <el-form-item label="日期" required>
-          <el-date-picker v-model="progressForm.recordDate" type="date" style="width: 100%" />
-        </el-form-item>
-        <el-form-item label="备注">
-          <el-input v-model="progressForm.note" placeholder="可选备注" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showAddProgress = false">取消</el-button>
-        <el-button type="primary" @click="handleAddProgress" :loading="progressSubmitting">确定</el-button>
+            </GlassCard>
+          </n-gi>
+        </n-grid>
       </template>
-    </el-dialog>
+
+      <!-- Add Progress Modal -->
+      <n-modal v-model:show="showAddProgress" preset="card" title="添加存款记录" style="width: 420px">
+        <n-form label-placement="left" label-width="80">
+          <n-form-item label="存入金额" required>
+            <n-input-number
+              v-model:value="progressForm.amount"
+              :min="0.01"
+              :precision="2"
+              :show-button="false"
+              style="width: 100%"
+            />
+          </n-form-item>
+          <n-form-item label="日期" required>
+            <n-date-picker v-model:value="progressForm.recordDateTs" type="date" style="width: 100%" />
+          </n-form-item>
+          <n-form-item label="备注">
+            <n-input v-model:value="progressForm.note" placeholder="可选备注" />
+          </n-form-item>
+        </n-form>
+        <template #action>
+          <n-space justify="end">
+            <n-button @click="showAddProgress = false">取消</n-button>
+            <n-button type="primary" @click="handleAddProgress" :loading="progressSubmitting">确定</n-button>
+          </n-space>
+        </template>
+      </n-modal>
+    </n-spin>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { ArrowLeft, Plus } from '@element-plus/icons-vue'
+import {
+  NSpin, NGrid, NGi, NButton, NIcon, NTag, NProgress, NEmpty,
+  NTimeline, NTimelineItem, NDescriptions, NDescriptionsItem,
+  NAlert, NModal, NForm, NFormItem, NInput, NInputNumber,
+  NDatePicker, NSpace, useMessage, useDialog,
+} from 'naive-ui'
+import { AddOutline } from '@vicons/ionicons5'
 import dayjs from 'dayjs'
 import * as echarts from 'echarts'
 import { getGoal, deleteGoal, addProgress, getProgressHistory, generateAiPlan } from '@/api/goal'
 import type { Goal, GoalProgress, GoalAiPlan } from '@/types/goal'
+import GlassCard from '@/components/common/GlassCard.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 
 const route = useRoute()
 const router = useRouter()
+const message = useMessage()
+const dialog = useDialog()
 
 const loading = ref(false)
 const goal = ref<Goal | null>(null)
@@ -193,7 +196,7 @@ const chartRef = ref<HTMLElement>()
 
 const progressForm = reactive({
   amount: undefined as number | undefined,
-  recordDate: new Date() as string | Date,
+  recordDateTs: Date.now() as number | null,
   note: ''
 })
 
@@ -218,7 +221,7 @@ async function fetchGoalData() {
       renderChart()
     }
   } catch (error) {
-    ElMessage.error('加载目标详情失败')
+    message.error('加载目标详情失败')
   } finally {
     loading.value = false
   }
@@ -257,8 +260,8 @@ function renderChart() {
 }
 
 async function handleAddProgress() {
-  if (!progressForm.amount || !progressForm.recordDate) {
-    ElMessage.warning('请填写金额和日期')
+  if (!progressForm.amount || !progressForm.recordDateTs) {
+    message.warning('请填写金额和日期')
     return
   }
   progressSubmitting.value = true
@@ -266,13 +269,13 @@ async function handleAddProgress() {
     await addProgress(Number(route.params.id), {
       amount: progressForm.amount,
       note: progressForm.note || undefined,
-      recordDate: dayjs(progressForm.recordDate).format('YYYY-MM-DD')
+      recordDate: dayjs(progressForm.recordDateTs).format('YYYY-MM-DD')
     })
-    ElMessage.success('存款记录已添加')
+    message.success('存款记录已添加')
     showAddProgress.value = false
     progressForm.amount = undefined
     progressForm.note = ''
-    progressForm.recordDate = new Date()
+    progressForm.recordDateTs = Date.now()
     await fetchGoalData()
   } catch (error) {
     // Handled by interceptor
@@ -289,33 +292,32 @@ async function handleGenerateAiPlan() {
       aiPlan.value = res.data.data
     }
   } catch (error) {
-    ElMessage.error('AI 计划生成失败')
+    message.error('AI 计划生成失败')
   } finally {
     aiLoading.value = false
   }
 }
 
 async function handleDelete() {
-  try {
-    await ElMessageBox.confirm('确定要删除这个目标吗？相关存款记录也会被删除。', '提示', {
-      type: 'warning'
-    })
-    await deleteGoal(Number(route.params.id))
-    ElMessage.success('目标已删除')
-    router.push('/goals')
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      console.error('Delete error:', error)
+  dialog.warning({
+    title: '提示',
+    content: '确定要删除这个目标吗？相关存款记录也会被删除。',
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        await deleteGoal(Number(route.params.id))
+        message.success('目标已删除')
+        router.push('/goals')
+      } catch (error) {
+        console.error('Delete error:', error)
+      }
     }
-  }
+  })
 }
 
 function goToEdit() {
   router.push(`/goals/edit/${route.params.id}`)
-}
-
-function goBack() {
-  router.push('/goals')
 }
 
 function formatNumber(value: number | undefined | null): string {
@@ -332,8 +334,8 @@ function priorityLabel(priority: number): string {
   return map[priority] || '中'
 }
 
-function priorityTag(priority: number): '' | 'success' | 'warning' | 'danger' | 'info' {
-  const map: Record<number, '' | 'danger' | 'warning' | 'info'> = { 1: 'danger', 2: 'warning', 3: 'info' }
+function priorityTag(priority: number): 'error' | 'warning' | 'info' | 'default' {
+  const map: Record<number, 'error' | 'warning' | 'info'> = { 1: 'error', 2: 'warning', 3: 'info' }
   return map[priority] || 'warning'
 }
 
@@ -342,114 +344,88 @@ function statusLabel(status: number): string {
   return map[status] || '未知'
 }
 
-function statusTag(status: number): '' | 'success' | 'warning' | 'danger' | 'info' {
-  const map: Record<number, '' | 'success' | 'info'> = { 1: '', 2: 'success', 3: 'info' }
-  return map[status] || ''
+function statusTag(status: number): 'default' | 'success' | 'info' {
+  const map: Record<number, 'default' | 'success' | 'info'> = { 1: 'default', 2: 'success', 3: 'info' }
+  return map[status] || 'default'
 }
 </script>
 
 <style scoped lang="scss">
 .goal-detail-page {
-  .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      h2 { margin: 0; }
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 8px;
-    }
-  }
-
   .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
 
-  .progress-card {
-    .progress-summary {
-      .amount-display {
-        margin-bottom: 12px;
-        .current-amount {
-          font-size: 28px;
-          font-weight: bold;
-          color: #409EFF;
-        }
-        .divider {
-          margin: 0 8px;
-          color: #ccc;
-          font-size: 20px;
-        }
-        .target-amount {
-          font-size: 18px;
-          color: #999;
-        }
+  .progress-summary {
+    .amount-display {
+      margin-bottom: 12px;
+      .current-amount {
+        font-size: 28px;
+        font-weight: bold;
+        color: var(--cr-primary);
       }
+      .divider {
+        margin: 0 8px;
+        color: var(--cr-text-tertiary);
+        font-size: 20px;
+      }
+      .target-amount {
+        font-size: 18px;
+        color: var(--cr-text-secondary);
+      }
+    }
 
-      .stats-row {
-        margin-top: 20px;
-        .stat-item {
-          text-align: center;
-          .stat-label {
-            font-size: 13px;
-            color: #999;
-            margin-bottom: 4px;
-          }
-          .stat-value {
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
-          }
+    .stats-row {
+      margin-top: 20px;
+      .stat-item {
+        text-align: center;
+        .stat-label {
+          font-size: 13px;
+          color: var(--cr-text-secondary);
+          margin-bottom: 4px;
+        }
+        .stat-value {
+          font-size: 18px;
+          font-weight: bold;
+          color: var(--cr-text-primary);
         }
       }
     }
   }
 
-  .history-card {
-    .progress-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      .progress-amount {
-        font-weight: bold;
-        color: #66BB6A;
-      }
-      .progress-note {
-        color: #999;
-        font-size: 13px;
-      }
+  .progress-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    .progress-amount {
+      font-weight: bold;
+      color: var(--cr-success);
+    }
+    .progress-note {
+      color: var(--cr-text-secondary);
+      font-size: 13px;
     }
   }
 
   .ai-plan-content {
     h4 {
       margin: 16px 0 8px;
-      color: #333;
+      color: var(--cr-text-primary);
       &:first-child { margin-top: 0; }
     }
     p {
-      color: #666;
+      color: var(--cr-text-secondary);
       line-height: 1.6;
     }
     ol, ul {
       padding-left: 20px;
       li {
         margin-bottom: 6px;
-        color: #666;
+        color: var(--cr-text-secondary);
         line-height: 1.5;
       }
-    }
-    .el-alert {
-      margin-top: 16px;
     }
   }
 }
