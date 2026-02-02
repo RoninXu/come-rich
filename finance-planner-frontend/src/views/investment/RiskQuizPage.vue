@@ -4,13 +4,16 @@
       <PageHeader title="风险评估问卷" show-back />
 
       <GlassCard v-if="questions.length > 0">
-        <n-steps :current="currentStep + 1" style="margin-bottom: 32px">
-          <n-step v-for="(q, i) in questions" :key="i" :title="'第' + (i + 1) + '题'" />
-        </n-steps>
+        <div class="quiz-progress">
+          <n-steps :current="currentStep + 1" size="small">
+            <n-step v-for="(q, i) in questions" :key="i" :title="String(i + 1)" />
+          </n-steps>
+          <div class="quiz-progress-label">第 {{ currentStep + 1 }} / {{ questions.length }} 题</div>
+        </div>
 
         <div class="question-content">
           <h3>{{ currentQuestion.question }}</h3>
-          <n-radio-group v-model:value="answers[currentQuestion.questionId]" class="option-group">
+          <n-radio-group :key="currentQuestion.questionId" v-model:value="answers[currentQuestion.questionId]" class="option-group">
             <n-space vertical :size="12">
               <n-radio
                 v-for="option in currentQuestion.options"
@@ -64,7 +67,10 @@ async function fetchQuestions() {
   loading.value = true
   try {
     const res = await getQuizQuestions()
-    if (res.data.code === 200) questions.value = res.data.data
+    if (res.data.code === 200) {
+      questions.value = res.data.data
+      questions.value.forEach(q => { if (!answers[q.questionId]) answers[q.questionId] = '' })
+    }
   } catch { message.error('加载问卷失败') }
   finally { loading.value = false }
 }
@@ -87,6 +93,19 @@ async function submitQuiz() {
 .risk-quiz-page {
   max-width: 800px;
   margin: 0 auto;
+
+  .quiz-progress {
+    margin-bottom: 32px;
+    overflow: hidden;
+    padding: 0 4px;
+
+    .quiz-progress-label {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 14px;
+      color: var(--cr-text-secondary);
+    }
+  }
 
   .question-content {
     padding: 20px 0;

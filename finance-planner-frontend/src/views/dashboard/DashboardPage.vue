@@ -209,7 +209,7 @@ async function fetchBudgetAndRisk() {
   try {
     const riskRes = await getLatestAssessment()
     if (riskRes.data.code === 200) {
-      riskAssessment.value = riskRes.data.data
+      riskAssessment.value = riskRes.data.data || null
     }
   } catch {
     // No assessment
