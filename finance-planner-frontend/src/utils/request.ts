@@ -4,7 +4,12 @@ import { getToken, clearAuth } from './auth'
 import router from '@/router'
 import type { ApiResponse } from '@/types/api'
 
-const { message } = createDiscreteApi(['message'])
+const { message } = createDiscreteApi(['message'], {
+  messageProviderProps: {
+    closable: true,
+    duration: 5000,
+  }
+})
 
 const request: AxiosInstance = axios.create({
   baseURL: '/api',
@@ -34,7 +39,7 @@ request.interceptors.response.use(
     const res = response.data
 
     if (res.code !== 200) {
-      message.error(res.message || 'Request failed')
+      message.error(res.message || '请求失败', { duration: 0 })
 
       // Handle specific error codes
       if (res.code === 401 || res.code === 1005 || res.code === 1006) {
@@ -51,13 +56,15 @@ request.interceptors.response.use(
     const status = error.response?.status
 
     if (status === 401 || status === 403) {
+      const msg = error.response?.data?.message || '登录已过期，请重新登录'
+      message.error(msg, { duration: 0 })
       clearAuth()
       router.push('/login')
       return Promise.reject(error)
     }
 
-    const msg = error.response?.data?.message || error.message || 'Network error'
-    message.error(msg)
+    const msg = error.response?.data?.message || error.message || '网络错误'
+    message.error(msg, { duration: 0 })
 
     return Promise.reject(error)
   }

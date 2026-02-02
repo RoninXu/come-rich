@@ -3,7 +3,7 @@
     :theme="naiveTheme"
     :theme-overrides="naiveThemeOverrides"
   >
-    <n-message-provider>
+    <n-message-provider :closable="true" :duration="5000">
       <n-dialog-provider>
         <n-notification-provider>
           <n-loading-bar-provider>

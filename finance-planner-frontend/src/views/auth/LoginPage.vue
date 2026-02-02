@@ -112,8 +112,9 @@ async function handleLogin() {
 
     const redirect = route.query.redirect as string
     router.push(redirect || '/dashboard')
-  } catch {
-    // Error is handled by request interceptor
+  } catch (e: any) {
+    const msg = e?.response?.data?.message || e?.message || '登录失败，请检查用户名和密码'
+    message.error(msg, { duration: 0 })
   } finally {
     loading.value = false
   }
