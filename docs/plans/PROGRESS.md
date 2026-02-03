@@ -1,4 +1,4 @@
-# Come Rich 开发进度
+﻿# Come Rich 开发进度
 
 ## 当前状态
 
@@ -162,7 +162,85 @@
 
 ## 待完成
 
-### Phase 4 (规划中)
+### Phase 4 - AI Agent 改造 (规划中)
+
+**目标**: 将 AI Chat 升级为完整 AI Agent，用户在聊天窗口即可操作系统所有功能。自研编排引擎，不使用开源 Agent 框架。
+
+**设计决策**:
+- LLM: 多模型切换 (DeepSeek/Claude/GPT)，均基于 OpenAI 兼容协议
+- 确认机制: 高风险操作(删除、大额)需用户确认，读取和普通写入自动执行
+- UI 策略: 保留现有页面，AI Chat 升级为 Agent 模式作为额外操作入口
+- 架构: 服务端 ReAct 循环，SSE 流式推送全过程 (工具调用 + 结果 + 回复)
+
+#### Phase 4.1 - 核心基础设施 + 记账/分析/预算工具
+
+- [x] **Agent 工具体系**
+  - [x] `Tool` 接口 + `AbstractTool` 基类 + `@AgentTool` 注解
+  - [x] `RiskLevel` 枚举 (LOW/MEDIUM/HIGH)
+  - [x] `ToolResult` 执行结果 DTO
+  - [x] `ToolRegistry` 工具自动发现 + schema 生成
+  - [x] `ToolExecutor` 参数校验 + 执行 + 错误处理
+
+- [x] **增强 LLM Client (Function Calling)**
+  - [x] `LlmClient` 新增 `streamChatWithTools()` 方法
+  - [x] `OpenAiCompatibleLlmClient` 扩展: 请求体加入 tools/tool_choice 字段
+  - [x] Streaming 响应解析: `choices[0].delta.tool_calls` 累积拼装
+  - [x] `LlmStreamEvent` / `ToolCallChunk` DTO
+
+- [x] **Agent 编排引擎 (ReAct Loop)**
+  - [x] `AgentService` 接口 + `AgentServiceImpl`
+  - [x] `AgentExecutionContext` 每请求状态(消息列表、迭代计数、确认状态)
+  - [x] ReAct 循环: LLM 调用 → 解析响应 → 工具执行 → 结果注入 → 循环 (max 10 次)
+  - [x] `AgentContextBuilder` (Agent 系统提示 + 工具 schema + 财务上下文 + 历史)
+  - [x] `AgentSseHelper` 封装各类 SSE 事件发送
+
+- [x] **确认流程**
+  - [x] `ConfirmationStore` (ConcurrentHashMap + CompletableFuture)
+  - [x] 高风险操作暂停循环 → SSE 推送确认请求 → 等待用户响应
+  - [x] `POST /api/ai/agent/confirm` 确认/拒绝端点
+  - [x] 动态风险评估(如金额 > 10000 升级为 HIGH)
+
+- [x] **SSE 协议升级**
+  - [x] 新增 SSE 事件: `tool_call_start`, `tool_call_result`, `confirmation_required`, `confirmation_resolved`, `done`
+  - [x] 向后兼容: 默认事件 (无 event name) 保持现有格式
+  - [x] `GET /api/ai/agent/chat-stream` 端点 (timeout 5min)
+
+- [x] **数据库扩展**
+  - [x] Flyway V11: `ai_conversation` 表新增 `message_type`, `tool_calls`, `tool_call_id` 列
+  - [x] 上下文策略: 当前 turn 保留完整工具链，历史 turn 压缩为摘要
+
+- [x] **Phase 1 工具实现 (15 个)**
+  - [x] 记账: `list_transactions`, `get_recent_transactions`, `create_transaction`, `update_transaction`, `delete_transaction`, `get_categories`
+  - [x] 分析: `get_monthly_summary`, `get_category_stats`, `get_health_score`
+  - [x] 预算: `get_budget_summary`, `get_budgets`, `set_budget`, `delete_budget`, `get_budget_trend`, `get_budget_ai_suggestions`
+
+- [x] **前端改造**
+  - [x] `AgentStreamEvent` 等 TypeScript 类型定义
+  - [x] `streamAgentChat()` API (增强 SSE 解析，处理 named events)
+  - [x] `ToolCallCard.vue` 组件 (内联展示工具调用状态和结果)
+  - [x] `ConfirmationDialog.vue` 组件 (内联确认，非模态弹窗)
+  - [x] `ChatPage.vue` 改造: Agent/Chat 模式切换，渲染工具卡片和确认对话框
+  - [x] `chat.ts` Store: `sendAgentMessage()` + `respondToConfirmation()`
+
+#### Phase 4.2 - 投资/目标/副业工具
+
+- [ ] **扩展工具 (13 个)**
+  - [ ] 目标: `list_goals`, `create_goal`, `update_goal`, `delete_goal`, `add_goal_progress`, `generate_goal_ai_plan`
+  - [ ] 投资: `get_risk_assessment`, `get_investment_advice`, `get_asset_allocation`
+  - [ ] 副业: `get_career_recommendations`, `list_career_plans`, `create_career_plan`, `get_user_profile`
+- [ ] `finance-planner-ai` pom.xml 添加 goal/investment/career 模块依赖
+- [ ] 上下文压缩优化(token 计数 + 超限自动 compaction)
+- [ ] 复杂多工具链场景测试
+
+#### Phase 4.3 - 高级功能
+
+- [ ] 多 Provider 健壮性(单 provider 失败自动降级)
+- [ ] 工具结果 Redis 缓存 (同一会话内查询复用)
+- [ ] Agent 分析仪表盘(工具使用频率、成功率、延迟)
+- [ ] Rate limiting 适配 (Agent 一轮对话算 1 次)
+- [ ] 错误恢复 (Agent 循环中断时状态清理)
+
+### Phase 5 (规划中)
 
 - [ ] 多语言支持
 - [ ] 移动端适配
@@ -246,3 +324,4 @@ pnpm dev
 - 前端入口: `finance-planner-frontend/`
 - 数据库迁移: `finance-planner-backend/finance-planner-app/src/main/resources/db/migration/`
 - API 配置: `finance-planner-backend/finance-planner-app/src/main/resources/application.yml`
+

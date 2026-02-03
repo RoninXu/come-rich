@@ -1,44 +1,44 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { login, register, getCurrentUser } from '@/api/auth'
-import { getToken, setToken, setUser, getUser, clearAuth } from '@/utils/auth'
-import type { User, LoginRequest, RegisterRequest } from '@/types/user'
+import { defineStore } from "pinia";
+import { ref, computed } from "vue";
+import { login, register, getCurrentUser } from "@/api/auth";
+import { getToken, setToken, setUser, getUser, clearAuth } from "@/utils/auth";
+import type { User, LoginRequest, RegisterRequest } from "@/types/user";
 
-export const useUserStore = defineStore('user', () => {
-  const token = ref<string | null>(getToken())
-  const user = ref<User | null>(getUser())
+export const useUserStore = defineStore("user", () => {
+  const token = ref<string | null>(getToken());
+  const user = ref<User | null>(getUser());
 
-  const isLoggedIn = computed(() => !!token.value)
-  const username = computed(() => user.value?.username || '')
+  const isLoggedIn = computed(() => !!token.value);
+  const username = computed(() => user.value?.username || "");
 
   async function loginAction(loginData: LoginRequest) {
-    const response = await login(loginData)
-    const data = response.data.data
+    const response = await login(loginData);
+    const data = response.data.data;
 
-    token.value = data.token
-    user.value = data.user
+    token.value = data.token;
+    user.value = data.user;
 
-    setToken(data.token)
-    setUser(data.user)
+    setToken(data.token);
+    setUser(data.user);
 
-    return data
+    return data;
   }
 
   async function registerAction(registerData: RegisterRequest) {
-    await register(registerData)
+    await register(registerData);
   }
 
   async function fetchCurrentUser() {
-    const response = await getCurrentUser()
-    user.value = response.data.data
-    setUser(response.data.data)
-    return response.data.data
+    const response = await getCurrentUser();
+    user.value = response.data.data;
+    setUser(response.data.data);
+    return response.data.data;
   }
 
   function logout() {
-    token.value = null
-    user.value = null
-    clearAuth()
+    token.value = null;
+    user.value = null;
+    clearAuth();
   }
 
   return {
@@ -49,6 +49,6 @@ export const useUserStore = defineStore('user', () => {
     loginAction,
     registerAction,
     fetchCurrentUser,
-    logout
-  }
-})
+    logout,
+  };
+});

@@ -3,36 +3,79 @@
     <n-spin :show="loading">
       <PageHeader title="我的副业计划">
         <template #actions>
-          <n-button type="primary" @click="goToRecommendations">
-            <template #icon><n-icon><Add /></n-icon></template>
+          <n-button
+            type="primary"
+            @click="goToRecommendations"
+          >
+            <template #icon>
+              <n-icon><Add /></n-icon>
+            </template>
             获取 AI 推荐
           </n-button>
         </template>
       </PageHeader>
 
-      <n-empty v-if="!loading && plans.length === 0" description="暂无副业计划">
+      <n-empty
+        v-if="!loading && plans.length === 0"
+        description="暂无副业计划"
+      >
         <template #extra>
-          <n-button type="primary" @click="goToRecommendations">去获取推荐</n-button>
+          <n-button
+            type="primary"
+            @click="goToRecommendations"
+          >
+            去获取推荐
+          </n-button>
         </template>
       </n-empty>
 
-      <n-grid :x-gap="20" :y-gap="20" :cols="3">
-        <n-gi v-for="plan in plans" :key="plan.id">
-          <GlassCard hoverable class="plan-card" @click="goToDetail(plan.id)">
+      <n-grid
+        :x-gap="20"
+        :y-gap="20"
+        :cols="3"
+      >
+        <n-gi
+          v-for="plan in plans"
+          :key="plan.id"
+        >
+          <GlassCard
+            hoverable
+            class="plan-card"
+            @click="goToDetail(plan.id)"
+          >
             <div class="plan-header">
               <div class="plan-title">
-                <n-tag v-if="plan.careerType" size="small" type="info">{{ plan.careerType }}</n-tag>
+                <n-tag
+                  v-if="plan.careerType"
+                  size="small"
+                  type="info"
+                >
+                  {{
+                    plan.careerType
+                  }}
+                </n-tag>
                 <span class="title-text">{{ plan.title }}</span>
               </div>
-              <n-tag :type="statusTag(plan.status)" size="small">
+              <n-tag
+                :type="statusTag(plan.status)"
+                size="small"
+              >
                 {{ statusLabel(plan.status) }}
               </n-tag>
             </div>
 
-            <p class="plan-description" v-if="plan.description">{{ plan.description }}</p>
+            <p
+              v-if="plan.description"
+              class="plan-description"
+            >
+              {{ plan.description }}
+            </p>
 
             <div class="plan-stats">
-              <div class="stat-item" v-if="plan.matchScore">
+              <div
+                v-if="plan.matchScore"
+                class="stat-item"
+              >
                 <span class="stat-label">匹配度</span>
                 <n-progress
                   :percentage="plan.matchScore"
@@ -52,7 +95,10 @@
               </div>
             </div>
 
-            <div class="plan-footer" v-if="plan.startDate">
+            <div
+              v-if="plan.startDate"
+              class="plan-footer"
+            >
               <n-icon><Calendar /></n-icon>
               <span>{{ plan.startDate }}</span>
             </div>
@@ -64,66 +110,88 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { NSpin, NGrid, NGi, NButton, NIcon, NTag, NProgress, NEmpty, useMessage } from 'naive-ui'
-import { Add, Calendar } from '@vicons/ionicons5'
-import { getCareerPlans } from '@/api/career'
-import type { CareerPlan } from '@/types/career'
-import GlassCard from '@/components/common/GlassCard.vue'
-import PageHeader from '@/components/common/PageHeader.vue'
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import {
+  NSpin,
+  NGrid,
+  NGi,
+  NButton,
+  NIcon,
+  NTag,
+  NProgress,
+  NEmpty,
+  useMessage,
+} from "naive-ui";
+import { Add, Calendar } from "@vicons/ionicons5";
+import { getCareerPlans } from "@/api/career";
+import type { CareerPlan } from "@/types/career";
+import GlassCard from "@/components/common/GlassCard.vue";
+import PageHeader from "@/components/common/PageHeader.vue";
 
-const router = useRouter()
-const message = useMessage()
-const loading = ref(false)
-const plans = ref<CareerPlan[]>([])
+const router = useRouter();
+const message = useMessage();
+const loading = ref(false);
+const plans = ref<CareerPlan[]>([]);
 
 onMounted(async () => {
-  await fetchPlans()
-})
+  await fetchPlans();
+});
 
 async function fetchPlans() {
-  loading.value = true
+  loading.value = true;
   try {
-    const res = await getCareerPlans()
+    const res = await getCareerPlans();
     if (res.data.code === 200) {
-      plans.value = res.data.data
+      plans.value = res.data.data;
     }
   } catch {
-    message.error('加载计划列表失败')
+    message.error("加载计划列表失败");
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 function goToDetail(id: number) {
-  router.push(`/career/plans/${id}`)
+  router.push(`/career/plans/${id}`);
 }
 
 function goToRecommendations() {
-  router.push('/career')
+  router.push("/career");
 }
 
 function formatNumber(value: number | null | undefined): string {
-  if (value === undefined || value === null) return '0.00'
-  return Number(value).toFixed(2)
+  if (value === undefined || value === null) return "0.00";
+  return Number(value).toFixed(2);
 }
 
 function statusLabel(status: number): string {
-  const map: Record<number, string> = { 1: '探索中', 2: '进行中', 3: '已暂停', 4: '已完成' }
-  return map[status] || '未知'
+  const map: Record<number, string> = {
+    1: "探索中",
+    2: "进行中",
+    3: "已暂停",
+    4: "已完成",
+  };
+  return map[status] || "未知";
 }
 
-function statusTag(status: number): 'default' | 'success' | 'warning' | 'error' | 'info' {
-  const map: Record<number, 'info' | 'default' | 'warning' | 'success'> = { 1: 'info', 2: 'default', 3: 'warning', 4: 'success' }
-  return map[status] || 'default'
+function statusTag(
+  status: number,
+): "default" | "success" | "warning" | "error" | "info" {
+  const map: Record<number, "info" | "default" | "warning" | "success"> = {
+    1: "info",
+    2: "default",
+    3: "warning",
+    4: "success",
+  };
+  return map[status] || "default";
 }
 
 function scoreColor(score: number | null): string {
-  if (!score) return '#86868B'
-  if (score >= 80) return '#34C759'
-  if (score >= 60) return '#FF9500'
-  return '#FF3B30'
+  if (!score) return "#86868B";
+  if (score >= 80) return "#34C759";
+  if (score >= 60) return "#FF9500";
+  return "#FF3B30";
 }
 </script>
 
@@ -173,12 +241,17 @@ function scoreColor(score: number | null): string {
         padding: 6px 0;
         font-size: 14px;
 
-        .stat-label { color: var(--cr-text-tertiary); }
+        .stat-label {
+          color: var(--cr-text-tertiary);
+        }
         .stat-value {
           color: var(--cr-text-primary);
           font-weight: 500;
 
-          &.income { color: var(--cr-success); font-weight: bold; }
+          &.income {
+            color: var(--cr-success);
+            font-weight: bold;
+          }
         }
       }
     }

@@ -35,6 +35,15 @@ public class AiConversation {
     @Column
     private Integer tokens;
 
+    @Column(name = "message_type", length = 20)
+    private String messageType;
+
+    @Column(name = "tool_calls", columnDefinition = "TEXT")
+    private String toolCalls;
+
+    @Column(name = "tool_call_id", length = 80)
+    private String toolCallId;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

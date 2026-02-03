@@ -1,26 +1,46 @@
 <template>
   <div class="ocr-import-page">
-    <PageHeader title="拍照记账" show-back />
+    <PageHeader
+      title="拍照记账"
+      show-back
+    />
 
-    <n-grid :x-gap="16" :y-gap="16" :cols="2">
+    <n-grid
+      :x-gap="16"
+      :y-gap="16"
+      :cols="2"
+    >
       <n-gi>
         <GlassCard>
-          <template #header>上传小票/账单</template>
+          <template #header>
+            上传小票/账单
+          </template>
           <n-upload
             :max="1"
             accept="image/*"
             :default-upload="false"
             :show-file-list="false"
-            @change="handleFileChange"
             drag
+            @change="handleFileChange"
           >
             <n-upload-dragger>
               <div style="padding: 32px 0; text-align: center">
-                <n-icon :size="48" :depth="3"><CloudUpload /></n-icon>
+                <n-icon
+                  :size="48"
+                  :depth="3"
+                >
+                  <CloudUpload />
+                </n-icon>
                 <p style="margin-top: 12px; color: var(--cr-text-secondary)">
                   将小票图片拖到此处，或点击上传
                 </p>
-                <p style="font-size: 12px; color: var(--cr-text-tertiary); margin-top: 4px">
+                <p
+                  style="
+                    font-size: 12px;
+                    color: var(--cr-text-tertiary);
+                    margin-top: 4px;
+                  "
+                >
                   支持 jpg/png 格式，不超过 10MB
                 </p>
               </div>
@@ -30,16 +50,19 @@
           <n-button
             type="primary"
             :loading="uploading"
-            @click="handleUpload"
             :disabled="!selectedFile"
             block
             style="margin-top: 16px"
+            @click="handleUpload"
           >
             开始识别
           </n-button>
         </GlassCard>
 
-        <GlassCard v-if="pendingRecords.length > 0" style="margin-top: 16px">
+        <GlassCard
+          v-if="pendingRecords.length > 0"
+          style="margin-top: 16px"
+        >
           <template #header>
             <span>待确认记录 ({{ pendingRecords.length }})</span>
           </template>
@@ -51,10 +74,15 @@
             @click="selectRecord(record)"
           >
             <div class="pending-info">
-              <span class="filename">{{ record.originalFilename || '小票' }}</span>
-              <span class="amount" v-if="record.extractedAmount">¥{{ Number(record.extractedAmount).toFixed(2) }}</span>
+              <span class="filename">{{
+                record.originalFilename || "小票"
+              }}</span>
+              <span
+                v-if="record.extractedAmount"
+                class="amount"
+              >¥{{ Number(record.extractedAmount).toFixed(2) }}</span>
             </div>
-            <span class="date">{{ record.extractedDate || '-' }}</span>
+            <span class="date">{{ record.extractedDate || "-" }}</span>
           </div>
         </GlassCard>
       </n-gi>
@@ -66,14 +94,32 @@
               <div class="card-header">
                 <span>识别结果</span>
                 <n-space>
-                  <n-button type="primary" size="small" @click="handleConfirm">确认记账</n-button>
-                  <n-button size="small" @click="handleReject">忽略</n-button>
+                  <n-button
+                    type="primary"
+                    size="small"
+                    @click="handleConfirm"
+                  >
+                    确认记账
+                  </n-button>
+                  <n-button
+                    size="small"
+                    @click="handleReject"
+                  >
+                    忽略
+                  </n-button>
                 </n-space>
               </div>
             </template>
 
-            <n-form :model="confirmForm" label-placement="left" label-width="80">
-              <n-form-item label="金额" required>
+            <n-form
+              :model="confirmForm"
+              label-placement="left"
+              label-width="80"
+            >
+              <n-form-item
+                label="金额"
+                required
+              >
                 <n-input-number
                   v-model:value="confirmForm.amount"
                   :min="0.01"
@@ -83,7 +129,10 @@
                 />
               </n-form-item>
 
-              <n-form-item label="分类" required>
+              <n-form-item
+                label="分类"
+                required
+              >
                 <n-select
                   v-model:value="confirmForm.categoryId"
                   :options="categorySelectOptions"
@@ -92,7 +141,10 @@
                 />
               </n-form-item>
 
-              <n-form-item label="日期" required>
+              <n-form-item
+                label="日期"
+                required
+              >
                 <n-date-picker
                   v-model:value="confirmForm.transactionDate"
                   type="date"
@@ -101,11 +153,17 @@
               </n-form-item>
 
               <n-form-item label="商家">
-                <n-input v-model:value="confirmForm.merchant" placeholder="商家名称" />
+                <n-input
+                  v-model:value="confirmForm.merchant"
+                  placeholder="商家名称"
+                />
               </n-form-item>
 
               <n-form-item label="描述">
-                <n-input v-model:value="confirmForm.description" placeholder="备注说明" />
+                <n-input
+                  v-model:value="confirmForm.description"
+                  placeholder="备注说明"
+                />
               </n-form-item>
             </n-form>
 
@@ -126,134 +184,163 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from "vue";
 import {
-  NGrid, NGi, NUpload, NUploadDragger, NButton, NIcon, NSpace,
-  NForm, NFormItem, NInput, NInputNumber, NSelect, NDatePicker,
-  NCollapse, NCollapseItem, NSpin, NEmpty,
+  NGrid,
+  NGi,
+  NUpload,
+  NUploadDragger,
+  NButton,
+  NIcon,
+  NSpace,
+  NForm,
+  NFormItem,
+  NInput,
+  NInputNumber,
+  NSelect,
+  NDatePicker,
+  NCollapse,
+  NCollapseItem,
+  NSpin,
+  NEmpty,
   useMessage,
   type UploadFileInfo,
-} from 'naive-ui'
-import { CloudUpload } from '@vicons/ionicons5'
-import dayjs from 'dayjs'
-import { uploadReceipt, confirmOcrRecord, rejectOcrRecord, getPendingOcrRecords } from '@/api/ocr'
-import { getExpenseCategories } from '@/api/category'
-import type { OcrPreview } from '@/types/ocr'
-import type { Category } from '@/types/accounting'
-import GlassCard from '@/components/common/GlassCard.vue'
-import PageHeader from '@/components/common/PageHeader.vue'
+} from "naive-ui";
+import { CloudUpload } from "@vicons/ionicons5";
+import dayjs from "dayjs";
+import {
+  uploadReceipt,
+  confirmOcrRecord,
+  rejectOcrRecord,
+  getPendingOcrRecords,
+} from "@/api/ocr";
+import { getExpenseCategories } from "@/api/category";
+import type { OcrPreview } from "@/types/ocr";
+import type { Category } from "@/types/accounting";
+import GlassCard from "@/components/common/GlassCard.vue";
+import PageHeader from "@/components/common/PageHeader.vue";
 
-const message = useMessage()
+const message = useMessage();
 
-const uploading = ref(false)
-const confirming = ref(false)
-const selectedFile = ref<File | null>(null)
-const currentPreview = ref<OcrPreview | null>(null)
-const pendingRecords = ref<OcrPreview[]>([])
-const expenseCategories = ref<Category[]>([])
+const uploading = ref(false);
+const confirming = ref(false);
+const selectedFile = ref<File | null>(null);
+const currentPreview = ref<OcrPreview | null>(null);
+const pendingRecords = ref<OcrPreview[]>([]);
+const expenseCategories = ref<Category[]>([]);
 
 const categorySelectOptions = computed(() =>
-  expenseCategories.value.map(cat => ({ label: cat.name, value: cat.id }))
-)
+  expenseCategories.value.map((cat) => ({ label: cat.name, value: cat.id })),
+);
 
 const confirmForm = reactive({
   amount: undefined as number | undefined,
   categoryId: undefined as number | undefined,
   transactionDate: Date.now() as number,
-  merchant: '',
-  description: ''
-})
+  merchant: "",
+  description: "",
+});
 
 onMounted(async () => {
-  await Promise.all([fetchPendingRecords(), fetchCategories()])
-})
+  await Promise.all([fetchPendingRecords(), fetchCategories()]);
+});
 
 async function fetchPendingRecords() {
   try {
-    const res = await getPendingOcrRecords()
-    if (res.data.code === 200) pendingRecords.value = res.data.data
-  } catch { /* silently fail */ }
+    const res = await getPendingOcrRecords();
+    if (res.data.code === 200) pendingRecords.value = res.data.data;
+  } catch {
+    /* silently fail */
+  }
 }
 
 async function fetchCategories() {
   try {
-    const res = await getExpenseCategories()
-    if (res.data.code === 200) expenseCategories.value = res.data.data
-  } catch { /* silently fail */ }
+    const res = await getExpenseCategories();
+    if (res.data.code === 200) expenseCategories.value = res.data.data;
+  } catch {
+    /* silently fail */
+  }
 }
 
 function handleFileChange(data: { fileList: UploadFileInfo[] }) {
-  const file = data.fileList[0]
-  selectedFile.value = file?.file || null
+  const file = data.fileList[0];
+  selectedFile.value = file?.file || null;
 }
 
 async function handleUpload() {
-  if (!selectedFile.value) return
+  if (!selectedFile.value) return;
 
-  uploading.value = true
+  uploading.value = true;
   try {
-    const res = await uploadReceipt(selectedFile.value)
+    const res = await uploadReceipt(selectedFile.value);
     if (res.data.code === 200) {
-      const preview = res.data.data
-      currentPreview.value = preview
-      fillConfirmForm(preview)
-      message.success('识别完成')
-      selectedFile.value = null
-      await fetchPendingRecords()
+      const preview = res.data.data;
+      currentPreview.value = preview;
+      fillConfirmForm(preview);
+      message.success("识别完成");
+      selectedFile.value = null;
+      await fetchPendingRecords();
     }
   } catch {
-    message.error('识别失败，请重试')
+    message.error("识别失败，请重试");
   } finally {
-    uploading.value = false
+    uploading.value = false;
   }
 }
 
 function selectRecord(record: OcrPreview) {
-  currentPreview.value = record
-  fillConfirmForm(record)
+  currentPreview.value = record;
+  fillConfirmForm(record);
 }
 
 function fillConfirmForm(preview: OcrPreview) {
-  confirmForm.amount = preview.extractedAmount || undefined
-  confirmForm.categoryId = preview.suggestedCategoryId || undefined
-  confirmForm.transactionDate = preview.extractedDate ? new Date(preview.extractedDate).getTime() : Date.now()
-  confirmForm.merchant = preview.extractedMerchant || ''
-  confirmForm.description = ''
+  confirmForm.amount = preview.extractedAmount || undefined;
+  confirmForm.categoryId = preview.suggestedCategoryId || undefined;
+  confirmForm.transactionDate = preview.extractedDate
+    ? new Date(preview.extractedDate).getTime()
+    : Date.now();
+  confirmForm.merchant = preview.extractedMerchant || "";
+  confirmForm.description = "";
 }
 
 async function handleConfirm() {
-  if (!currentPreview.value) return
-  if (!confirmForm.amount || !confirmForm.categoryId || !confirmForm.transactionDate) {
-    message.warning('请填写金额、分类和日期')
-    return
+  if (!currentPreview.value) return;
+  if (
+    !confirmForm.amount ||
+    !confirmForm.categoryId ||
+    !confirmForm.transactionDate
+  ) {
+    message.warning("请填写金额、分类和日期");
+    return;
   }
 
-  confirming.value = true
+  confirming.value = true;
   try {
     await confirmOcrRecord(currentPreview.value.id, {
       amount: confirmForm.amount,
       categoryId: confirmForm.categoryId,
-      transactionDate: dayjs(confirmForm.transactionDate).format('YYYY-MM-DD'),
+      transactionDate: dayjs(confirmForm.transactionDate).format("YYYY-MM-DD"),
       merchant: confirmForm.merchant || undefined,
-      description: confirmForm.description || undefined
-    })
-    message.success('已成功记账')
-    currentPreview.value = null
-    await fetchPendingRecords()
+      description: confirmForm.description || undefined,
+    });
+    message.success("已成功记账");
+    currentPreview.value = null;
+    await fetchPendingRecords();
   } catch {
     // Handled by interceptor
   } finally {
-    confirming.value = false
+    confirming.value = false;
   }
 }
 
 async function handleReject() {
-  if (!currentPreview.value) return
+  if (!currentPreview.value) return;
   try {
-    await rejectOcrRecord(currentPreview.value.id)
-    message.info('已忽略该记录')
-    currentPreview.value = null
-    await fetchPendingRecords()
+    await rejectOcrRecord(currentPreview.value.id);
+    message.info("已忽略该记录");
+    currentPreview.value = null;
+    await fetchPendingRecords();
   } catch {
     // Handled by interceptor
   }
@@ -278,7 +365,8 @@ async function handleReject() {
     transition: background-color 0.2s;
     margin-bottom: 4px;
 
-    &:hover, &.active {
+    &:hover,
+    &.active {
       background: var(--cr-bg-hover);
     }
 

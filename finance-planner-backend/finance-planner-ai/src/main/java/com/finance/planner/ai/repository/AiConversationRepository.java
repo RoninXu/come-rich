@@ -14,5 +14,7 @@ public interface AiConversationRepository extends JpaRepository<AiConversation, 
 
     List<AiConversation> findTop10ByUserIdAndSessionIdOrderByCreatedAtDesc(Long userId, String sessionId);
 
+    List<AiConversation> findTop30ByUserIdAndSessionIdOrderByCreatedAtDesc(Long userId, String sessionId);
+
     long countByUserIdAndRoleAndCreatedAtAfter(Long userId, String role, LocalDateTime after);
 }

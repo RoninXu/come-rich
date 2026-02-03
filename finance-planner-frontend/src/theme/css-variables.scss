@@ -2,30 +2,30 @@
 // Switched by [data-theme="dark"] on <html>.
 
 :root,
-[data-theme='light'] {
+[data-theme="light"] {
   // Brand
-  --cr-primary: #007AFF;
-  --cr-primary-hover: #0066D6;
-  --cr-primary-pressed: #004DB3;
-  --cr-success: #34C759;
-  --cr-warning: #FF9500;
-  --cr-error: #FF3B30;
-  --cr-info: #5AC8FA;
+  --cr-primary: #007aff;
+  --cr-primary-hover: #0066d6;
+  --cr-primary-pressed: #004db3;
+  --cr-success: #34c759;
+  --cr-warning: #ff9500;
+  --cr-error: #ff3b30;
+  --cr-info: #5ac8fa;
 
   // Backgrounds
-  --cr-bg-page: #F2F2F7;
+  --cr-bg-page: #f2f2f7;
   --cr-bg-card: rgba(255, 255, 255, 0.72);
-  --cr-bg-card-solid: #FFFFFF;
-  --cr-bg-sidebar: rgba(246, 246, 246, 0.80);
+  --cr-bg-card-solid: #ffffff;
+  --cr-bg-sidebar: rgba(246, 246, 246, 0.8);
   --cr-bg-header: rgba(255, 255, 255, 0.72);
   --cr-bg-input: rgba(118, 118, 128, 0.08);
   --cr-bg-hover: rgba(0, 0, 0, 0.04);
 
   // Text
-  --cr-text-primary: #1D1D1F;
-  --cr-text-secondary: #86868B;
-  --cr-text-tertiary: #AEAEB2;
-  --cr-text-inverse: #FFFFFF;
+  --cr-text-primary: #1d1d1f;
+  --cr-text-secondary: #86868b;
+  --cr-text-tertiary: #aeaeb2;
+  --cr-text-inverse: #ffffff;
 
   // Borders
   --cr-border: rgba(0, 0, 0, 0.08);
@@ -61,39 +61,39 @@
   --cr-space-xxxl: 32px;
 }
 
-[data-theme='dark'] {
+[data-theme="dark"] {
   // Brand
-  --cr-primary: #0A84FF;
-  --cr-primary-hover: #409CFF;
-  --cr-primary-pressed: #0066CC;
-  --cr-success: #30D158;
-  --cr-warning: #FF9F0A;
-  --cr-error: #FF453A;
-  --cr-info: #64D2FF;
+  --cr-primary: #0a84ff;
+  --cr-primary-hover: #409cff;
+  --cr-primary-pressed: #0066cc;
+  --cr-success: #30d158;
+  --cr-warning: #ff9f0a;
+  --cr-error: #ff453a;
+  --cr-info: #64d2ff;
 
   // Backgrounds
-  --cr-bg-page: #1C1C1E;
+  --cr-bg-page: #1c1c1e;
   --cr-bg-card: rgba(44, 44, 46, 0.72);
-  --cr-bg-card-solid: #2C2C2E;
+  --cr-bg-card-solid: #2c2c2e;
   --cr-bg-sidebar: rgba(28, 28, 30, 0.85);
   --cr-bg-header: rgba(44, 44, 46, 0.72);
   --cr-bg-input: rgba(118, 118, 128, 0.24);
   --cr-bg-hover: rgba(255, 255, 255, 0.06);
 
   // Text
-  --cr-text-primary: #F5F5F7;
-  --cr-text-secondary: #98989D;
+  --cr-text-primary: #f5f5f7;
+  --cr-text-secondary: #98989d;
   --cr-text-tertiary: #636366;
-  --cr-text-inverse: #1D1D1F;
+  --cr-text-inverse: #1d1d1f;
 
   // Borders
-  --cr-border: rgba(255, 255, 255, 0.10);
+  --cr-border: rgba(255, 255, 255, 0.1);
   --cr-border-light: rgba(255, 255, 255, 0.06);
   --cr-divider: rgba(255, 255, 255, 0.08);
 
   // Shadows
-  --cr-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.20);
-  --cr-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.30);
-  --cr-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.40);
-  --cr-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.50);
+  --cr-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --cr-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --cr-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --cr-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.5);
 }

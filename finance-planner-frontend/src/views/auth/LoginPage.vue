@@ -53,7 +53,9 @@
 
         <div class="login-footer">
           <span>还没有账号？</span>
-          <router-link to="/register">立即注册</router-link>
+          <router-link to="/register">
+            立即注册
+          </router-link>
         </div>
       </n-form>
     </div>
@@ -61,8 +63,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, reactive } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import {
   NForm,
   NFormItem,
@@ -72,51 +74,50 @@ import {
   useMessage,
   type FormInst,
   type FormRules,
-} from 'naive-ui'
-import { Person, LockClosed } from '@vicons/ionicons5'
-import { useUserStore } from '@/stores/user'
+} from "naive-ui";
+import { Person, LockClosed } from "@vicons/ionicons5";
+import { useUserStore } from "@/stores/user";
 
-const router = useRouter()
-const route = useRoute()
-const userStore = useUserStore()
-const message = useMessage()
+const router = useRouter();
+const route = useRoute();
+const userStore = useUserStore();
+const message = useMessage();
 
-const formRef = ref<FormInst | null>(null)
-const loading = ref(false)
+const formRef = ref<FormInst | null>(null);
+const loading = ref(false);
 
 const form = reactive({
-  username: '',
-  password: ''
-})
+  username: "",
+  password: "",
+});
 
 const rules: FormRules = {
-  username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' }
-  ],
-  password: [
-    { required: true, message: '请输入密码', trigger: 'blur' }
-  ]
-}
+  username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
+  password: [{ required: true, message: "请输入密码", trigger: "blur" }],
+};
 
 async function handleLogin() {
   try {
-    await formRef.value?.validate()
+    await formRef.value?.validate();
   } catch {
-    return
+    return;
   }
 
-  loading.value = true
+  loading.value = true;
   try {
-    await userStore.loginAction(form)
-    message.success('登录成功')
+    await userStore.loginAction(form);
+    message.success("登录成功");
 
-    const redirect = route.query.redirect as string
-    router.push(redirect || '/dashboard')
+    const redirect = route.query.redirect as string;
+    router.push(redirect || "/dashboard");
   } catch (e: any) {
-    const msg = e?.response?.data?.message || e?.message || '登录失败，请检查用户名和密码'
-    message.error(msg, { duration: 0 })
+    const msg =
+      e?.response?.data?.message ||
+      e?.message ||
+      "登录失败，请检查用户名和密码";
+    message.error(msg, { duration: 0 });
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 </script>
@@ -130,7 +131,7 @@ async function handleLogin() {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-[data-theme='dark'] .login-container {
+[data-theme="dark"] .login-container {
   background: linear-gradient(135deg, #2d3561 0%, #4a2a6b 100%);
 }
 

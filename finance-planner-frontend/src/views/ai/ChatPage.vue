@@ -1,14 +1,38 @@
-<template>
+﻿<template>
   <div class="chat-page">
     <!-- Top Bar -->
     <div class="chat-header">
       <div class="header-left">
         <h3>AI 财务顾问</h3>
-        <n-tag type="info" size="small">
+        <n-tag
+          type="info"
+          size="small"
+        >
           今日剩余 {{ chatStore.remainingChats }} 次
         </n-tag>
       </div>
       <div class="header-right">
+        <div class="mode-toggle">
+          <span>Agent</span>
+          <n-switch
+            v-model:value="isAgentMode"
+            size="small"
+          />
+        </div>
+        <div
+          v-if="isAgentMode"
+          class="risk-setting"
+        >
+          <span>阈值</span>
+          <n-input-number
+            v-model:value="riskThresholdInput"
+            size="small"
+            :min="0"
+            :max="1000000"
+            :step="100"
+            @update:value="handleRiskThresholdChange"
+          />
+        </div>
         <n-select
           v-model:value="selectedProvider"
           size="small"
@@ -17,19 +41,34 @@
           style="width: 140px"
           @update:value="handleProviderChange"
         />
-        <n-button size="small" @click="handleNewSession">新对话</n-button>
+        <n-button
+          size="small"
+          @click="handleNewSession"
+        >
+          新对话
+        </n-button>
       </div>
     </div>
 
     <!-- Message List -->
-    <div ref="messageListRef" class="message-list">
+    <div
+      ref="messageListRef"
+      class="message-list"
+    >
       <!-- Empty state -->
-      <div v-if="chatStore.messages.length === 0" class="empty-state">
+      <div
+        v-if="chatStore.messages.length === 0"
+        class="empty-state"
+      >
         <div class="welcome-icon">
-          <n-icon :size="48"><Chatbubbles /></n-icon>
+          <n-icon :size="48">
+            <Chatbubbles />
+          </n-icon>
         </div>
         <h4>你好！我是你的 AI 财务顾问</h4>
-        <p>我可以帮你分析消费习惯、制定预算计划、评估财务健康。试试下面的问题：</p>
+        <p>
+          我可以帮你分析消费习惯、制定预算计划、评估财务健康。试试下面的问题：
+        </p>
         <div class="quick-actions">
           <n-button
             v-for="suggestion in suggestions"
@@ -47,27 +86,54 @@
       <div
         v-for="(msg, index) in chatStore.messages"
         :key="index"
-        :class="['message-item', msg.role === 'user' ? 'message-user' : 'message-assistant']"
       >
-        <div class="message-avatar">
-          <n-avatar
-            :size="32"
-            round
-            :style="{
-              backgroundColor: msg.role === 'user' ? 'var(--cr-primary)' : 'var(--cr-success)',
-              fontSize: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }"
-          >
-            {{ msg.role === 'user' ? '我' : 'AI' }}
-          </n-avatar>
-        </div>
-        <div class="message-bubble">
-          <div class="message-content" v-html="renderMarkdown(msg.content)"></div>
-          <div v-if="msg.isStreaming" class="typing-indicator">
-            <span></span><span></span><span></span>
+        <ToolCallCard
+          v-if="
+            msg.messageType === 'tool_call' || msg.messageType === 'tool_result'
+          "
+          :message="msg"
+        />
+        <ConfirmationDialog
+          v-else-if="msg.messageType === 'confirmation'"
+          :message="msg"
+          @confirm="handleConfirmation(msg, $event)"
+        />
+        <div
+          v-else
+          :class="[
+            'message-item',
+            msg.role === 'user' ? 'message-user' : 'message-assistant',
+          ]"
+        >
+          <div class="message-avatar">
+            <n-avatar
+              :size="32"
+              round
+              :style="{
+                backgroundColor:
+                  msg.role === 'user'
+                    ? 'var(--cr-primary)'
+                    : 'var(--cr-success)',
+                fontSize: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }"
+            >
+              {{ msg.role === "user" ? "我" : "AI" }}
+            </n-avatar>
+          </div>
+          <div class="message-bubble">
+            <div
+              class="message-content"
+              v-html="renderMarkdown(msg.content)"
+            />
+            <div
+              v-if="msg.isStreaming"
+              class="typing-indicator"
+            >
+              <span /><span /><span />
+            </div>
           </div>
         </div>
       </div>
@@ -87,8 +153,8 @@
         type="primary"
         :disabled="!inputMessage.trim() || chatStore.isStreaming"
         :loading="chatStore.isStreaming"
-        @click="handleSend"
         class="send-btn"
+        @click="handleSend"
       >
         发送
       </n-button>
@@ -98,15 +164,22 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
-import { NButton, NTag, NSelect, NInput, NAvatar, NIcon, useMessage } from 'naive-ui'
+import { NButton, NTag, NSelect, NInput, NInputNumber, NAvatar, NIcon, NSwitch, useMessage } from 'naive-ui'
 import { Chatbubbles } from '@vicons/ionicons5'
 import { useChatStore } from '@/stores/chat'
+import ToolCallCard from '@/components/ai/ToolCallCard.vue'
+import ConfirmationDialog from '@/components/ai/ConfirmationDialog.vue'
 
 const chatStore = useChatStore()
 const message = useMessage()
 const inputMessage = ref('')
 const messageListRef = ref<HTMLDivElement | null>(null)
 const selectedProvider = ref('')
+const riskThresholdInput = ref<number | null>(null)
+const isAgentMode = computed({
+  get: () => chatStore.isAgentMode,
+  set: (val) => { chatStore.isAgentMode = val }
+})
 
 const providerOptions = computed(() =>
   chatStore.providers.map(p => ({ label: p, value: p }))
@@ -114,15 +187,17 @@ const providerOptions = computed(() =>
 
 const suggestions = [
   '分析我本月的消费',
-  '如何提高储蓄率?',
+  '如何提高储蓄率',
   '帮我做一个预算计划',
-  '我的财务健康如何?'
+  '我的财务健康如何？'
 ]
 
 onMounted(async () => {
   await chatStore.fetchRemainingChats()
   await chatStore.fetchProviders()
   selectedProvider.value = chatStore.currentProvider
+  await chatStore.fetchAgentRiskThreshold()
+  riskThresholdInput.value = chatStore.agentRiskThreshold
 })
 
 watch(
@@ -154,7 +229,11 @@ async function handleSend() {
   if (!msg || chatStore.isStreaming) return
 
   inputMessage.value = ''
-  await chatStore.sendMessage(msg)
+  if (isAgentMode.value) {
+    await chatStore.sendAgentMessage(msg)
+  } else {
+    await chatStore.sendMessage(msg)
+  }
   await chatStore.fetchRemainingChats()
 }
 
@@ -169,6 +248,16 @@ function handleNewSession() {
 
 async function handleProviderChange(name: string) {
   await chatStore.switchProviderAction(name)
+}
+
+function handleConfirmation(msg: any, accepted: boolean) {
+  if (!msg.confirmationId) return
+  chatStore.respondToConfirmation(msg.confirmationId, accepted)
+}
+
+function handleRiskThresholdChange(value: number | null) {
+  if (value == null) return
+  chatStore.updateAgentRiskThreshold(value)
 }
 
 function renderMarkdown(content: string): string {
@@ -216,6 +305,26 @@ function renderMarkdown(content: string): string {
     align-items: center;
     gap: 8px;
   }
+}
+
+.mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--cr-text-tertiary);
+}
+
+.risk-setting {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--cr-text-tertiary);
+}
+
+.risk-setting :deep(.n-input-number) {
+  width: 120px;
 }
 
 .message-list {
@@ -324,15 +433,27 @@ function renderMarkdown(content: string): string {
     border-radius: 50%;
     animation: typing 1.4s infinite ease-in-out;
 
-    &:nth-child(1) { animation-delay: 0s; }
-    &:nth-child(2) { animation-delay: 0.2s; }
-    &:nth-child(3) { animation-delay: 0.4s; }
+    &:nth-child(1) {
+      animation-delay: 0s;
+    }
+    &:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    &:nth-child(3) {
+      animation-delay: 0.4s;
+    }
   }
 }
 
 @keyframes typing {
-  0%, 60%, 100% { transform: translateY(0); }
-  30% { transform: translateY(-4px); }
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-4px);
+  }
 }
 
 .chat-input {
@@ -351,3 +472,4 @@ function renderMarkdown(content: string): string {
   }
 }
 </style>
+

@@ -15,10 +15,16 @@ public class AiConfig {
     private String activeProvider = "deepseek";
     private Map<String, LlmProviderProperties> providers = new LinkedHashMap<>();
     private RateLimit rateLimit = new RateLimit();
+    private Agent agent = new Agent();
 
     @Data
     public static class RateLimit {
         private int dailyLimit = 10;
+    }
+
+    @Data
+    public static class Agent {
+        private java.math.BigDecimal riskThreshold = new java.math.BigDecimal("10000");
     }
 
     public LlmProviderProperties getActiveProviderConfig() {

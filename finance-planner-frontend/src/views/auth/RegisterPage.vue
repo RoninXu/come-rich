@@ -79,7 +79,9 @@
 
         <div class="register-footer">
           <span>已有账号？</span>
-          <router-link to="/login">立即登录</router-link>
+          <router-link to="/login">
+            立即登录
+          </router-link>
         </div>
       </n-form>
     </div>
@@ -87,8 +89,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive } from "vue";
+import { useRouter } from "vue-router";
 import {
   NForm,
   NFormItem,
@@ -98,67 +100,70 @@ import {
   useMessage,
   type FormInst,
   type FormRules,
-} from 'naive-ui'
-import { Person, LockClosed, Mail } from '@vicons/ionicons5'
-import { useUserStore } from '@/stores/user'
+} from "naive-ui";
+import { Person, LockClosed, Mail } from "@vicons/ionicons5";
+import { useUserStore } from "@/stores/user";
 
-const router = useRouter()
-const userStore = useUserStore()
-const message = useMessage()
+const router = useRouter();
+const userStore = useUserStore();
+const message = useMessage();
 
-const formRef = ref<FormInst | null>(null)
-const loading = ref(false)
+const formRef = ref<FormInst | null>(null);
+const loading = ref(false);
 
 const form = reactive({
-  username: '',
-  password: '',
-  confirmPassword: '',
-  email: ''
-})
+  username: "",
+  password: "",
+  confirmPassword: "",
+  email: "",
+});
 
 const rules: FormRules = {
   username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 3, max: 50, message: '用户名长度在 3 到 50 个字符', trigger: 'blur' }
+    { required: true, message: "请输入用户名", trigger: "blur" },
+    {
+      min: 3,
+      max: 50,
+      message: "用户名长度在 3 到 50 个字符",
+      trigger: "blur",
+    },
   ],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码至少 6 个字符', trigger: 'blur' }
+    { required: true, message: "请输入密码", trigger: "blur" },
+    { min: 6, message: "密码至少 6 个字符", trigger: "blur" },
   ],
   confirmPassword: [
-    { required: true, message: '请再次输入密码', trigger: 'blur' },
+    { required: true, message: "请再次输入密码", trigger: "blur" },
     {
       validator: (_rule: any, value: string) => {
-        return value === form.password || new Error('两次输入的密码不一致')
+        return value === form.password || new Error("两次输入的密码不一致");
       },
-      trigger: 'blur'
-    }
+      trigger: "blur",
+    },
   ],
-  email: [
-    { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
-  ]
-}
+  email: [{ type: "email", message: "请输入正确的邮箱格式", trigger: "blur" }],
+};
 
 async function handleRegister() {
   try {
-    await formRef.value?.validate()
+    await formRef.value?.validate();
   } catch {
-    return
+    return;
   }
 
-  loading.value = true
+  loading.value = true;
   try {
     await userStore.registerAction({
       username: form.username,
       password: form.password,
-      email: form.email || undefined
-    })
-    message.success('注册成功，请登录')
-    router.push('/login')
+      email: form.email || undefined,
+    });
+    message.success("注册成功，请登录");
+    router.push("/login");
   } catch {
     // Error is handled by request interceptor
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 </script>
@@ -172,7 +177,7 @@ async function handleRegister() {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-[data-theme='dark'] .register-container {
+[data-theme="dark"] .register-container {
   background: linear-gradient(135deg, #2d3561 0%, #4a2a6b 100%);
 }
 
