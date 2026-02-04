@@ -1,14 +1,26 @@
 <template>
-  <div :class="['stat-card', { 'stat-card--clickable': clickable }]" @click="$emit('click')">
-    <div class="stat-card__icon" :style="{ background: iconBg }">
-      <n-icon :size="22" :color="iconColor">
+  <div
+    :class="['stat-card', { 'stat-card--clickable': clickable }]"
+    @click="$emit('click')"
+  >
+    <div
+      class="stat-card__icon"
+      :style="{ background: iconBg }"
+    >
+      <n-icon
+        :size="22"
+        :color="iconColor"
+      >
         <slot name="icon" />
       </n-icon>
     </div>
     <div class="stat-card__content">
       <span class="stat-card__label">{{ label }}</span>
       <span class="stat-card__value">{{ value }}</span>
-      <span v-if="change !== undefined" :class="['stat-card__change', changeClass]">
+      <span
+        v-if="change !== undefined"
+        :class="['stat-card__change', changeClass]"
+      >
         {{ changeText }}
       </span>
     </div>
@@ -16,32 +28,34 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { NIcon } from 'naive-ui'
+import { computed } from "vue";
+import { NIcon } from "naive-ui";
 
 const props = defineProps<{
-  label: string
-  value: string | number
-  change?: number
-  iconBg?: string
-  iconColor?: string
-  clickable?: boolean
-}>()
+  label: string;
+  value: string | number;
+  change?: number;
+  iconBg?: string;
+  iconColor?: string;
+  clickable?: boolean;
+}>();
 
 defineEmits<{
-  click: []
-}>()
+  click: [];
+}>();
 
 const changeClass = computed(() => {
-  if (props.change === undefined) return ''
-  return props.change >= 0 ? 'stat-card__change--up' : 'stat-card__change--down'
-})
+  if (props.change === undefined) return "";
+  return props.change >= 0
+    ? "stat-card__change--up"
+    : "stat-card__change--down";
+});
 
 const changeText = computed(() => {
-  if (props.change === undefined) return ''
-  const sign = props.change >= 0 ? '+' : ''
-  return `${sign}${props.change}%`
-})
+  if (props.change === undefined) return "";
+  const sign = props.change >= 0 ? "+" : "";
+  return `${sign}${props.change}%`;
+});
 </script>
 
 <style scoped lang="scss">
@@ -56,7 +70,9 @@ const changeText = computed(() => {
   border: 1px solid var(--cr-border-light);
   border-radius: var(--cr-radius-xl);
   box-shadow: var(--cr-shadow-sm);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 
   &--clickable {
     cursor: pointer;

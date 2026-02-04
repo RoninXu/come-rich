@@ -3,7 +3,10 @@
     :theme="naiveTheme"
     :theme-overrides="naiveThemeOverrides"
   >
-    <n-message-provider :closable="true" :duration="5000">
+    <n-message-provider
+      :closable="true"
+      :duration="5000"
+    >
       <n-dialog-provider>
         <n-notification-provider>
           <n-loading-bar-provider>
@@ -22,10 +25,10 @@ import {
   NDialogProvider,
   NNotificationProvider,
   NLoadingBarProvider,
-} from 'naive-ui'
-import { useTheme } from '@/composables/useTheme'
+} from "naive-ui";
+import { useTheme } from "@/composables/useTheme";
 
-const { naiveTheme, naiveThemeOverrides } = useTheme()
+const { naiveTheme, naiveThemeOverrides } = useTheme();
 </script>
 
 <style>

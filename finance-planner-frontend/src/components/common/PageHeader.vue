@@ -1,29 +1,43 @@
 <template>
   <div class="page-header">
     <div class="page-header__left">
-      <n-button v-if="showBack" quaternary circle size="small" @click="$router.back()">
+      <n-button
+        v-if="showBack"
+        quaternary
+        circle
+        size="small"
+        @click="$router.back()"
+      >
         <template #icon>
           <n-icon><ArrowBack /></n-icon>
         </template>
       </n-button>
-      <h2 class="page-header__title">{{ title }}</h2>
-      <span v-if="subtitle" class="page-header__subtitle">{{ subtitle }}</span>
+      <h2 class="page-header__title">
+        {{ title }}
+      </h2>
+      <span
+        v-if="subtitle"
+        class="page-header__subtitle"
+      >{{ subtitle }}</span>
     </div>
-    <div v-if="$slots.actions" class="page-header__actions">
+    <div
+      v-if="$slots.actions"
+      class="page-header__actions"
+    >
       <slot name="actions" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { NButton, NIcon } from 'naive-ui'
-import { ArrowBack } from '@vicons/ionicons5'
+import { NButton, NIcon } from "naive-ui";
+import { ArrowBack } from "@vicons/ionicons5";
 
 defineProps<{
-  title: string
-  subtitle?: string
-  showBack?: boolean
-}>()
+  title: string;
+  subtitle?: string;
+  showBack?: boolean;
+}>();
 </script>
 
 <style scoped lang="scss">

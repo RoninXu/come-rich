@@ -34,12 +34,21 @@ public class ConversationServiceImpl implements ConversationService {
 
     @Override
     public void saveMessage(Long userId, String sessionId, String role, String content, Integer tokens) {
+        saveMessage(userId, sessionId, role, content, tokens, null, null, null);
+    }
+
+    @Override
+    public void saveMessage(Long userId, String sessionId, String role, String content, Integer tokens,
+                            String messageType, String toolCalls, String toolCallId) {
         AiConversation conversation = new AiConversation();
         conversation.setUserId(userId);
         conversation.setSessionId(sessionId);
         conversation.setRole(role);
         conversation.setContent(content);
         conversation.setTokens(tokens);
+        conversation.setMessageType(messageType);
+        conversation.setToolCalls(toolCalls);
+        conversation.setToolCallId(toolCallId);
         aiConversationRepository.save(conversation);
         log.debug("Saved {} message for user {} in session {}", role, userId, sessionId);
     }
@@ -58,6 +67,21 @@ public class ConversationServiceImpl implements ConversationService {
                 ? recent.subList(0, maxMessages)
                 : recent;
         // Reverse to chronological order
+        List<AiConversation> result = new ArrayList<>(limited);
+        Collections.reverse(result);
+        return result;
+    }
+
+    @Override
+    public List<AiConversation> getRecentMessagesWithLimit(Long userId, String sessionId, int limit) {
+        List<AiConversation> recent = aiConversationRepository
+                .findTop30ByUserIdAndSessionIdOrderByCreatedAtDesc(userId, sessionId);
+        if (recent.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<AiConversation> limited = recent.size() > limit
+                ? recent.subList(0, limit)
+                : recent;
         List<AiConversation> result = new ArrayList<>(limited);
         Collections.reverse(result);
         return result;

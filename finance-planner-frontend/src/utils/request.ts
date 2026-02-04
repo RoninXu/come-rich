@@ -1,73 +1,73 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios'
-import { createDiscreteApi } from 'naive-ui'
-import { getToken, clearAuth } from './auth'
-import router from '@/router'
-import type { ApiResponse } from '@/types/api'
+import axios, { AxiosInstance, AxiosResponse } from "axios";
+import { createDiscreteApi } from "naive-ui";
+import { getToken, clearAuth } from "./auth";
+import router from "@/router";
+import type { ApiResponse } from "@/types/api";
 
-const { message } = createDiscreteApi(['message'], {
+const { message } = createDiscreteApi(["message"], {
   messageProviderProps: {
     closable: true,
     duration: 5000,
-  }
-})
+  },
+});
 
 const request: AxiosInstance = axios.create({
-  baseURL: '/api',
+  baseURL: "/api",
   timeout: 10000,
   headers: {
-    'Content-Type': 'application/json'
-  }
-})
+    "Content-Type": "application/json",
+  },
+});
 
 // Request interceptor
 request.interceptors.request.use(
   (config) => {
-    const token = getToken()
+    const token = getToken();
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+      config.headers.Authorization = `Bearer ${token}`;
     }
-    return config
+    return config;
   },
   (error) => {
-    return Promise.reject(error)
-  }
-)
+    return Promise.reject(error);
+  },
+);
 
 // Response interceptor
 request.interceptors.response.use(
   (response: AxiosResponse<ApiResponse>) => {
-    const res = response.data
+    const res = response.data;
 
     if (res.code !== 200) {
-      message.error(res.message || '请求失败', { duration: 0 })
+      message.error(res.message || "请求失败", { duration: 0 });
 
       // Handle specific error codes
       if (res.code === 401 || res.code === 1005 || res.code === 1006) {
-        clearAuth()
-        router.push('/login')
+        clearAuth();
+        router.push("/login");
       }
 
-      return Promise.reject(new Error(res.message || 'Request failed'))
+      return Promise.reject(new Error(res.message || "Request failed"));
     }
 
-    return response
+    return response;
   },
   (error) => {
-    const status = error.response?.status
+    const status = error.response?.status;
 
     if (status === 401 || status === 403) {
-      const msg = error.response?.data?.message || '登录已过期，请重新登录'
-      message.error(msg, { duration: 0 })
-      clearAuth()
-      router.push('/login')
-      return Promise.reject(error)
+      const msg = error.response?.data?.message || "登录已过期，请重新登录";
+      message.error(msg, { duration: 0 });
+      clearAuth();
+      router.push("/login");
+      return Promise.reject(error);
     }
 
-    const msg = error.response?.data?.message || error.message || '网络错误'
-    message.error(msg, { duration: 0 })
+    const msg = error.response?.data?.message || error.message || "网络错误";
+    message.error(msg, { duration: 0 });
 
-    return Promise.reject(error)
-  }
-)
+    return Promise.reject(error);
+  },
+);
 
-export default request
+export default request;

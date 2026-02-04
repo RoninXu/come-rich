@@ -1,5 +1,5 @@
-import type { GlobalThemeOverrides } from 'naive-ui'
-import { colors, radius, typography } from './tokens'
+import type { GlobalThemeOverrides } from "naive-ui";
+import { colors, radius, typography } from "./tokens";
 
 export const lightThemeOverrides: GlobalThemeOverrides = {
   common: {
@@ -32,31 +32,31 @@ export const lightThemeOverrides: GlobalThemeOverrides = {
     fontSizeMedium: typography.fontSizeMd,
     fontSizeLarge: typography.fontSizeLg,
     fontSizeHuge: typography.fontSizeXl,
-    heightMedium: '36px',
-    heightSmall: '30px',
-    heightLarge: '42px',
+    heightMedium: "36px",
+    heightSmall: "30px",
+    heightLarge: "42px",
   },
   Card: {
     borderRadius: radius.xl,
-    paddingMedium: '20px',
-    paddingLarge: '24px',
+    paddingMedium: "20px",
+    paddingLarge: "24px",
   },
   Button: {
     borderRadiusMedium: radius.md,
     borderRadiusSmall: radius.sm,
     borderRadiusLarge: radius.md,
-    heightMedium: '36px',
-    heightLarge: '42px',
+    heightMedium: "36px",
+    heightLarge: "42px",
     fontWeightStrong: String(typography.fontWeightSemibold),
   },
   Input: {
     borderRadius: radius.md,
-    heightMedium: '36px',
-    heightLarge: '42px',
+    heightMedium: "36px",
+    heightLarge: "42px",
   },
   Menu: {
     borderRadius: radius.md,
-    itemHeight: '40px',
+    itemHeight: "40px",
   },
   DataTable: {
     borderRadius: radius.xl,
@@ -76,7 +76,7 @@ export const lightThemeOverrides: GlobalThemeOverrides = {
   Progress: {
     borderRadius: radius.full,
   },
-}
+};
 
 export const darkThemeOverrides: GlobalThemeOverrides = {
   common: {
@@ -109,31 +109,31 @@ export const darkThemeOverrides: GlobalThemeOverrides = {
     fontSizeMedium: typography.fontSizeMd,
     fontSizeLarge: typography.fontSizeLg,
     fontSizeHuge: typography.fontSizeXl,
-    heightMedium: '36px',
-    heightSmall: '30px',
-    heightLarge: '42px',
+    heightMedium: "36px",
+    heightSmall: "30px",
+    heightLarge: "42px",
   },
   Card: {
     borderRadius: radius.xl,
-    paddingMedium: '20px',
-    paddingLarge: '24px',
+    paddingMedium: "20px",
+    paddingLarge: "24px",
   },
   Button: {
     borderRadiusMedium: radius.md,
     borderRadiusSmall: radius.sm,
     borderRadiusLarge: radius.md,
-    heightMedium: '36px',
-    heightLarge: '42px',
+    heightMedium: "36px",
+    heightLarge: "42px",
     fontWeightStrong: String(typography.fontWeightSemibold),
   },
   Input: {
     borderRadius: radius.md,
-    heightMedium: '36px',
-    heightLarge: '42px',
+    heightMedium: "36px",
+    heightLarge: "42px",
   },
   Menu: {
     borderRadius: radius.md,
-    itemHeight: '40px',
+    itemHeight: "40px",
   },
   DataTable: {
     borderRadius: radius.xl,
@@ -153,4 +153,4 @@ export const darkThemeOverrides: GlobalThemeOverrides = {
   Progress: {
     borderRadius: radius.full,
   },
-}
+};

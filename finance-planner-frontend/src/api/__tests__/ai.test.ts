@@ -1,60 +1,60 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock request utility
-vi.mock('@/utils/request', () => ({
+vi.mock("@/utils/request", () => ({
   default: {
     post: vi.fn(),
     get: vi.fn(),
     put: vi.fn(),
-    delete: vi.fn()
-  }
-}))
+    delete: vi.fn(),
+  },
+}));
 
 // Mock auth utility
-vi.mock('@/utils/auth', () => ({
-  getToken: vi.fn(() => 'test-token')
-}))
+vi.mock("@/utils/auth", () => ({
+  getToken: vi.fn(() => "test-token"),
+}));
 
-import request from '@/utils/request'
+import request from "@/utils/request";
 import {
   getConversationHistory,
   getRemainingChats,
   getProviders,
   getCurrentProvider,
-  switchProvider
-} from '../ai'
+  switchProvider,
+} from "../ai";
 
-describe('ai API', () => {
+describe("ai API", () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
-  it('getConversationHistory gets /ai/history with sessionId', () => {
-    getConversationHistory('session-123')
-    expect(request.get).toHaveBeenCalledWith('/ai/history', {
-      params: { sessionId: 'session-123' }
-    })
-  })
+  it("getConversationHistory gets /ai/history with sessionId", () => {
+    getConversationHistory("session-123");
+    expect(request.get).toHaveBeenCalledWith("/ai/history", {
+      params: { sessionId: "session-123" },
+    });
+  });
 
-  it('getRemainingChats gets /ai/remaining', () => {
-    getRemainingChats()
-    expect(request.get).toHaveBeenCalledWith('/ai/remaining')
-  })
+  it("getRemainingChats gets /ai/remaining", () => {
+    getRemainingChats();
+    expect(request.get).toHaveBeenCalledWith("/ai/remaining");
+  });
 
-  it('getProviders gets /ai/providers', () => {
-    getProviders()
-    expect(request.get).toHaveBeenCalledWith('/ai/providers')
-  })
+  it("getProviders gets /ai/providers", () => {
+    getProviders();
+    expect(request.get).toHaveBeenCalledWith("/ai/providers");
+  });
 
-  it('getCurrentProvider gets /ai/provider', () => {
-    getCurrentProvider()
-    expect(request.get).toHaveBeenCalledWith('/ai/provider')
-  })
+  it("getCurrentProvider gets /ai/provider", () => {
+    getCurrentProvider();
+    expect(request.get).toHaveBeenCalledWith("/ai/provider");
+  });
 
-  it('switchProvider puts to /ai/provider with name param', () => {
-    switchProvider('moonshot')
-    expect(request.put).toHaveBeenCalledWith('/ai/provider', null, {
-      params: { name: 'moonshot' }
-    })
-  })
-})
+  it("switchProvider puts to /ai/provider with name param", () => {
+    switchProvider("moonshot");
+    expect(request.put).toHaveBeenCalledWith("/ai/provider", null, {
+      params: { name: "moonshot" },
+    });
+  });
+});

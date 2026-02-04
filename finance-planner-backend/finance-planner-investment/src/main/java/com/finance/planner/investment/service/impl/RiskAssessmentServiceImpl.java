@@ -69,7 +69,7 @@ public class RiskAssessmentServiceImpl implements RiskAssessmentService {
     public RiskAssessmentDto getLatestAssessment(Long userId) {
         return riskAssessmentRepository.findFirstByUserIdOrderByAssessmentDateDesc(userId)
                 .map(RiskAssessmentDto::fromEntity)
-                .orElse(null);
+                .orElseThrow(() -> new BusinessException(ErrorCode.RISK_ASSESSMENT_NOT_FOUND));
     }
 
     @Override

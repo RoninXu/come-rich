@@ -9,7 +9,32 @@
       "Bash(git push:*)",
       "Bash(jq:*)",
       "Bash(bash:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(git checkout:*)",
+      "Bash(mvn compile:*)",
+      "Bash(pnpm build:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm install)",
+      "Bash(git reset:*)",
+      "Bash(gh pr create:*)",
+      "mcp__github__create_pull_request",
+      "Bash(ls -la \"D:\\\\Github\\\\come-rich\\\\finance-planner-frontend\\\\src\"\" 2>/dev/null | grep -E \"^d \")",
+      "Bash(pnpm add:*)",
+      "Bash(pushd:*)",
+      "Bash(mvn test:*)",
+      "Bash(mvn clean install:*)",
+      "Bash(npx vitest run)",
+      "Bash(git pull:*)",
+      "Bash(java -version)",
+      "Bash(mvn:*)",
+      "Bash(pnpm:*)",
+      "Bash(docker:*)",
+      "Bash(docker-compose:*)",
+      "Bash(npx vue-tsc:*)",
+      "Bash(npx vite build)",
+      "Bash(dir:*)",
+      "Bash(timeout 15 npx vite:*)",
+      "WebSearch"
     ]
   }
 }

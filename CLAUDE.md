@@ -1,4 +1,4 @@
-# CLAUDE.md
+﻿# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -26,11 +26,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - Report any errors to the user before proceeding
 
 - **Global File Sync**: After any code changes, always update the following global files before committing:
-  1. **`README.md`** — Features, Project Structure, Tech Stack, Getting Started, etc.
-  2. **`docs/plans/PROGRESS.md`** — Development progress, completed/pending items, module table, page routes
-  3. **`CLAUDE.md`** — Current Status, Project Structure, Module Architecture, Frontend Views
+  1. **`README.md`** - Features, Project Structure, Tech Stack, Getting Started, etc.
+  2. **`docs/plans/PROGRESS.md`** - Development progress, completed/pending items, module table, page routes
+  3. **`CLAUDE.md`** - Current Status, Project Structure, Module Architecture, Frontend Views
   4. Keep all three files consistent with each other and with the actual codebase
-  5. Update these files as part of the same commit or PR — never leave them stale
+  5. Update these files as part of the same commit or PR - never leave them stale
 
 - **Unit Testing Requirements**: All code changes must include corresponding unit tests:
   1. **When writing new code**: Create unit tests for all new classes, methods, and components
@@ -47,9 +47,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Come Rich (AI个人理财规划师) is an AI-powered personal finance planning application targeting Chinese middle-class users. The project helps users track expenses, receive AI-driven financial coaching, and discover income growth opportunities.
+Come Rich（AI个人理财规划师）面向中国中产用户的个人理财规划应用，覆盖记账、目标、预算、投资建议与职业/收入增长建议，并提供 AI 助手与 OCR 票据识别能力。
 
-**Current Status**: Phase 3 fully completed - Budget management, investment advice engine, and data export all implemented with full frontend and backend, on top of Phase 1-2 features (AI chat, financial goals, OCR, career recommendations).
+**Current Status**: Phase 4.1 (AI Agent 基础能力) completed; Phase 4.2 (目标/投资/副业工具扩展) planned. Phase 1-3 features are fully delivered (AI chat, goals, OCR, career, budget, investment, export).
 
 ## Technology Stack
 
@@ -82,37 +82,35 @@ Come Rich (AI个人理财规划师) is an AI-powered personal finance planning a
 
 ```
 come-rich/
-├── docs/plans/                           # Project documentation
-│   ├── AI理财规划师PRD.md                 # Product requirements document
-│   └── AI理财规划师-技术文档.md            # Technical implementation specs
-├── finance-planner-backend/              # Backend (Spring Boot)
-│   ├── pom.xml                           # Parent POM
-│   ├── finance-planner-common/           # Shared utilities, exceptions
-│   ├── finance-planner-auth/             # Authentication & authorization
-│   ├── finance-planner-accounting/       # Transaction management
-│   ├── finance-planner-analysis/         # Statistics & health score
-│   ├── finance-planner-ai/              # AI chat, multi-model LLM, OCR import
-│   ├── finance-planner-goal/            # Financial goal planning & tracking
-│   ├── finance-planner-career/          # Side hustle recommendations & income
-│   ├── finance-planner-budget/          # Budget management & AI optimization
-│   ├── finance-planner-investment/      # Risk assessment & investment advice
-│   └── finance-planner-app/              # Main application entry
-│       └── src/main/resources/
-│           ├── application.yml
-│           └── db/migration/             # Flyway SQL scripts
-├── finance-planner-frontend/             # Frontend (Vue 3)
-│   ├── package.json
-│   ├── vite.config.ts
-│   └── src/
-│       ├── api/                          # API request modules
-│       ├── components/                   # Reusable components
-│       ├── router/                       # Vue Router config
-│       ├── stores/                       # Pinia state management
-│       ├── utils/                        # Utilities (request, auth)
-│       └── views/                        # Page components
-├── docker-compose-dev.yml                # Development environment
-├── .claude/                              # Claude Code configuration
-└── CLAUDE.md                             # This file
+|-- docs/plans/                           # Project documentation
+|   |-- AI理财规划师PRD.md                 # Product requirements document
+|   `-- AI理财规划师-技术文档.md            # Technical implementation specs
+|-- finance-planner-backend/              # Backend (Spring Boot)
+|   |-- pom.xml                           # Parent POM
+|   |-- finance-planner-common/           # Shared utilities, exceptions
+|   |-- finance-planner-auth/             # Authentication & authorization
+|   |-- finance-planner-accounting/       # Transaction management
+|   |-- finance-planner-analysis/         # Statistics & health score
+|   |-- finance-planner-ai/               # AI chat, multi-model LLM, OCR import
+|   |-- finance-planner-goal/             # Financial goal planning & tracking
+|   |-- finance-planner-career/           # Side hustle recommendations & income
+|   |-- finance-planner-budget/           # Budget management & AI optimization
+|   |-- finance-planner-investment/       # Risk assessment & investment advice
+|   `-- finance-planner-app/              # Main application entry
+|       `-- src/main/resources/db/migration/ # Flyway SQL scripts
+|-- finance-planner-frontend/             # Frontend (Vue 3)
+|   |-- package.json
+|   |-- vite.config.ts
+|   `-- src/
+|       |-- api/                          # API request modules
+|       |-- components/                   # Reusable components
+|       |-- router/                       # Vue Router config
+|       |-- stores/                       # Pinia state management
+|       |-- utils/                        # Utilities (request, auth)
+|       `-- views/                        # Page components
+|-- docker-compose-dev.yml                # Development environment
+|-- .claude/                              # Claude Code configuration
+`-- CLAUDE.md                             # This file
 ```
 
 ## Module Architecture

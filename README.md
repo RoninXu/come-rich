@@ -1,71 +1,75 @@
-# Come Rich - AI Personal Finance Planner
+﻿# Come Rich - AI Personal Finance Planner（AI个人理财规划师）
 
-AI-powered personal finance planning application targeting Chinese middle-class users. Track expenses, receive AI-driven financial coaching, and discover income growth opportunities.
+面向中国中产用户的 AI 个人理财规划应用。以“记录 → 分析 → 规划 → 行动”为主线，帮助用户看清收支结构、设定财务目标、优化预算与资产配置，并通过 AI 提供可执行的理财建议与收入增长方案。
 
-## Features
+## 项目价值（Why It Matters）
+- 全链路闭环：从记账、目标、预算、投资到职业增长建议，一站式覆盖个人财务管理关键场景
+- AI 辅助决策：基于用户账本与画像生成个性化建议，降低理财门槛
+- 可执行输出：不仅给建议，还给计划（如 90 天行动方案、预算优化策略）
+- 可解释与可落地：结合统计报表与健康评分，清晰展示财务现状与改进路径
 
-**Phase 1 (Completed)**
-- User authentication (registration, login, JWT)
-- Category management (income/expense categories with icons)
-- Transaction management (CRUD, filtering, pagination)
-- Monthly analysis (statistics, spending breakdown, financial health score)
-- Full frontend integration with Vue 3 dashboard
+## 最新进展（Current Status）
+Phase 4.1（AI Agent 基础能力）已完成；Phase 4.2（目标/投资/副业工具扩展）规划中。Phase 1-3 功能已全部交付并整体打通：
+- AI Agent 基础能力：工具体系、ReAct 编排、SSE 协议升级、确认流程
+- 预算管理：按分类月度预算、预算 vs 实际对比、AI 优化建议
+- 投资建议：8 题风险测评、AI 资产配置建议
+- 数据导出：交易 Excel/CSV 导出、月度/年度报表导出
 
-**Phase 2 — AI Chat (Completed)**
-- AI financial advisor chat with SSE streaming
-- Multi-model LLM support (DeepSeek, Moonshot, etc.) with runtime switching
-- Financial context injection (monthly stats + health score into AI prompts)
-- Conversation history persistence
-- Redis-based daily rate limiting (10 chats/day)
-- Full chat UI with typing indicator, quick actions, markdown rendering
+## 核心功能
+**Phase 1（已完成）**
+- 用户认证（注册、登录、JWT）
+- 收支分类管理（含图标）
+- 交易流水管理（CRUD、筛选、分页）
+- 月度分析（统计、支出分布、财务健康评分）
+- Vue 3 前端仪表盘
 
-**Phase 2 — Advanced (Completed)**
-- Financial goal planning with progress tracking, AI savings plans, ECharts visualization
-- Receipt OCR recognition via Baidu OCR with auto-categorization and transaction creation
-- Side hustle / career recommendations with AI matching, 90-day startup plans, income tracking
+**Phase 2（AI 能力，已完成）**
+- AI 理财顾问对话（SSE 流式）
+- 多模型 LLM 支持（DeepSeek、Moonshot）与运行时切换
+- 财务上下文注入（统计 + 健康评分进入提示词）
+- 对话历史持久化
+- Redis 日限流（10 次/天）
+- 完整聊天 UI（打字机、快捷动作、Markdown 渲染）
 
+**Phase 2 进阶（已完成）**
+- 理财目标规划（进度跟踪、AI 储蓄计划、ECharts 可视化）
+- 票据 OCR 识别（百度 OCR + 自动分类 + 生成流水）
+- 职业/副业建议（AI 匹配、90 天计划、收入跟踪）
 
-**Phase 3 — Budget, Investment & Export (Completed)**
-- Budget management: per-category monthly budgets, budget-vs-actual tracking, AI optimization suggestions
-- Investment advice engine: 8-question risk assessment quiz, AI-powered asset allocation recommendations
-- Data export: Excel/CSV transaction export, monthly/annual report generation (Apache POI)
+**Phase 3（预算、投资与导出，已完成）**
+- 预算管理：分类预算、预算对比、AI 优化
+- 投资建议：风险测评、资产配置建议
+- 数据导出：Excel/CSV、月度/年度报表
 
 ## Tech Stack
 
 | Layer | Technologies |
 |---|---|
-| Backend | Java 17, Spring Boot 3.2, Spring Data JPA, Spring Security, JWT, WebFlux (WebClient) |
+| Backend | Java 17, Spring Boot 3.2, Spring Data JPA, Spring Security, JWT, WebFlux (SSE) |
 | Frontend | Vue 3.4, TypeScript 5, Vite 5, Element Plus, Pinia, ECharts |
-| Database | PostgreSQL 14, Redis 7, Flyway migrations |
-| AI | DeepSeek V3 API, Baidu OCR API (receipt recognition), Apache POI (Excel export) |
-| Infra | Docker Compose, Nginx, Aliyun (ECS, OSS, RDS) |
+| Database | PostgreSQL 14, Redis 7, Flyway |
+| AI | DeepSeek V3 API, Moonshot API, Baidu OCR API, Apache POI |
+| Infra | Docker Compose, Nginx, Aliyun (ECS/OSS/RDS) |
 
-## Project Structure
+## 项目结构（Project Structure）
 
 ```
 come-rich/
-├── finance-planner-backend/          # Spring Boot multi-module backend
-│   ├── finance-planner-common/       # Shared utilities, exceptions, API response
-│   ├── finance-planner-auth/         # Authentication & JWT security
-│   ├── finance-planner-accounting/   # Transaction & category management
-│   ├── finance-planner-analysis/     # Statistics & health score
-│   ├── finance-planner-ai/          # AI chat, multi-model LLM, OCR import
-│   ├── finance-planner-goal/        # Financial goal planning & tracking
-│   ├── finance-planner-career/      # Side hustle recommendations & income tracking
-│   ├── finance-planner-budget/      # Budget management & AI optimization
-│   ├── finance-planner-investment/  # Risk assessment & investment advice
-│   └── finance-planner-app/          # Main application entry & Flyway migrations
-├── finance-planner-frontend/         # Vue 3 + TypeScript SPA
-│   └── src/
-│       ├── api/                      # API request modules
-│       ├── components/               # Reusable UI components
-│       ├── router/                   # Vue Router configuration
-│       ├── stores/                   # Pinia state management
-│       ├── utils/                    # Utilities (HTTP client, auth helpers)
-│       └── views/                    # Page components
-├── docs/plans/                       # PRD and technical documentation
-├── docker-compose-dev.yml            # Dev environment (PostgreSQL + Redis)
-└── CLAUDE.md                         # AI assistant instructions
+├── docs/                                 # 项目文档
+│   └── plans/                            # 需求与技术文档
+├── finance-planner-backend/              # 后端（Spring Boot 多模块）
+│   ├── finance-planner-common/           # 公共工具与响应结构
+│   ├── finance-planner-auth/             # 认证与授权
+│   ├── finance-planner-accounting/       # 记账与交易流水
+│   ├── finance-planner-analysis/         # 统计报表与健康评分
+│   ├── finance-planner-ai/               # AI 对话、OCR、多模型
+│   ├── finance-planner-goal/             # 理财目标与进度
+│   ├── finance-planner-career/           # 职业画像与收入建议
+│   ├── finance-planner-budget/           # 预算管理与优化
+│   ├── finance-planner-investment/       # 风险评测与投资建议
+│   └── finance-planner-app/              # 应用入口与 Flyway 迁移
+└── finance-planner-frontend/             # 前端（Vue 3 SPA）
+    └── src/                              # 前端源码（api/components/router/stores/utils/views）
 ```
 
 ## Prerequisites
@@ -83,8 +87,6 @@ come-rich/
 docker-compose -f docker-compose-dev.yml up -d
 ```
 
-This starts PostgreSQL (port 5432) and Redis (port 6379).
-
 ### 2. Build and run the backend
 
 ```bash
@@ -95,14 +97,11 @@ mvn spring-boot:run -pl finance-planner-app
 
 Backend runs at `http://localhost:8080`. Flyway auto-applies database migrations on startup.
 
-For AI chat functionality, set the LLM API key environment variable:
+Set API keys for AI/OCR (optional):
 
 ```bash
 export DEEPSEEK_API_KEY=your_api_key_here
-# Or for Moonshot:
 # export MOONSHOT_API_KEY=your_api_key_here
-
-# For OCR receipt recognition (optional):
 export BAIDU_OCR_API_KEY=your_baidu_api_key
 export BAIDU_OCR_SECRET_KEY=your_baidu_secret_key
 ```
