@@ -7,6 +7,8 @@ import com.finance.planner.analysis.dto.HealthScoreDto;
 import com.finance.planner.analysis.dto.MonthlySummaryDto;
 import com.finance.planner.analysis.service.HealthScoreService;
 import com.finance.planner.analysis.service.StatisticsService;
+import com.finance.planner.ai.time.TimeContext;
+import com.finance.planner.ai.time.TimeContextProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -22,6 +24,7 @@ public class AgentContextBuilder {
     private final ConversationService conversationService;
     private final StatisticsService statisticsService;
     private final HealthScoreService healthScoreService;
+    private final TimeContextProvider timeContextProvider;
     private final ObjectMapper objectMapper;
 
     private static final String SYSTEM_PROMPT = """
@@ -68,9 +71,13 @@ public class AgentContextBuilder {
     private String buildSystemPromptWithContext(Long userId) {
         StringBuilder sb = new StringBuilder(SYSTEM_PROMPT);
         try {
-            LocalDate now = LocalDate.now();
-            sb.append("\nCurrent date: ").append(now).append(" (yyyy-MM-dd). ")
-                    .append("Use this to resolve relative dates like 今天/昨天/明天/前天/后天.");
+            TimeContext timeContext = timeContextProvider.getTimeContext(userId, null);
+            sb.append("\nCurrent date: ")
+                    .append(timeContext.getServerDate())
+                    .append(" (")
+                    .append(timeContext.getTimezone())
+                    .append("). Use this to resolve relative dates like 今天/昨天/明天/前天/后天.");
+            LocalDate now = LocalDate.parse(timeContext.getServerDate());
             MonthlySummaryDto summary = statisticsService.getMonthlySummary(userId, now.getYear(), now.getMonthValue());
             if (summary != null && summary.getTransactionCount() > 0) {
                 sb.append("\n当前月度概况：\n");

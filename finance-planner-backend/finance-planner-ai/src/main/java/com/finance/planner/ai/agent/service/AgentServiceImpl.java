@@ -10,6 +10,7 @@ import com.finance.planner.ai.agent.tool.Tool;
 import com.finance.planner.ai.agent.tool.ToolExecutor;
 import com.finance.planner.ai.agent.tool.ToolRegistry;
 import com.finance.planner.ai.agent.tool.ToolResult;
+import com.finance.planner.ai.agent.util.RelativeDateResolver;
 import com.finance.planner.ai.dto.LlmStreamEvent;
 import com.finance.planner.ai.dto.ToolCallChunk;
 import com.finance.planner.ai.service.ConversationService;
@@ -92,7 +93,7 @@ public class AgentServiceImpl implements AgentService {
                     messages.add(assistantMessage);
 
                     for (AgentToolCall toolCall : toolCalls) {
-                        executeToolCall(userId, sessionId, toolCall, messages, riskThreshold, emitter);
+                        executeToolCall(userId, sessionId, toolCall, userMessage, messages, riskThreshold, emitter);
                     }
                     continue;
                 }
@@ -143,6 +144,7 @@ public class AgentServiceImpl implements AgentService {
             Long userId,
             String sessionId,
             AgentToolCall toolCall,
+            String userMessage,
             List<Map<String, Object>> messages,
             BigDecimal riskThreshold,
             SseEmitter emitter
@@ -155,7 +157,8 @@ public class AgentServiceImpl implements AgentService {
             return;
         }
 
-        Map<String, Object> arguments = parseArguments(toolCall.getArguments());
+        Map<String, Object> arguments = new HashMap<>(parseArguments(toolCall.getArguments()));
+        applyRelativeDateOverride(toolCall.getName(), userMessage, arguments);
         RiskLevel riskLevel = toolExecutor.resolveRiskLevel(tool, arguments, riskThreshold);
 
         sseHelper.sendToolCallStart(emitter, buildToolPayload(toolCall, null));
@@ -217,6 +220,14 @@ public class AgentServiceImpl implements AgentService {
             fallback.put("raw", arguments);
             return fallback;
         }
+    }
+
+    private void applyRelativeDateOverride(String toolName, String userMessage, Map<String, Object> arguments) {
+        if (!"create_transaction".equals(toolName) && !"update_transaction".equals(toolName)) {
+            return;
+        }
+        RelativeDateResolver.resolveFromMessage(userMessage)
+                .ifPresent(date -> arguments.put("transactionDate", date.toString()));
     }
 
     private List<Map<String, Object>> buildToolCallsPayload(List<AgentToolCall> toolCalls) {

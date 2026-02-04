@@ -6,6 +6,7 @@ export interface UserProfile {
   incomeExpectation: number | null;
   interests: string | null;
   experienceLevel: string | null;
+  timezone: string | null;
 }
 
 export interface SaveProfileRequest {
@@ -15,6 +16,7 @@ export interface SaveProfileRequest {
   incomeExpectation?: number;
   interests?: string;
   experienceLevel?: string;
+  timezone?: string;
 }
 
 export interface CareerPlan {

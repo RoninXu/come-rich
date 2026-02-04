@@ -21,6 +21,7 @@ public class UserProfileDto {
     private BigDecimal incomeExpectation;
     private String interests;
     private String experienceLevel;
+    private String timezone;
 
     public static UserProfileDto fromEntity(UserProfile profile) {
         return UserProfileDto.builder()
@@ -31,6 +32,7 @@ public class UserProfileDto {
                 .incomeExpectation(profile.getIncomeExpectation())
                 .interests(profile.getInterests())
                 .experienceLevel(profile.getExperienceLevel())
+                .timezone(profile.getTimezone())
                 .build();
     }
 }

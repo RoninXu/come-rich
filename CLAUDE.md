@@ -50,7 +50,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Come Rich（AI个人理财规划师）面向中国中产用户的个人理财规划应用，覆盖记账、目标、预算、投资建议与职业/收入增长建议，并提供 AI 助手与 OCR 票据识别能力。
 
 **Current Status**: Phase 4.1 (AI Agent 基础能力) completed; Phase 4.2 (目标/投资/副业工具扩展) planned. Phase 1-3 features are fully delivered (AI chat, goals, OCR, career, budget, investment, export).
-**Recent Update**: Fixed AI Agent accounting relative date parsing (今天/昨天/明天).
+**Recent Update**: Fixed AI Agent accounting relative date parsing (今天/昨天/明天), enforced relative date override when present in user prompts, added Qwen provider option, introduced /api/ai/session-status with profile timezone support, and improved rate-limit messaging.
 
 ## Technology Stack
 

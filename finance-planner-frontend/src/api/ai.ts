@@ -2,6 +2,7 @@ import request from "@/utils/request";
 import { getToken } from "@/utils/auth";
 import type { AgentStreamEvent, ConversationHistory } from "@/types/ai";
 import type { ApiResponse } from "@/types/api";
+import { mapAiError } from "@/utils/ai-error";
 
 /**
  * Stream AI chat response using fetch + ReadableStream.
@@ -30,8 +31,15 @@ export async function* streamChat(
     },
   });
 
-  if (!response.ok) {
-    yield { error: "AI 服务请求失败" };
+  const contentType = response.headers.get("content-type") || "";
+  if (!response.ok || contentType.includes("application/json")) {
+    try {
+      const data = await response.json();
+      const friendly = mapAiError(data?.code, data?.message);
+      yield { error: friendly || data?.message || "AI 服务请求失败" };
+    } catch {
+      yield { error: "AI 服务请求失败" };
+    }
     return;
   }
 
@@ -41,8 +49,29 @@ export async function* streamChat(
     return;
   }
 
-  const decoder = new TextDecoder();
   let buffer = "";
+  const firstChunk = await reader.read();
+  if (firstChunk.value) {
+    const firstText = new TextDecoder().decode(firstChunk.value, {
+      stream: true,
+    });
+    const trimmed = firstText.trim();
+    if (trimmed.startsWith("{")) {
+      try {
+        const data = JSON.parse(trimmed);
+        const friendly = mapAiError(data?.code, data?.message);
+        yield { error: friendly || data?.message || "AI 服务请求失败" };
+        reader.releaseLock();
+        return;
+      } catch {
+        // fall through to SSE parsing
+      }
+    }
+    // continue SSE parsing with the first chunk content
+    buffer = firstText;
+  }
+
+  const decoder = new TextDecoder();
 
   try {
     while (true) {
@@ -105,8 +134,18 @@ export async function* streamAgentChat(
     },
   );
 
-  if (!response.ok) {
-    yield { event: "error", data: { error: "AI Agent 服务请求失败" } };
+  const contentType = response.headers.get("content-type") || "";
+  if (!response.ok || contentType.includes("application/json")) {
+    try {
+      const data = await response.json();
+      const friendly = mapAiError(data?.code, data?.message);
+      yield {
+        event: "error",
+        data: { error: friendly || data?.message || "AI Agent 服务请求失败" },
+      };
+    } catch {
+      yield { event: "error", data: { error: "AI Agent 服务请求失败" } };
+    }
     return;
   }
 
@@ -116,8 +155,32 @@ export async function* streamAgentChat(
     return;
   }
 
-  const decoder = new TextDecoder();
   let buffer = "";
+  const firstChunk = await reader.read();
+  if (firstChunk.value) {
+    const firstText = new TextDecoder().decode(firstChunk.value, {
+      stream: true,
+    });
+    const trimmed = firstText.trim();
+    if (trimmed.startsWith("{")) {
+      try {
+        const data = JSON.parse(trimmed);
+        const friendly = mapAiError(data?.code, data?.message);
+        yield {
+          event: "error",
+          data: { error: friendly || data?.message || "AI Agent 服务请求失败" },
+        };
+        reader.releaseLock();
+        return;
+      } catch {
+        // fall through to SSE parsing
+      }
+    }
+    // continue SSE parsing with the first chunk content
+    buffer = firstText;
+  }
+
+  const decoder = new TextDecoder();
   let eventName = "message";
   let dataLines: string[] = [];
 

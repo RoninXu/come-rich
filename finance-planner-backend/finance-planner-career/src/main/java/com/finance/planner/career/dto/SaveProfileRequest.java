@@ -30,4 +30,7 @@ public class SaveProfileRequest {
 
     @Size(max = 50, message = "经验等级不能超过50个字符")
     private String experienceLevel;
+
+    @Size(max = 64, message = "鏃跺尯涓嶈兘瓒呰繃64涓瓧绗?")
+    private String timezone;
 }

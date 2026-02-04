@@ -7,6 +7,8 @@ import com.finance.planner.analysis.dto.HealthScoreDto;
 import com.finance.planner.analysis.dto.MonthlySummaryDto;
 import com.finance.planner.analysis.service.HealthScoreService;
 import com.finance.planner.analysis.service.StatisticsService;
+import com.finance.planner.ai.time.TimeContext;
+import com.finance.planner.ai.time.TimeContextProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ public class PromptBuilderImpl implements PromptBuilder {
     private final ConversationService conversationService;
     private final StatisticsService statisticsService;
     private final HealthScoreService healthScoreService;
+    private final TimeContextProvider timeContextProvider;
 
     private static final String SYSTEM_PROMPT = """
             你是"Come Rich AI 财务顾问"，一位专业、友善的中文个人理财助手。
@@ -76,7 +79,13 @@ public class PromptBuilderImpl implements PromptBuilder {
         StringBuilder sb = new StringBuilder(SYSTEM_PROMPT);
 
         try {
-            LocalDate now = LocalDate.now();
+            TimeContext timeContext = timeContextProvider.getTimeContext(userId, null);
+            sb.append("\nCurrent date: ")
+                    .append(timeContext.getServerDate())
+                    .append(" (")
+                    .append(timeContext.getTimezone())
+                    .append("). Use this to resolve relative dates like 今天/昨天/明天/前天/后天.");
+            LocalDate now = LocalDate.parse(timeContext.getServerDate());
             MonthlySummaryDto summary = statisticsService.getMonthlySummary(userId, now.getYear(), now.getMonthValue());
             if (summary != null && summary.getTransactionCount() > 0) {
                 sb.append("\n\n用户本月财务概况：\n");

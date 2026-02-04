@@ -2,6 +2,8 @@ package com.finance.planner.ai.service.impl;
 
 import com.finance.planner.ai.entity.AiConversation;
 import com.finance.planner.ai.service.ConversationService;
+import com.finance.planner.ai.time.TimeContext;
+import com.finance.planner.ai.time.TimeContextProvider;
 import com.finance.planner.analysis.dto.HealthScoreDto;
 import com.finance.planner.analysis.dto.MonthlySummaryDto;
 import com.finance.planner.analysis.service.HealthScoreService;
@@ -38,6 +40,9 @@ class PromptBuilderImplTest {
     @Mock
     private HealthScoreService healthScoreService;
 
+    @Mock
+    private TimeContextProvider timeContextProvider;
+
     @InjectMocks
     private PromptBuilderImpl promptBuilder;
 
@@ -58,6 +63,11 @@ class PromptBuilderImplTest {
     @Test
     @DisplayName("buildMessages - should include system, history, and user message")
     void buildMessages_includesAllParts() {
+        when(timeContextProvider.getTimeContext(eq(USER_ID), isNull()))
+                .thenReturn(TimeContext.builder()
+                        .serverDate("2026-02-04")
+                        .timezone("Asia/Shanghai")
+                        .build());
         LocalDate now = LocalDate.now();
         when(statisticsService.getMonthlySummary(eq(USER_ID), eq(now.getYear()), eq(now.getMonthValue())))
                 .thenReturn(MonthlySummaryDto.empty(now.getYear(), now.getMonthValue()));
@@ -77,6 +87,11 @@ class PromptBuilderImplTest {
     @Test
     @DisplayName("buildMessages - should include conversation history")
     void buildMessages_includesHistory() {
+        when(timeContextProvider.getTimeContext(eq(USER_ID), isNull()))
+                .thenReturn(TimeContext.builder()
+                        .serverDate("2026-02-04")
+                        .timezone("Asia/Shanghai")
+                        .build());
         LocalDate now = LocalDate.now();
         when(statisticsService.getMonthlySummary(eq(USER_ID), eq(now.getYear()), eq(now.getMonthValue())))
                 .thenReturn(MonthlySummaryDto.empty(now.getYear(), now.getMonthValue()));
@@ -108,6 +123,11 @@ class PromptBuilderImplTest {
     @Test
     @DisplayName("buildMessages - should inject financial context into system prompt")
     void buildMessages_injectsFinancialContext() {
+        when(timeContextProvider.getTimeContext(eq(USER_ID), isNull()))
+                .thenReturn(TimeContext.builder()
+                        .serverDate("2026-02-04")
+                        .timezone("Asia/Shanghai")
+                        .build());
         LocalDate now = LocalDate.now();
         MonthlySummaryDto summary = MonthlySummaryDto.builder()
                 .year(now.getYear())
@@ -141,6 +161,11 @@ class PromptBuilderImplTest {
     @Test
     @DisplayName("buildMessages - should handle financial context errors gracefully")
     void buildMessages_handlesContextErrors() {
+        when(timeContextProvider.getTimeContext(eq(USER_ID), isNull()))
+                .thenReturn(TimeContext.builder()
+                        .serverDate("2026-02-04")
+                        .timezone("Asia/Shanghai")
+                        .build());
         LocalDate now = LocalDate.now();
         when(statisticsService.getMonthlySummary(eq(USER_ID), eq(now.getYear()), eq(now.getMonthValue())))
                 .thenThrow(new RuntimeException("DB error"));
@@ -152,5 +177,24 @@ class PromptBuilderImplTest {
         // Should still work, just without financial context
         assertThat(messages).hasSize(2);
         assertThat(messages.get(0).get("role")).isEqualTo("system");
+    }
+
+    @Test
+    @DisplayName("buildMessages - should inject current date context")
+    void buildMessages_injectsCurrentDate() {
+        when(timeContextProvider.getTimeContext(eq(USER_ID), isNull()))
+                .thenReturn(TimeContext.builder()
+                        .serverDate("2026-02-04")
+                        .timezone("Asia/Shanghai")
+                        .build());
+        when(statisticsService.getMonthlySummary(anyLong(), anyInt(), anyInt()))
+                .thenReturn(MonthlySummaryDto.empty(2026, 2));
+        when(conversationService.getRecentMessages(eq(USER_ID), eq(SESSION_ID), eq(5)))
+                .thenReturn(Collections.emptyList());
+
+        List<Map<String, String>> messages = promptBuilder.buildMessages(USER_ID, SESSION_ID, "Hello");
+
+        String systemContent = messages.get(0).get("content");
+        assertThat(systemContent).contains("Current date: 2026-02-04 (Asia/Shanghai)");
     }
 }
