@@ -69,6 +69,8 @@ public class AgentContextBuilder {
         StringBuilder sb = new StringBuilder(SYSTEM_PROMPT);
         try {
             LocalDate now = LocalDate.now();
+            sb.append("\nCurrent date: ").append(now).append(" (yyyy-MM-dd). ")
+                    .append("Use this to resolve relative dates like 今天/昨天/明天/前天/后天.");
             MonthlySummaryDto summary = statisticsService.getMonthlySummary(userId, now.getYear(), now.getMonthValue());
             if (summary != null && summary.getTransactionCount() > 0) {
                 sb.append("\n当前月度概况：\n");
