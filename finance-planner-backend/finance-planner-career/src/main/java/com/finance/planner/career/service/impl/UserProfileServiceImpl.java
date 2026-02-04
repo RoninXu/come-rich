@@ -53,6 +53,9 @@ public class UserProfileServiceImpl implements UserProfileService {
         if (request.getExperienceLevel() != null) {
             profile.setExperienceLevel(request.getExperienceLevel());
         }
+        if (request.getTimezone() != null) {
+            profile.setTimezone(request.getTimezone());
+        }
 
         UserProfile saved = userProfileRepository.save(profile);
         log.info("Saved profile for user {}", userId);

@@ -40,6 +40,9 @@ public class UserProfile {
     @Column(name = "experience_level", length = 50)
     private String experienceLevel;
 
+    @Column(length = 64)
+    private String timezone;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

@@ -108,7 +108,7 @@ describe("chat store", () => {
   it("fetchProviders should update providers and current provider", async () => {
     const store = useChatStore();
     (getProviders as any).mockResolvedValue({
-      data: { code: 200, data: ["deepseek", "moonshot"] },
+      data: { code: 200, data: ["deepseek", "moonshot", "qwen"] },
     });
     (getCurrentProvider as any).mockResolvedValue({
       data: { code: 200, data: "deepseek" },
@@ -116,7 +116,7 @@ describe("chat store", () => {
 
     await store.fetchProviders();
 
-    expect(store.providers).toEqual(["deepseek", "moonshot"]);
+    expect(store.providers).toEqual(["deepseek", "moonshot", "qwen"]);
     expect(store.currentProvider).toBe("deepseek");
   });
 

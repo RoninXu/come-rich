@@ -14,6 +14,11 @@ Phase 4.1（AI Agent 基础能力）已完成；Phase 4.2（目标/投资/副业
 - 预算管理：按分类月度预算、预算 vs 实际对比、AI 优化建议
 - 投资建议：8 题风险测评、AI 资产配置建议
 - 数据导出：交易 Excel/CSV 导出、月度/年度报表导出
+- 修复 AI Agent 记账相对日期解析（今天/昨天/明天）
+- 强化 AI Agent 记账日期覆盖逻辑（相对日期优先于模型输出）
+- 新增 /api/ai/session-status（时间上下文）与个人资料时区设置
+- 优化 AI 次数用尽提示（前端友好文案）
+- 修复 SSE 速率限制错误提示解析
 
 ## 核心功能
 **Phase 1（已完成）**
@@ -102,6 +107,7 @@ Set API keys for AI/OCR (optional):
 ```bash
 export DEEPSEEK_API_KEY=your_api_key_here
 # export MOONSHOT_API_KEY=your_api_key_here
+export QWEN_API_KEY=your_api_key_here
 export BAIDU_OCR_API_KEY=your_baidu_api_key
 export BAIDU_OCR_SECRET_KEY=your_baidu_secret_key
 ```

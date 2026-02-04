@@ -39,6 +39,15 @@
             />
           </n-form-item>
 
+          <n-form-item label="地区/时区">
+            <n-select
+              v-model:value="form.timezone"
+              :options="timezoneOptions"
+              placeholder="选择时区"
+              style="width: 100%"
+            />
+          </n-form-item>
+
           <n-form-item label="每周可用时间">
             <n-space align="center">
               <n-input-number
@@ -123,10 +132,22 @@ const experienceOptions = [
   { label: "高级（5年以上）", value: "senior" },
 ];
 
+const timezoneOptions = [
+  { label: "北京时间 (Asia/Shanghai)", value: "Asia/Shanghai" },
+  { label: "香港 (Asia/Hong_Kong)", value: "Asia/Hong_Kong" },
+  { label: "台北 (Asia/Taipei)", value: "Asia/Taipei" },
+  { label: "新加坡 (Asia/Singapore)", value: "Asia/Singapore" },
+  { label: "日本 (Asia/Tokyo)", value: "Asia/Tokyo" },
+  { label: "美西 (America/Los_Angeles)", value: "America/Los_Angeles" },
+  { label: "美东 (America/New_York)", value: "America/New_York" },
+  { label: "英国 (Europe/London)", value: "Europe/London" },
+];
+
 const form = reactive({
   occupation: "",
   skills: "",
   experienceLevel: null as string | null,
+  timezone: "Asia/Shanghai",
   availableHoursPerWeek: 10 as number | undefined,
   incomeExpectation: undefined as number | undefined,
   interests: "",
@@ -145,6 +166,7 @@ async function fetchProfile() {
       form.occupation = profile.occupation || "";
       form.skills = profile.skills || "";
       form.experienceLevel = profile.experienceLevel || null;
+      form.timezone = profile.timezone || "Asia/Shanghai";
       form.availableHoursPerWeek = profile.availableHoursPerWeek || 10;
       form.incomeExpectation = profile.incomeExpectation || undefined;
       form.interests = profile.interests || "";
@@ -163,6 +185,7 @@ async function handleSave() {
     if (form.occupation) data.occupation = form.occupation;
     if (form.skills) data.skills = form.skills;
     if (form.experienceLevel) data.experienceLevel = form.experienceLevel;
+    if (form.timezone) data.timezone = form.timezone;
     if (form.availableHoursPerWeek)
       data.availableHoursPerWeek = form.availableHoursPerWeek;
     if (form.incomeExpectation) data.incomeExpectation = form.incomeExpectation;

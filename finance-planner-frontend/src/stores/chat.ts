@@ -13,6 +13,7 @@ import {
   switchProvider as switchProviderApi,
 } from "@/api/ai";
 import type { AgentStreamEvent, ChatMessage } from "@/types/ai";
+import { mapAiError } from "@/utils/ai-error";
 
 export const useChatStore = defineStore("chat", () => {
   const messages = ref<ChatMessage[]>([]);
@@ -54,8 +55,9 @@ export const useChatStore = defineStore("chat", () => {
       );
       for await (const chunk of generator) {
         if (chunk.error) {
-          error.value = chunk.error;
-          aiMessage.content = chunk.error;
+          const friendly = mapAiError(undefined, chunk.error);
+          error.value = friendly || chunk.error;
+          aiMessage.content = friendly || chunk.error;
           aiMessage.isStreaming = false;
           break;
         }
@@ -307,7 +309,13 @@ export const useChatStore = defineStore("chat", () => {
 
     if (evt.event === "error") {
       const data = evt.data || {};
-      aiMessage.content = data.error || "AI Agent 服务异常";
+      if (typeof data === "string") {
+        const friendly = mapAiError(undefined, data);
+        aiMessage.content = friendly || data || "AI Agent 服务异常";
+      } else {
+        const friendly = mapAiError(data.code, data.error);
+        aiMessage.content = friendly || data.error || "AI Agent 服务异常";
+      }
       aiMessage.isStreaming = false;
     }
   }
