@@ -50,7 +50,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Come Rich（AI个人理财规划师）面向中国中产用户的个人理财规划应用，覆盖记账、目标、预算、投资建议与职业/收入增长建议，并提供 AI 助手与 OCR 票据识别能力。
 
 **Current Status**: Phase 4.1 (AI Agent 基础能力) completed; Phase 4.2 (目标/投资/副业工具扩展) planned. Phase 1-3 features are fully delivered (AI chat, goals, OCR, career, budget, investment, export).
-**Recent Update**: Fixed AI Agent accounting relative date parsing (今天/昨天/明天), enforced relative date override when present in user prompts, added Qwen provider option, introduced /api/ai/session-status with profile timezone support, and improved rate-limit messaging with SSE parsing.
+**Recent Update**: Environment configuration standardized with .env files. Fixed AI Agent accounting relative date parsing (今天/昨天/明天), enforced relative date override when present in user prompts, added Qwen provider option, introduced /api/ai/session-status with profile timezone support, and improved rate-limit messaging with SSE parsing.
 
 ## Technology Stack
 
@@ -83,9 +83,13 @@ Come Rich（AI个人理财规划师）面向中国中产用户的个人理财规
 
 ```
 come-rich/
-|-- docs/plans/                           # Project documentation
-|   |-- AI理财规划师PRD.md                 # Product requirements document
-|   `-- AI理财规划师-技术文档.md            # Technical implementation specs
+|-- .env.example                          # Backend environment template
+|-- .env.docker.example                   # Docker environment template
+|-- docs/
+|   |-- plans/                            # Project documentation
+|   |   |-- AI理财规划师PRD.md             # Product requirements document
+|   |   `-- AI理财规划师-技术文档.md        # Technical implementation specs
+|   `-- ENV_CONFIGURATION.md              # Environment configuration guide
 |-- finance-planner-backend/              # Backend (Spring Boot)
 |   |-- pom.xml                           # Parent POM
 |   |-- finance-planner-common/           # Shared utilities, exceptions
@@ -98,8 +102,14 @@ come-rich/
 |   |-- finance-planner-budget/           # Budget management & AI optimization
 |   |-- finance-planner-investment/       # Risk assessment & investment advice
 |   `-- finance-planner-app/              # Main application entry
-|       `-- src/main/resources/db/migration/ # Flyway SQL scripts
+|       `-- src/main/resources/
+|           |-- application.yml           # Main config (uses env vars)
+|           |-- application-prod.yml      # Production profile
+|           `-- db/migration/             # Flyway SQL scripts
 |-- finance-planner-frontend/             # Frontend (Vue 3)
+|   |-- .env.example                      # Frontend environment template
+|   |-- .env.development                  # Development config
+|   |-- .env.production                   # Production config
 |   |-- package.json
 |   |-- vite.config.ts
 |   `-- src/
@@ -107,7 +117,7 @@ come-rich/
 |       |-- components/                   # Reusable components
 |       |-- router/                       # Vue Router config
 |       |-- stores/                       # Pinia state management
-|       |-- utils/                        # Utilities (request, auth)
+|       |-- utils/                        # Utilities (request, auth, env)
 |       `-- views/                        # Page components
 |-- docker-compose-dev.yml                # Development environment
 |-- .claude/                              # Claude Code configuration
@@ -140,6 +150,15 @@ come-rich/
 
 ## Development Commands
 
+### Environment Setup
+```bash
+# Copy environment template and configure
+cp .env.example .env
+# Edit .env with your actual values (DB_PASSWORD, JWT_SECRET, API keys)
+
+# See docs/ENV_CONFIGURATION.md for detailed setup guide
+```
+
 ### Start Development Environment
 ```bash
 # Start PostgreSQL and Redis
@@ -155,7 +174,7 @@ pnpm dev
 ```
 
 ### Database
-- PostgreSQL: `localhost:5432`, database: `finance_planner`, user: `finance`, password: `finance123`
+- PostgreSQL: `localhost:5432`, database: `finance_planner`, user: `finance`, password: (from .env)
 - Redis: `localhost:6379`
 
 ### API Documentation

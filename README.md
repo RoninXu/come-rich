@@ -60,8 +60,11 @@ Phase 4.1（AI Agent 基础能力）已完成；Phase 4.2（目标/投资/副业
 
 ```
 come-rich/
+├── .env.example                          # 环境变量模板（后端）
+├── .env.docker.example                   # Docker 环境变量模板
 ├── docs/                                 # 项目文档
-│   └── plans/                            # 需求与技术文档
+│   ├── plans/                            # 需求与技术文档
+│   └── ENV_CONFIGURATION.md              # 环境配置指南
 ├── finance-planner-backend/              # 后端（Spring Boot 多模块）
 │   ├── finance-planner-common/           # 公共工具与响应结构
 │   ├── finance-planner-auth/             # 认证与授权
@@ -74,6 +77,9 @@ come-rich/
 │   ├── finance-planner-investment/       # 风险评测与投资建议
 │   └── finance-planner-app/              # 应用入口与 Flyway 迁移
 └── finance-planner-frontend/             # 前端（Vue 3 SPA）
+    ├── .env.example                      # 前端环境变量模板
+    ├── .env.development                  # 开发环境配置
+    ├── .env.production                   # 生产环境配置
     └── src/                              # 前端源码（api/components/router/stores/utils/views）
 ```
 
@@ -86,13 +92,25 @@ come-rich/
 
 ## Getting Started
 
-### 1. Start infrastructure services
+### 1. Environment Configuration
+
+```bash
+# Copy environment template and fill in your values
+cp .env.example .env
+
+# Edit .env with your actual configuration
+# Required: DB_PASSWORD, JWT_SECRET, DEEPSEEK_API_KEY
+```
+
+See [Environment Configuration Guide](docs/ENV_CONFIGURATION.md) for detailed setup instructions.
+
+### 2. Start infrastructure services
 
 ```bash
 docker-compose -f docker-compose-dev.yml up -d
 ```
 
-### 2. Build and run the backend
+### 3. Build and run the backend
 
 ```bash
 cd finance-planner-backend
@@ -102,17 +120,7 @@ mvn spring-boot:run -pl finance-planner-app
 
 Backend runs at `http://localhost:8080`. Flyway auto-applies database migrations on startup.
 
-Set API keys for AI/OCR (optional):
-
-```bash
-export DEEPSEEK_API_KEY=your_api_key_here
-# export MOONSHOT_API_KEY=your_api_key_here
-export QWEN_API_KEY=your_api_key_here
-export BAIDU_OCR_API_KEY=your_baidu_api_key
-export BAIDU_OCR_SECRET_KEY=your_baidu_secret_key
-```
-
-### 3. Run the frontend
+### 4. Run the frontend
 
 ```bash
 cd finance-planner-frontend
