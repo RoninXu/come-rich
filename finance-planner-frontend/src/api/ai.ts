@@ -73,6 +73,36 @@ export async function* streamChat(
 
   const decoder = new TextDecoder();
 
+  const handleLines = (lines: string[]) => {
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || !trimmed.startsWith("data:")) continue;
+
+      const dataStr = trimmed.substring(5).trim();
+      if (dataStr === "[DONE]") {
+        return { done: true } as const;
+      }
+
+      try {
+        const data = JSON.parse(dataStr);
+        if (data.error) {
+          return { error: data.error } as const;
+        }
+        if (data.code && data.message) {
+          const friendly = mapAiError(data.code, data.message);
+          return { error: friendly || data.message } as const;
+        }
+        return {
+          sessionId: data.sessionId as string | undefined,
+          content: data.content as string | undefined,
+        } as const;
+      } catch {
+        // Skip non-JSON lines
+      }
+    }
+    return null;
+  };
+
   try {
     while (true) {
       const { done, value } = await reader.read();
@@ -82,25 +112,35 @@ export async function* streamChat(
       const lines = buffer.split("\n");
       buffer = lines.pop() || "";
 
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed || !trimmed.startsWith("data:")) continue;
-
-        const dataStr = trimmed.substring(5).trim();
-        if (dataStr === "[DONE]") {
+      const result = handleLines(lines);
+      if (result) {
+        if ("done" in result && result.done) {
           yield { done: true };
           return;
         }
+        if ("error" in result && result.error) {
+          yield { error: result.error };
+          return;
+        }
+        if (result.content || result.sessionId) {
+          yield { sessionId: result.sessionId, content: result.content };
+        }
+      }
+    }
 
-        try {
-          const data = JSON.parse(dataStr);
-          if (data.error) {
-            yield { error: data.error };
-            return;
-          }
-          yield { sessionId: data.sessionId, content: data.content };
-        } catch {
-          // Skip non-JSON lines
+    if (buffer) {
+      const result = handleLines(buffer.split("\n"));
+      if (result) {
+        if ("done" in result && result.done) {
+          yield { done: true };
+          return;
+        }
+        if ("error" in result && result.error) {
+          yield { error: result.error };
+          return;
+        }
+        if (result.content || result.sessionId) {
+          yield { sessionId: result.sessionId, content: result.content };
         }
       }
     }
@@ -184,6 +224,48 @@ export async function* streamAgentChat(
   let eventName = "message";
   let dataLines: string[] = [];
 
+  const handleAgentLines = (lines: string[]) => {
+    for (const line of lines) {
+      const trimmed = line.replace(/\r$/, "");
+      if (trimmed.startsWith("event:")) {
+        eventName = trimmed.substring(6).trim() || "message";
+        continue;
+      }
+      if (trimmed.startsWith("data:")) {
+        dataLines.push(trimmed.substring(5).trim());
+        continue;
+      }
+      if (trimmed === "") {
+        if (dataLines.length === 0) {
+          eventName = "message";
+          continue;
+        }
+        const dataStr = dataLines.join("\n");
+        dataLines = [];
+        let data: any = dataStr;
+        try {
+          data = JSON.parse(dataStr);
+        } catch {
+          // keep raw string
+        }
+        if (
+          eventName === "error" &&
+          data &&
+          typeof data === "object" &&
+          !Array.isArray(data) &&
+          !data.error &&
+          data.code &&
+          data.message
+        ) {
+          const friendly = mapAiError(data.code, data.message);
+          data = { ...data, error: friendly || data.message };
+        }
+        return { event: eventName as AgentStreamEvent["event"], data };
+      }
+    }
+    return null;
+  };
+
   try {
     while (true) {
       const { done, value } = await reader.read();
@@ -193,32 +275,17 @@ export async function* streamAgentChat(
       const lines = buffer.split("\n");
       buffer = lines.pop() || "";
 
-      for (const line of lines) {
-        const trimmed = line.replace(/\r$/, "");
-        if (trimmed.startsWith("event:")) {
-          eventName = trimmed.substring(6).trim() || "message";
-          continue;
-        }
-        if (trimmed.startsWith("data:")) {
-          dataLines.push(trimmed.substring(5).trim());
-          continue;
-        }
-        if (trimmed === "") {
-          if (dataLines.length === 0) {
-            eventName = "message";
-            continue;
-          }
-          const dataStr = dataLines.join("\n");
-          dataLines = [];
-          let data: any = dataStr;
-          try {
-            data = JSON.parse(dataStr);
-          } catch {
-            // keep raw string
-          }
-          yield { event: eventName as AgentStreamEvent["event"], data };
-          eventName = "message";
-        }
+      const result = handleAgentLines(lines);
+      if (result) {
+        yield result;
+        eventName = "message";
+      }
+    }
+
+    if (buffer) {
+      const result = handleAgentLines(buffer.split("\n"));
+      if (result) {
+        yield result;
       }
     }
   } finally {

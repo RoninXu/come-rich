@@ -18,7 +18,7 @@ public final class RelativeDateResolver {
         return resolveFromMessage(message, Clock.systemDefaultZone());
     }
 
-    static Optional<LocalDate> resolveFromMessage(String message, Clock clock) {
+    public static Optional<LocalDate> resolveFromMessage(String message, Clock clock) {
         if (message == null || message.isBlank()) {
             return Optional.empty();
         }

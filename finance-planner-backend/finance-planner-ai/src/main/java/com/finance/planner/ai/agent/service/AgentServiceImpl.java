@@ -16,6 +16,8 @@ import com.finance.planner.ai.dto.ToolCallChunk;
 import com.finance.planner.ai.service.ConversationService;
 import com.finance.planner.ai.service.LlmClient;
 import com.finance.planner.ai.service.RateLimitService;
+import com.finance.planner.ai.time.TimeContext;
+import com.finance.planner.ai.time.TimeContextProvider;
 import com.finance.planner.common.constant.ErrorCode;
 import com.finance.planner.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.scheduler.Schedulers;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 @Slf4j
@@ -43,6 +47,7 @@ public class AgentServiceImpl implements AgentService {
     private final AgentSseHelper sseHelper;
     private final ConfirmationStore confirmationStore;
     private final AgentRiskConfigService riskConfigService;
+    private final TimeContextProvider timeContextProvider;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -158,7 +163,7 @@ public class AgentServiceImpl implements AgentService {
         }
 
         Map<String, Object> arguments = new HashMap<>(parseArguments(toolCall.getArguments()));
-        applyRelativeDateOverride(toolCall.getName(), userMessage, arguments);
+        applyRelativeDateOverride(toolCall.getName(), userMessage, arguments, userId);
         RiskLevel riskLevel = toolExecutor.resolveRiskLevel(tool, arguments, riskThreshold);
 
         sseHelper.sendToolCallStart(emitter, buildToolPayload(toolCall, null));
@@ -222,12 +227,25 @@ public class AgentServiceImpl implements AgentService {
         }
     }
 
-    private void applyRelativeDateOverride(String toolName, String userMessage, Map<String, Object> arguments) {
+    private void applyRelativeDateOverride(String toolName, String userMessage, Map<String, Object> arguments, Long userId) {
         if (!"create_transaction".equals(toolName) && !"update_transaction".equals(toolName)) {
             return;
         }
-        RelativeDateResolver.resolveFromMessage(userMessage)
+        TimeContext timeContext = timeContextProvider.getTimeContext(userId, null);
+        Clock clock = buildClock(timeContext);
+        RelativeDateResolver.resolveFromMessage(userMessage, clock)
                 .ifPresent(date -> arguments.put("transactionDate", date.toString()));
+    }
+
+    private Clock buildClock(TimeContext timeContext) {
+        if (timeContext != null && timeContext.getServerTime() != null) {
+            try {
+                ZonedDateTime zdt = ZonedDateTime.parse(timeContext.getServerTime());
+                return Clock.fixed(zdt.toInstant(), zdt.getZone());
+            } catch (Exception ignored) {
+            }
+        }
+        return Clock.systemDefaultZone();
     }
 
     private List<Map<String, Object>> buildToolCallsPayload(List<AgentToolCall> toolCalls) {
