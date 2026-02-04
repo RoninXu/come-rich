@@ -5,6 +5,7 @@
 **阶段**: Phase 4.1 - AI Agent 基础能力 完成
 **最后更新**: 2026-02-04
 
+- 环境变量配置标准化（.env 文件体系）
 - 修复 AI Agent 记账相对日期解析（今天/昨天/明天）
 - 强化 AI Agent 记账日期覆盖逻辑（相对日期优先于模型输出）
 - 新增通义千问（Qwen）模型配置选项
@@ -331,4 +332,6 @@ pnpm dev
 - 前端入口: `finance-planner-frontend/`
 - 数据库迁移: `finance-planner-backend/finance-planner-app/src/main/resources/db/migration/`
 - API 配置: `finance-planner-backend/finance-planner-app/src/main/resources/application.yml`
+- 环境变量模板: `.env.example`, `finance-planner-frontend/.env.example`
+- 环境配置指南: `docs/ENV_CONFIGURATION.md`
 

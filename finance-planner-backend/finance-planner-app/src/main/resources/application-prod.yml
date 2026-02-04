@@ -1,73 +1,59 @@
-server:
-  port: ${SERVER_PORT:8080}
+# Production Profile Configuration
+# All sensitive values MUST be provided via environment variables
+# This file contains production-specific settings only
 
-spring:
-  application:
-    name: finance-planner
-  main:
-    web-application-type: servlet
-  profiles:
-    active: ${SPRING_PROFILES_ACTIVE:dev}
-
----
 spring:
   config:
     activate:
-      on-profile: dev
+      on-profile: prod
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:finance_planner}
-    username: ${DB_USERNAME:finance}
-    password: ${DB_PASSWORD:finance123}
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: ${DB_POOL_MAX_SIZE:10}
-      minimum-idle: ${DB_POOL_MIN_IDLE:5}
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:20}
+      minimum-idle: ${DB_POOL_MIN_IDLE:10}
       idle-timeout: 300000
       connection-timeout: 20000
 
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: ${JPA_SHOW_SQL:true}
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
         dialect: org.hibernate.dialect.PostgreSQLDialect
-
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
 
   flyway:
     enabled: true
     locations: classpath:db/migration
-    baseline-on-migrate: true
+    baseline-on-migrate: false
 
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
       database: ${REDIS_DATABASE:0}
       password: ${REDIS_PASSWORD:}
 
 jwt:
-  secret: ${JWT_SECRET:mySecretKeyForJWTTokenGenerationWhichShouldBeLongEnoughForHS512Algorithm}
+  secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
 
 springdoc:
   api-docs:
-    path: /api-docs
+    enabled: ${SWAGGER_ENABLED:false}
   swagger-ui:
-    path: /swagger-ui.html
-    enabled: true
+    enabled: ${SWAGGER_ENABLED:false}
 
 ai:
   active-provider: ${AI_ACTIVE_PROVIDER:deepseek}
   providers:
     deepseek:
-      api-key: ${DEEPSEEK_API_KEY:}
+      api-key: ${DEEPSEEK_API_KEY}
       api-url: https://api.deepseek.com/v1/chat/completions
       model: ${DEEPSEEK_MODEL:deepseek-chat}
       temperature: ${AI_TEMPERATURE:0.7}
@@ -92,10 +78,11 @@ ai:
 
 ocr:
   baidu:
-    api-key: ${BAIDU_OCR_API_KEY:}
-    secret-key: ${BAIDU_OCR_SECRET_KEY:}
+    api-key: ${BAIDU_OCR_API_KEY}
+    secret-key: ${BAIDU_OCR_SECRET_KEY}
 
 logging:
   level:
-    com.finance.planner: ${LOG_LEVEL_APP:DEBUG}
-    org.springframework.security: ${LOG_LEVEL_SECURITY:DEBUG}
+    root: WARN
+    com.finance.planner: ${LOG_LEVEL_APP:INFO}
+    org.springframework.security: ${LOG_LEVEL_SECURITY:WARN}
