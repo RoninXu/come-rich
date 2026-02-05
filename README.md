@@ -64,6 +64,7 @@ come-rich/
 ├── .env.docker.example                   # Docker 环境变量模板
 ├── docs/                                 # 项目文档
 │   ├── plans/                            # 需求与技术文档
+│   ├── AI_AGENT.md                        # AI 与 AI Agent 技术文档
 │   └── ENV_CONFIGURATION.md              # 环境配置指南
 ├── finance-planner-backend/              # 后端（Spring Boot 多模块）
 │   ├── finance-planner-common/           # 公共工具与响应结构
