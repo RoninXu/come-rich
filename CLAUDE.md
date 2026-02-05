@@ -89,6 +89,7 @@ come-rich/
 |   |-- plans/                            # Project documentation
 |   |   |-- AI理财规划师PRD.md             # Product requirements document
 |   |   `-- AI理财规划师-技术文档.md        # Technical implementation specs
+|   |-- AI_AGENT.md                        # AI & AI Agent technical doc
 |   `-- ENV_CONFIGURATION.md              # Environment configuration guide
 |-- finance-planner-backend/              # Backend (Spring Boot)
 |   |-- pom.xml                           # Parent POM
@@ -193,6 +194,7 @@ pnpm dev
 Before implementing features, review:
 - **PRD** (`docs/plans/AI理财规划师PRD.md`) - Product requirements, user personas, feature specifications
 - **Tech Doc** (`docs/plans/AI理财规划师-技术文档.md`) - Architecture, database schema, API design, code examples
+- **AI & Agent Doc** (`docs/AI_AGENT.md`) - AI chat/agent architecture, tools, SSE, and flows
 
 ## AI Integration Notes
 
