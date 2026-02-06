@@ -155,9 +155,53 @@ finance-planner-frontend/src
 | get_category_stats | LOW | 分类统计 |
 | get_monthly_summary | LOW | 月度汇总 |
 | get_health_score | LOW | 健康评分 |
+| get_budgets | LOW | 预算列表 |
+| set_budget | MEDIUM（金额超阈值可升为 HIGH） | 设置或更新预算 |
+| delete_budget | HIGH | 删除预算 |
+| get_budget_summary | LOW | 预算概要 |
+| get_budget_trend | LOW | 预算趋势 |
+| get_budget_ai_suggestions | LOW | AI 预算优化建议 |
+| list_goals | LOW | 理财目标列表（可按状态筛选） |
+| create_goal | MEDIUM | 创建理财目标 |
+| update_goal | MEDIUM | 更新理财目标 |
+| delete_goal | HIGH | 删除理财目标 |
+| add_goal_progress | MEDIUM（金额超阈值可升为 HIGH） | 添加目标存款进度 |
+| generate_goal_ai_plan | LOW | 生成 AI 储蓄计划 |
+| get_risk_assessment | LOW | 获取最新风险评估 |
+| get_investment_advice | LOW | 获取投资建议 |
+| get_asset_allocation | LOW | 获取资产配置方案 |
+| get_career_recommendations | LOW | 获取 AI 副业推荐 |
+| list_career_plans | LOW | 副业计划列表 |
+| create_career_plan | MEDIUM | 创建副业计划 |
+| get_user_profile | LOW | 获取用户个人资料 |
 
 参数模型位于 `finance-planner-backend/finance-planner-ai/src/main/java/com/finance/planner/ai/agent/tool/params/`，
 并通过 `ToolSchemaGenerator` 生成 JSON Schema，字段规则来源于 Jakarta Validation 注解。
+
+工具实现分布于各业务模块：
+- 记账/分析工具：`finance-planner-ai/.../agent/tool/impl/`
+- 预算工具：`finance-planner-budget/.../agent/tool/impl/`
+- 目标工具：`finance-planner-goal/.../agent/tool/impl/`
+- 投资工具：`finance-planner-investment/.../agent/tool/impl/`
+- 副业工具：`finance-planner-career/.../agent/tool/impl/`
+
+### 5.1 上下文压缩
+
+当对话历史过长时，`ContextCompressor` 自动压缩上下文以控制 token 消耗：
+
+- **Token 估算**：`TokenEstimator` 按 1 token / 2 字符估算混合中英文内容。
+- **压缩策略**：
+  1. 保留系统消息和最新用户消息不动。
+  2. 保留最近 4 条中间消息不动。
+  3. 对更早的 tool 结果消息截断内容（最多 200 字符）。
+  4. 若仍超限，逐步丢弃最早的对话对。
+- **配置项**（`application.yml`）：
+  - `ai.agent.max-context-tokens`：最大 token 数，默认 6000。
+  - `ai.agent.compression-enabled`：是否启用压缩，默认 true。
+
+相关类：
+- `finance-planner-backend/finance-planner-ai/src/main/java/com/finance/planner/ai/agent/util/TokenEstimator.java`
+- `finance-planner-backend/finance-planner-ai/src/main/java/com/finance/planner/ai/agent/service/ContextCompressor.java`
 
 ## 6. API 与调用入口
 

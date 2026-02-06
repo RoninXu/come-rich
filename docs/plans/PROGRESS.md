@@ -2,17 +2,13 @@
 
 ## 当前状态
 
-**阶段**: Phase 4.1 - AI Agent 基础能力 完成
-**最后更新**: 2026-02-05
+**阶段**: Phase 4.2 - 目标/投资/副业 Agent 工具扩展 完成
+**最后更新**: 2026-02-06
 
-- 环境变量配置标准化（.env 文件体系）
-- 新增 AI 与 AI Agent 技术文档（docs/AI_AGENT.md）
-- 修复 AI Agent 记账相对日期解析（今天/昨天/明天）
-- 强化 AI Agent 记账日期覆盖逻辑（相对日期优先于模型输出）
-- 新增通义千问（Qwen）模型配置选项
-- 新增 /api/ai/session-status（时间上下文）与个人资料时区设置
-- 优化 AI 次数用尽提示（前端友好文案）
-- 修复 SSE 速率限制错误提示解析
+- 新增 13 个 AI Agent 工具（目标 6 + 投资 3 + 副业 4），总工具数达 28 个
+- 上下文压缩优化（TokenEstimator + ContextCompressor，自动压缩超限对话历史）
+- 更新 Agent 系统提示（新增投资风险提示要求）
+- 新增 15 个单元测试（13 工具测试 + 2 压缩测试）
 
 ## 已完成
 
@@ -231,15 +227,15 @@
   - [x] `ChatPage.vue` 改造: Agent/Chat 模式切换，渲染工具卡片和确认对话框
   - [x] `chat.ts` Store: `sendAgentMessage()` + `respondToConfirmation()`
 
-#### Phase 4.2 - 投资/目标/副业工具
+#### Phase 4.2 - 投资/目标/副业工具 ✅
 
-- [ ] **扩展工具 (13 个)**
-  - [ ] 目标: `list_goals`, `create_goal`, `update_goal`, `delete_goal`, `add_goal_progress`, `generate_goal_ai_plan`
-  - [ ] 投资: `get_risk_assessment`, `get_investment_advice`, `get_asset_allocation`
-  - [ ] 副业: `get_career_recommendations`, `list_career_plans`, `create_career_plan`, `get_user_profile`
-- [ ] `finance-planner-ai` pom.xml 添加 goal/investment/career 模块依赖
-- [ ] 上下文压缩优化(token 计数 + 超限自动 compaction)
-- [ ] 复杂多工具链场景测试
+- [x] **扩展工具 (13 个)**
+  - [x] 目标: `list_goals`, `create_goal`, `update_goal`, `delete_goal`, `add_goal_progress`, `generate_goal_ai_plan`
+  - [x] 投资: `get_risk_assessment`, `get_investment_advice`, `get_asset_allocation`
+  - [x] 副业: `get_career_recommendations`, `list_career_plans`, `create_career_plan`, `get_user_profile`
+- [x] 上下文压缩优化(TokenEstimator + ContextCompressor，超限自动 compaction)
+- [x] Agent 系统提示更新（新增投资风险提示）
+- [x] 15 个单元测试（13 工具测试 + 2 压缩测试）
 
 #### Phase 4.3 - 高级功能
 
