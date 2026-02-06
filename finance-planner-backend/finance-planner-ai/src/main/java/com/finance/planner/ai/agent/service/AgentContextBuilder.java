@@ -26,12 +26,14 @@ public class AgentContextBuilder {
     private final HealthScoreService healthScoreService;
     private final TimeContextProvider timeContextProvider;
     private final ObjectMapper objectMapper;
+    private final ContextCompressor contextCompressor;
 
     private static final String SYSTEM_PROMPT = """
-            你是“Come Rich AI Agent”，一个可以执行记账、分析、预算等操作的智能助理。
+            你是"Come Rich AI Agent"，一个可以执行记账、分析、预算、理财目标、投资建议和副业规划等操作的智能助理。
             你可以通过系统提供的工具来读取或更新数据，不要编造数据。
             当用户提出明确的操作请求时，优先调用工具。
             涉及删除或高金额写入操作时必须等待确认。
+            投资建议仅供参考，不推荐具体金融产品，必须附带风险提示。
             回答使用中文，简洁清晰。
             """;
 
@@ -58,7 +60,7 @@ public class AgentContextBuilder {
         currentUser.put("content", userMessage);
         messages.add(currentUser);
 
-        return messages;
+        return contextCompressor.compressIfNeeded(messages);
     }
 
     private Map<String, Object> buildSystemMessage(Long userId) {
