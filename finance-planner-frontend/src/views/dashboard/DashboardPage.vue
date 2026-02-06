@@ -1,255 +1,110 @@
-<template>
+﻿<template>
   <div class="dashboard-page">
+    <PageHeader
+      title="财务总览"
+      :subtitle="`今天是 ${today}`"
+      dense
+    >
+      <template #actions>
+        <n-button type="primary" @click="router.push('/accounting/new')">
+          记一笔
+        </n-button>
+        <n-button @click="router.push('/accounting/ocr')">拍照导入</n-button>
+      </template>
+    </PageHeader>
+
     <n-spin :show="loading">
-      <div class="welcome-section">
-        <h2>欢迎回来，{{ userStore.user?.nickname || userStore.username }}</h2>
-        <p>今天是 {{ today }}，开始记录您的财务吧！</p>
-      </div>
-
-      <n-grid
-        :x-gap="16"
-        :y-gap="16"
-        :cols="4"
-        class="stat-cards"
-      >
+      <n-grid :x-gap="16" :y-gap="16" :cols="4" class="metric-grid">
         <n-gi>
-          <StatCard
+          <MetricCard
             label="本月收入"
-            :value="'¥ ' + formatNumber(dashboard?.currentMonth?.totalIncome)"
-            :change="dashboard?.incomeChange"
-            icon-bg="linear-gradient(135deg, #34C759, #30D158)"
-            icon-color="#fff"
+            :value="formatCurrency(dashboard?.currentMonth?.totalIncome)"
+            :delta="dashboard?.incomeChange"
           >
-            <template #icon>
-              <TrendingUp />
-            </template>
-          </StatCard>
+            <template #icon><TrendingUp /></template>
+          </MetricCard>
         </n-gi>
         <n-gi>
-          <StatCard
+          <MetricCard
             label="本月支出"
-            :value="'¥ ' + formatNumber(dashboard?.currentMonth?.totalExpense)"
-            :change="dashboard?.expenseChange"
-            icon-bg="linear-gradient(135deg, #FF9500, #FF9F0A)"
-            icon-color="#fff"
+            :value="formatCurrency(dashboard?.currentMonth?.totalExpense)"
+            :delta="dashboard?.expenseChange"
           >
-            <template #icon>
-              <Wallet />
-            </template>
-          </StatCard>
+            <template #icon><Wallet /></template>
+          </MetricCard>
         </n-gi>
         <n-gi>
-          <StatCard
+          <MetricCard
             label="本月结余"
-            :value="'¥ ' + formatNumber(dashboard?.currentMonth?.balance)"
-            icon-bg="linear-gradient(135deg, #007AFF, #0A84FF)"
-            icon-color="#fff"
+            :value="formatCurrency(dashboard?.currentMonth?.balance)"
+            tone="positive"
           >
-            <template #icon>
-              <Cash />
-            </template>
-          </StatCard>
+            <template #icon><Cash /></template>
+          </MetricCard>
         </n-gi>
         <n-gi>
-          <StatCard
+          <MetricCard
             label="财务健康分"
-            :value="
-              (dashboard?.healthScore || 0) +
-                ' ' +
-                (dashboard?.healthGrade || '-')
-            "
-            icon-bg="linear-gradient(135deg, #AF52DE, #BF5AF2)"
-            icon-color="#fff"
+            :value="`${dashboard?.healthScore ?? 0} ${dashboard?.healthGrade ?? ''}`"
             clickable
-            @click="goToHealthScore"
+            @click="router.push('/analysis/health')"
           >
-            <template #icon>
-              <StatsChart />
-            </template>
-          </StatCard>
+            <template #icon><Pulse /></template>
+          </MetricCard>
         </n-gi>
       </n-grid>
 
-      <n-grid
-        :x-gap="16"
-        :y-gap="16"
-        :cols="2"
-        style="margin-bottom: 16px"
-      >
-        <n-gi>
-          <GlassCard
-            hoverable
-            style="cursor: pointer"
-            @click="router.push('/budget')"
-          >
+      <n-grid :x-gap="16" :y-gap="16" :cols="24" class="content-grid">
+        <n-gi :span="16">
+          <GlassCard>
             <template #header>
-              <div class="card-header">
-                <span>预算使用情况</span>
-                <n-button
-                  text
-                  type="primary"
-                  @click.stop="router.push('/budget')"
-                >
-                  查看详情
-                </n-button>
-              </div>
+              <SectionHeader title="本周 Review" description="最近交易与可执行动作" />
             </template>
-            <div
-              v-if="budgetSummary"
-              class="budget-mini"
-            >
-              <n-progress
-                type="line"
-                :percentage="
-                  Math.min(Number(budgetSummary.overallUtilization), 100)
-                "
-                :color="
-                  budgetSummary.overallUtilization > 100
-                    ? 'var(--cr-error)'
-                    : budgetSummary.overallUtilization > 80
-                      ? 'var(--cr-warning)'
-                      : 'var(--cr-success)'
-                "
-                :height="12"
-                :border-radius="6"
-              />
-              <div class="budget-info">
-                <span>已用 ¥{{ Number(budgetSummary.totalSpent).toFixed(0) }}</span>
-                <span>/ 预算 ¥{{
-                  Number(budgetSummary.totalBudget).toFixed(0)
-                }}</span>
-              </div>
-            </div>
-            <n-empty
-              v-else
-              size="small"
-              description="未设置预算"
-            />
-          </GlassCard>
-        </n-gi>
-        <n-gi>
-          <GlassCard
-            hoverable
-            style="cursor: pointer"
-            @click="router.push('/investment')"
-          >
-            <template #header>
-              <div class="card-header">
-                <span>风险画像</span>
-                <n-button
-                  text
-                  type="primary"
-                  @click.stop="router.push('/investment')"
-                >
-                  查看详情
-                </n-button>
-              </div>
-            </template>
-            <div
-              v-if="riskAssessment"
-              class="risk-mini"
-            >
-              <span
-                class="risk-level"
-                :class="getRiskClass(riskAssessment.riskLevel)"
-              >{{ riskAssessment.riskLevel }}</span>
-              <span class="risk-score">得分: {{ riskAssessment.riskScore }}/32</span>
-            </div>
-            <n-empty
-              v-else
-              size="small"
-              description="未完成风险评估"
-            />
-          </GlassCard>
-        </n-gi>
-      </n-grid>
 
-      <n-grid
-        :x-gap="16"
-        :y-gap="16"
-        :cols="2"
-      >
-        <n-gi>
-          <GlassCard>
-            <template #header>
-              <span>快捷操作</span>
-            </template>
-            <div class="action-buttons">
-              <n-button
-                type="primary"
-                @click="goToNewTransaction"
-              >
-                <template #icon>
-                  <n-icon><Add /></n-icon>
-                </template>
-                记一笔
-              </n-button>
-              <n-button @click="goToMonthlyReport">
-                <template #icon>
-                  <n-icon><StatsChart /></n-icon>
-                </template>
-                查看报表
-              </n-button>
-              <n-button @click="goToHealthScore">
-                <template #icon>
-                  <n-icon><TrendingUp /></n-icon>
-                </template>
-                健康评分
-              </n-button>
-              <n-button @click="goToOcr">
-                <template #icon>
-                  <n-icon><Camera /></n-icon>
-                </template>
-                拍照记账
-              </n-button>
-            </div>
-          </GlassCard>
-        </n-gi>
-        <n-gi>
-          <GlassCard>
-            <template #header>
-              <div class="card-header">
-                <span>最近记录</span>
-                <n-button
-                  text
-                  type="primary"
-                  @click="goToTransactions"
-                >
-                  查看全部
-                </n-button>
-              </div>
-            </template>
-            <div
-              v-if="
-                !dashboard?.recentTransactions ||
-                  dashboard.recentTransactions.length === 0
-              "
-            >
-              <n-empty description="暂无记录，快去记一笔吧" />
-            </div>
-            <div
-              v-else
-              class="transaction-list"
-            >
-              <div
-                v-for="item in dashboard.recentTransactions"
-                :key="item.id"
-                class="transaction-item"
-              >
-                <div class="transaction-info">
-                  <span class="category">{{
-                    item.categoryName || "未分类"
-                  }}</span>
-                  <span class="description">{{ item.description || "-" }}</span>
+            <div v-if="transactions.length" class="review-list">
+              <div v-for="item in transactions" :key="item.id" class="review-row">
+                <div class="review-row__left">
+                  <div class="review-row__title">{{ item.categoryName || '未分类' }}</div>
+                  <div class="review-row__meta">{{ item.description || '无备注' }} · {{ item.transactionDate }}</div>
                 </div>
-                <span
-                  :class="['amount', item.type === 1 ? 'income' : 'expense']"
-                >
-                  {{ item.type === 1 ? "+" : "-" }}¥{{
-                    Number(item.amount).toFixed(2)
-                  }}
-                </span>
+                <div :class="['review-row__amount tabular-nums', item.type === 1 ? 'income' : 'expense']">
+                  {{ item.type === 1 ? '+' : '-' }}{{ formatCurrency(item.amount) }}
+                </div>
               </div>
+            </div>
+
+            <EmptyState
+              v-else
+              title="还没有交易记录"
+              description="先记一笔，系统会开始生成消费洞察"
+            />
+          </GlassCard>
+        </n-gi>
+
+        <n-gi :span="8">
+          <GlassCard>
+            <template #header>
+              <SectionHeader title="预算风险" description="本月预算执行" />
+            </template>
+
+            <template v-if="budgetSummary">
+              <BudgetProgressBar
+                :budget="Number(budgetSummary.totalBudget)"
+                :spent="Number(budgetSummary.totalSpent)"
+              />
+              <div class="budget-footnote">
+                <span>剩余 {{ formatCurrency(budgetSummary.totalRemaining) }}</span>
+                <n-button text type="primary" @click="router.push('/budget')">查看预算详情</n-button>
+              </div>
+            </template>
+            <EmptyState v-else title="尚未设置预算" description="设置预算后可得到超支提醒" />
+
+            <div class="risk-block">
+              <h4>投资画像</h4>
+              <p v-if="riskAssessment" class="tabular-nums">
+                {{ riskAssessment.riskLevel }} · {{ riskAssessment.riskScore }}/32
+              </p>
+              <p v-else class="muted">尚未完成风险测评</p>
             </div>
           </GlassCard>
         </n-gi>
@@ -261,25 +116,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import {
-  NSpin,
-  NGrid,
-  NGi,
-  NProgress,
-  NEmpty,
-  NButton,
-  NIcon,
-  useMessage,
-} from "naive-ui";
-import {
-  TrendingUp,
-  Wallet,
-  Cash,
-  StatsChart,
-  Add,
-  Camera,
-} from "@vicons/ionicons5";
-import { useUserStore } from "@/stores/user";
+import { NSpin, NGrid, NGi, NButton, useMessage } from "naive-ui";
+import { TrendingUp, Wallet, Cash, Pulse } from "@vicons/ionicons5";
 import dayjs from "dayjs";
 import { getDashboard } from "@/api/analysis";
 import { getBudgetSummary } from "@/api/budget";
@@ -287,11 +125,15 @@ import { getLatestAssessment } from "@/api/investment";
 import type { Dashboard } from "@/types/analysis";
 import type { BudgetSummary } from "@/types/budget";
 import type { RiskAssessment } from "@/types/investment";
+import type { Transaction } from "@/types/accounting";
+import PageHeader from "@/components/common/PageHeader.vue";
 import GlassCard from "@/components/common/GlassCard.vue";
-import StatCard from "@/components/common/StatCard.vue";
+import SectionHeader from "@/components/common/SectionHeader.vue";
+import MetricCard from "@/components/common/MetricCard.vue";
+import BudgetProgressBar from "@/components/common/BudgetProgressBar.vue";
+import EmptyState from "@/components/common/EmptyState.vue";
 
 const router = useRouter();
-const userStore = useUserStore();
 const message = useMessage();
 
 const loading = ref(false);
@@ -299,182 +141,137 @@ const dashboard = ref<Dashboard | null>(null);
 const budgetSummary = ref<BudgetSummary | null>(null);
 const riskAssessment = ref<RiskAssessment | null>(null);
 
-const today = computed(() => dayjs().format("YYYY年MM月DD日"));
+const today = computed(() => dayjs().format("YYYY年M月D日"));
+const transactions = computed<Transaction[]>(
+  () => dashboard.value?.recentTransactions?.slice(0, 8) ?? [],
+);
 
 onMounted(async () => {
   await fetchDashboard();
-  fetchBudgetAndRisk();
+  await Promise.all([fetchBudget(), fetchRisk()]);
 });
 
 async function fetchDashboard() {
   loading.value = true;
   try {
     const res = await getDashboard();
-    if (res.data.code === 200) {
-      dashboard.value = res.data.data;
-    }
+    if (res.data.code === 200) dashboard.value = res.data.data;
   } catch {
-    message.error("加载数据失败");
+    message.error("加载首页数据失败");
   } finally {
     loading.value = false;
   }
 }
 
-async function fetchBudgetAndRisk() {
-  const currentMonth = dayjs().format("YYYY-MM");
+async function fetchBudget() {
   try {
-    const budgetRes = await getBudgetSummary(currentMonth);
-    if (budgetRes.data.code === 200) {
-      budgetSummary.value = budgetRes.data.data;
-    }
+    const month = dayjs().format("YYYY-MM");
+    const res = await getBudgetSummary(month);
+    if (res.data.code === 200) budgetSummary.value = res.data.data;
   } catch {
-    // No budget set
-  }
-  try {
-    const riskRes = await getLatestAssessment();
-    if (riskRes.data.code === 200) {
-      riskAssessment.value = riskRes.data.data || null;
-    }
-  } catch {
-    // No assessment
+    budgetSummary.value = null;
   }
 }
 
-function getRiskClass(level: string): string {
-  if (level === "保守型") return "conservative";
-  if (level === "稳健型") return "moderate";
-  return "aggressive";
+async function fetchRisk() {
+  try {
+    const res = await getLatestAssessment();
+    if (res.data.code === 200) riskAssessment.value = res.data.data || null;
+  } catch {
+    riskAssessment.value = null;
+  }
 }
 
-function formatNumber(value: number | undefined | null): string {
-  if (value === undefined || value === null) return "0.00";
-  return Number(value).toFixed(2);
-}
-
-function goToNewTransaction() {
-  router.push("/accounting/new");
-}
-function goToTransactions() {
-  router.push("/accounting");
-}
-function goToMonthlyReport() {
-  router.push("/analysis/monthly");
-}
-function goToHealthScore() {
-  router.push("/analysis/health");
-}
-function goToOcr() {
-  router.push("/accounting/ocr");
+function formatCurrency(value: number | undefined | null): string {
+  return new Intl.NumberFormat("zh-CN", {
+    style: "currency",
+    currency: "CNY",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number(value ?? 0));
 }
 </script>
 
 <style scoped lang="scss">
-.dashboard-page {
-  .welcome-section {
-    margin-bottom: 24px;
+.metric-grid {
+  margin-bottom: var(--cr-space-lg);
+}
 
-    h2 {
-      font-size: 24px;
-      color: var(--cr-text-primary);
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      margin-bottom: 8px;
-    }
+.content-grid {
+  margin-bottom: var(--cr-space-lg);
+}
 
-    p {
-      color: var(--cr-text-secondary);
-      font-size: 14px;
-    }
+.review-list {
+  display: grid;
+  gap: 12px;
+}
+
+.review-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--cr-divider);
+  padding-bottom: 12px;
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
   }
 
-  .stat-cards {
-    margin-bottom: 16px;
+  &__title {
+    font-size: 14px;
+    color: var(--cr-text-primary);
+    font-weight: 600;
   }
 
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  &__meta {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--cr-text-tertiary);
   }
 
-  .budget-mini {
-    .budget-info {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 8px;
-      font-size: 13px;
-      color: var(--cr-text-secondary);
-    }
-  }
+  &__amount {
+    font-size: 14px;
+    font-weight: 700;
 
-  .risk-mini {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-
-    .risk-level {
-      font-size: 20px;
-      font-weight: 700;
-
-      &.conservative {
-        color: var(--cr-success);
-      }
-      &.moderate {
-        color: var(--cr-warning);
-      }
-      &.aggressive {
-        color: var(--cr-error);
-      }
+    &.income {
+      color: var(--cr-success);
     }
 
-    .risk-score {
-      color: var(--cr-text-secondary);
-      font-size: 14px;
+    &.expense {
+      color: var(--cr-error);
     }
   }
+}
 
-  .action-buttons {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
+.budget-footnote {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--cr-text-secondary);
+  font-size: 12px;
+}
+
+.risk-block {
+  margin-top: 18px;
+  border-top: 1px solid var(--cr-divider);
+  padding-top: 14px;
+
+  h4 {
+    font-size: 14px;
+    margin-bottom: 4px;
   }
+}
 
-  .transaction-list {
-    .transaction-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--cr-divider);
+.muted {
+  color: var(--cr-text-tertiary);
+}
 
-      &:last-child {
-        border-bottom: none;
-      }
-
-      .transaction-info {
-        .category {
-          font-weight: 500;
-          color: var(--cr-text-primary);
-          margin-right: 8px;
-        }
-
-        .description {
-          color: var(--cr-text-secondary);
-          font-size: 12px;
-        }
-      }
-
-      .amount {
-        font-weight: 600;
-
-        &.income {
-          color: var(--cr-success);
-        }
-        &.expense {
-          color: var(--cr-error);
-        }
-      }
-    }
+@media (max-width: 1200px) {
+  .content-grid :deep(.n-grid-item) {
+    grid-column: span 24 !important;
   }
 }
 </style>

@@ -1,37 +1,11 @@
 ﻿<template>
   <div class="chat-page">
-    <!-- Top Bar -->
-    <div class="chat-header">
-      <div class="header-left">
-        <h3>AI 财务顾问</h3>
-        <n-tag
-          type="info"
-          size="small"
-        >
-          今日剩余 {{ chatStore.remainingChats }} 次
-        </n-tag>
-      </div>
-      <div class="header-right">
+    <PageHeader title="AI 理财顾问" subtitle="提问、追问、并直接执行下一步" dense>
+      <template #actions>
+        <n-tag type="info" size="small">今日剩余 {{ chatStore.remainingChats }} 次</n-tag>
         <div class="mode-toggle">
           <span>Agent</span>
-          <n-switch
-            v-model:value="isAgentMode"
-            size="small"
-          />
-        </div>
-        <div
-          v-if="isAgentMode"
-          class="risk-setting"
-        >
-          <span>阈值</span>
-          <n-input-number
-            v-model:value="riskThresholdInput"
-            size="small"
-            :min="0"
-            :max="1000000"
-            :step="100"
-            @update:value="handleRiskThresholdChange"
-          />
+          <n-switch v-model:value="isAgentMode" size="small" />
         </div>
         <n-select
           v-model:value="selectedProvider"
@@ -41,338 +15,249 @@
           style="width: 140px"
           @update:value="handleProviderChange"
         />
-        <n-button
-          size="small"
-          @click="handleNewSession"
-        >
-          新对话
-        </n-button>
-      </div>
-    </div>
+        <n-button size="small" @click="handleNewSession">新对话</n-button>
+      </template>
+    </PageHeader>
 
-    <!-- Message List -->
-    <div
-      ref="messageListRef"
-      class="message-list"
-    >
-      <!-- Empty state -->
-      <div
-        v-if="chatStore.messages.length === 0"
-        class="empty-state"
-      >
-        <div class="welcome-icon">
-          <n-icon :size="48">
-            <Chatbubbles />
-          </n-icon>
-        </div>
-        <h4>你好！我是你的 AI 财务顾问</h4>
-        <p>
-          我可以帮你分析消费习惯、制定预算计划、评估财务健康。试试下面的问题：
-        </p>
-        <div class="quick-actions">
-          <n-button
-            v-for="suggestion in suggestions"
-            :key="suggestion"
-            round
-            size="small"
-            @click="handleQuickAction(suggestion)"
-          >
-            {{ suggestion }}
-          </n-button>
-        </div>
-      </div>
-
-      <!-- Messages -->
-      <div
-        v-for="(msg, index) in chatStore.messages"
-        :key="index"
-      >
-        <ToolCallCard
-          v-if="
-            msg.messageType === 'tool_call' || msg.messageType === 'tool_result'
-          "
-          :message="msg"
-        />
-        <ConfirmationDialog
-          v-else-if="msg.messageType === 'confirmation'"
-          :message="msg"
-          @confirm="handleConfirmation(msg, $event)"
-        />
-        <div
-          v-else
-          :class="[
-            'message-item',
-            msg.role === 'user' ? 'message-user' : 'message-assistant',
-          ]"
-        >
-          <div class="message-avatar">
-            <n-avatar
-              :size="32"
-              round
-              :style="{
-                backgroundColor:
-                  msg.role === 'user'
-                    ? 'var(--cr-primary)'
-                    : 'var(--cr-success)',
-                fontSize: '14px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }"
-            >
-              {{ msg.role === "user" ? "我" : "AI" }}
-            </n-avatar>
+    <div class="chat-shell">
+      <div ref="messageListRef" class="message-list">
+        <div v-if="chatStore.messages.length === 0" class="empty-state">
+          <h4>从一个明确目标开始</h4>
+          <p>例如："我这个月怎么把娱乐支出减少 20%？"</p>
+          <div class="quick-actions">
+            <n-button v-for="suggestion in suggestions" :key="suggestion" round size="small" @click="handleQuickAction(suggestion)">
+              {{ suggestion }}
+            </n-button>
           </div>
-          <div class="message-bubble">
-            <div
-              class="message-content"
-              v-html="renderMarkdown(msg.content)"
-            />
-            <div
-              v-if="msg.isStreaming"
-              class="typing-indicator"
-            >
-              <span /><span /><span />
+        </div>
+
+        <div v-for="(msg, index) in chatStore.messages" :key="index">
+          <ToolCallCard
+            v-if="msg.messageType === 'tool_call' || msg.messageType === 'tool_result'"
+            :message="msg"
+          />
+          <ConfirmationDialog
+            v-else-if="msg.messageType === 'confirmation'"
+            :message="msg"
+            @confirm="handleConfirmation(msg, $event)"
+          />
+          <div
+            v-else
+            :class="['message-item', msg.role === 'user' ? 'message-user' : 'message-assistant']"
+          >
+            <div class="message-bubble">
+              <div class="message-content" v-html="renderMarkdown(msg.content)" />
+              <div v-if="msg.isStreaming" class="typing-indicator">
+                <span /><span /><span />
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Input Area -->
-    <div class="chat-input">
-      <n-input
-        v-model:value="inputMessage"
-        type="textarea"
-        :autosize="{ minRows: 2, maxRows: 4 }"
-        placeholder="输入你的财务问题..."
-        :disabled="chatStore.isStreaming"
-        @keydown.enter.exact.prevent="handleSend"
-      />
-      <n-button
-        type="primary"
-        :disabled="!inputMessage.trim() || chatStore.isStreaming"
-        :loading="chatStore.isStreaming"
-        class="send-btn"
-        @click="handleSend"
-      >
-        发送
-      </n-button>
+      <div class="chat-input">
+        <n-input
+          v-model:value="inputMessage"
+          type="textarea"
+          :autosize="{ minRows: 2, maxRows: 5 }"
+          placeholder="输入你的财务问题..."
+          :disabled="chatStore.isStreaming"
+          @keydown.enter.exact.prevent="handleSend"
+        />
+
+        <div class="chat-input__controls">
+          <div v-if="isAgentMode" class="risk-setting">
+            <span>风险阈值</span>
+            <n-input-number
+              v-model:value="riskThresholdInput"
+              size="small"
+              :min="0"
+              :max="1000000"
+              :step="100"
+              @update:value="handleRiskThresholdChange"
+            />
+          </div>
+
+          <n-button
+            type="primary"
+            :disabled="!inputMessage.trim() || chatStore.isStreaming"
+            :loading="chatStore.isStreaming"
+            @click="handleSend"
+          >
+            发送
+          </n-button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick, watch } from 'vue'
-import { NButton, NTag, NSelect, NInput, NInputNumber, NAvatar, NIcon, NSwitch, useMessage } from 'naive-ui'
-import { Chatbubbles } from '@vicons/ionicons5'
-import { useChatStore } from '@/stores/chat'
-import ToolCallCard from '@/components/ai/ToolCallCard.vue'
-import ConfirmationDialog from '@/components/ai/ConfirmationDialog.vue'
+import { ref, computed, onMounted, nextTick, watch } from "vue";
+import {
+  NButton,
+  NTag,
+  NSelect,
+  NInput,
+  NInputNumber,
+  NSwitch,
+} from "naive-ui";
+import { useChatStore } from "@/stores/chat";
+import ToolCallCard from "@/components/ai/ToolCallCard.vue";
+import ConfirmationDialog from "@/components/ai/ConfirmationDialog.vue";
+import PageHeader from "@/components/common/PageHeader.vue";
 
-const chatStore = useChatStore()
-const message = useMessage()
-const inputMessage = ref('')
-const messageListRef = ref<HTMLDivElement | null>(null)
-const selectedProvider = ref('')
-const riskThresholdInput = ref<number | null>(null)
+const chatStore = useChatStore();
+const inputMessage = ref("");
+const messageListRef = ref<HTMLDivElement | null>(null);
+const selectedProvider = ref("");
+const riskThresholdInput = ref<number | null>(null);
+
 const isAgentMode = computed({
   get: () => chatStore.isAgentMode,
-  set: (val) => { chatStore.isAgentMode = val }
-})
+  set: (val) => {
+    chatStore.isAgentMode = val;
+  },
+});
 
 const providerOptions = computed(() =>
-  chatStore.providers.map(p => ({ label: p, value: p }))
-)
+  chatStore.providers.map((p) => ({ label: p, value: p })),
+);
 
 const suggestions = [
-  '分析我本月的消费',
-  '如何提高储蓄率',
-  '帮我做一个预算计划',
-  '我的财务健康如何？'
-]
+  "分析我本月的消费",
+  "如何提高储蓄率",
+  "帮我做一个预算计划",
+  "我的财务健康如何？",
+];
 
 onMounted(async () => {
-  await chatStore.fetchRemainingChats()
-  await chatStore.fetchProviders()
-  selectedProvider.value = chatStore.currentProvider
-  await chatStore.fetchAgentRiskThreshold()
-  riskThresholdInput.value = chatStore.agentRiskThreshold
-})
+  await chatStore.fetchRemainingChats();
+  await chatStore.fetchProviders();
+  selectedProvider.value = chatStore.currentProvider;
+  await chatStore.fetchAgentRiskThreshold();
+  riskThresholdInput.value = chatStore.agentRiskThreshold;
+});
 
 watch(
   () => chatStore.messages.length,
-  () => {
-    nextTick(() => { scrollToBottom() })
-  }
-)
+  () => nextTick(scrollToBottom),
+);
 
 watch(
   () => {
-    const msgs = chatStore.messages
-    if (msgs.length === 0) return ''
-    return msgs[msgs.length - 1].content
+    const msgs = chatStore.messages;
+    if (!msgs.length) return "";
+    return msgs[msgs.length - 1].content;
   },
-  () => {
-    nextTick(() => { scrollToBottom() })
-  }
-)
+  () => nextTick(scrollToBottom),
+);
 
 function scrollToBottom() {
   if (messageListRef.value) {
-    messageListRef.value.scrollTop = messageListRef.value.scrollHeight
+    messageListRef.value.scrollTop = messageListRef.value.scrollHeight;
   }
 }
 
 async function handleSend() {
-  const msg = inputMessage.value.trim()
-  if (!msg || chatStore.isStreaming) return
+  const msg = inputMessage.value.trim();
+  if (!msg || chatStore.isStreaming) return;
 
-  inputMessage.value = ''
+  inputMessage.value = "";
   if (isAgentMode.value) {
-    await chatStore.sendAgentMessage(msg)
+    await chatStore.sendAgentMessage(msg);
   } else {
-    await chatStore.sendMessage(msg)
+    await chatStore.sendMessage(msg);
   }
-  await chatStore.fetchRemainingChats()
+  await chatStore.fetchRemainingChats();
 }
 
 function handleQuickAction(text: string) {
-  inputMessage.value = text
-  handleSend()
+  inputMessage.value = text;
+  handleSend();
 }
 
 function handleNewSession() {
-  chatStore.startNewSession()
+  chatStore.startNewSession();
 }
 
 async function handleProviderChange(name: string) {
-  await chatStore.switchProviderAction(name)
+  await chatStore.switchProviderAction(name);
 }
 
 function handleConfirmation(msg: any, accepted: boolean) {
-  if (!msg.confirmationId) return
-  chatStore.respondToConfirmation(msg.confirmationId, accepted)
+  if (!msg.confirmationId) return;
+  chatStore.respondToConfirmation(msg.confirmationId, accepted);
 }
 
 function handleRiskThresholdChange(value: number | null) {
-  if (value == null) return
-  chatStore.updateAgentRiskThreshold(value)
+  if (value == null) return;
+  chatStore.updateAgentRiskThreshold(value);
 }
 
 function renderMarkdown(content: string): string {
-  if (!content) return ''
+  if (!content) return "";
   return content
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\n/g, '<br>')
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\n/g, "<br>");
 }
 </script>
 
 <style scoped lang="scss">
-.chat-page {
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 100px);
-  background: var(--cr-bg-card);
-  backdrop-filter: blur(var(--cr-blur-md));
+.chat-shell {
   border: 1px solid var(--cr-border-light);
-  border-radius: var(--cr-radius-xl);
+  border-radius: var(--cr-radius-lg);
+  background: var(--cr-bg-card);
+  box-shadow: var(--cr-shadow-sm);
   overflow: hidden;
-}
-
-.chat-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 20px;
-  border-bottom: 1px solid var(--cr-divider);
-
-  .header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-
-    h3 {
-      margin: 0;
-      font-size: 16px;
-      color: var(--cr-text-primary);
-    }
-  }
-
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
 }
 
 .mode-toggle {
   display: flex;
   align-items: center;
   gap: 6px;
+  color: var(--cr-text-secondary);
   font-size: 12px;
-  color: var(--cr-text-tertiary);
-}
-
-.risk-setting {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--cr-text-tertiary);
-}
-
-.risk-setting :deep(.n-input-number) {
-  width: 120px;
 }
 
 .message-list {
-  flex: 1;
+  min-height: 480px;
+  max-height: calc(100vh - 330px);
   overflow-y: auto;
-  padding: 20px;
+  padding: var(--cr-space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: var(--cr-text-tertiary);
-
-  .welcome-icon {
-    margin-bottom: 16px;
-    color: var(--cr-primary);
-  }
+  margin: auto;
+  text-align: center;
+  color: var(--cr-text-secondary);
 
   h4 {
-    margin: 0 0 8px;
+    margin-bottom: 8px;
     color: var(--cr-text-primary);
   }
 
   p {
-    margin: 0 0 20px;
-    text-align: center;
-    max-width: 400px;
+    margin-bottom: 16px;
   }
+}
 
-  .quick-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-    max-width: 500px;
-  }
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
 }
 
 .message-item {
   display: flex;
-  margin-bottom: 16px;
-  gap: 8px;
 
   &.message-user {
-    flex-direction: row-reverse;
+    justify-content: flex-end;
 
     .message-bubble {
       background: var(--cr-primary);
@@ -387,36 +272,31 @@ function renderMarkdown(content: string): string {
   }
 
   &.message-assistant {
+    justify-content: flex-start;
+
     .message-bubble {
-      background: var(--cr-bg-elevated, var(--cr-bg-card));
+      background: var(--cr-bg-elevated);
       border-color: var(--cr-border-light);
+      color: var(--cr-text-primary);
     }
   }
 }
 
-.message-avatar {
-  flex-shrink: 0;
-}
-
 .message-bubble {
-  max-width: 70%;
-  padding: 10px 14px;
-  border-radius: var(--cr-radius-lg);
+  max-width: min(78%, 740px);
   border: 1px solid;
-  line-height: 1.6;
+  border-radius: 14px;
+  padding: 10px 14px;
+  line-height: 1.55;
 
   .message-content {
     word-break: break-word;
 
     :deep(code) {
-      background: var(--cr-bg-page);
+      background: var(--cr-bg-input);
+      border-radius: 5px;
       padding: 1px 4px;
-      border-radius: 3px;
-      font-size: 13px;
-    }
-
-    :deep(strong) {
-      font-weight: 600;
+      font-size: 12px;
     }
   }
 }
@@ -429,18 +309,16 @@ function renderMarkdown(content: string): string {
   span {
     width: 6px;
     height: 6px;
-    background: var(--cr-text-tertiary);
     border-radius: 50%;
-    animation: typing 1.4s infinite ease-in-out;
+    background: var(--cr-text-tertiary);
+    animation: typing 1.2s infinite ease-in-out;
 
-    &:nth-child(1) {
-      animation-delay: 0s;
-    }
     &:nth-child(2) {
-      animation-delay: 0.2s;
+      animation-delay: 0.15s;
     }
+
     &:nth-child(3) {
-      animation-delay: 0.4s;
+      animation-delay: 0.3s;
     }
   }
 }
@@ -451,25 +329,45 @@ function renderMarkdown(content: string): string {
   100% {
     transform: translateY(0);
   }
+
   30% {
-    transform: translateY(-4px);
+    transform: translateY(-3px);
   }
 }
 
 .chat-input {
-  display: flex;
-  gap: 8px;
-  padding: 12px 20px;
   border-top: 1px solid var(--cr-divider);
-  align-items: flex-end;
+  padding: var(--cr-space-md) var(--cr-space-xl) var(--cr-space-xl);
 
-  :deep(.n-input) {
-    flex: 1;
+  &__controls {
+    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--cr-space-sm);
+  }
+}
+
+.risk-setting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--cr-text-secondary);
+  font-size: 12px;
+
+  :deep(.n-input-number) {
+    width: 140px;
+  }
+}
+
+@media (max-width: 900px) {
+  .message-bubble {
+    max-width: 92%;
   }
 
-  .send-btn {
-    height: 54px;
+  .chat-input__controls {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 </style>
-

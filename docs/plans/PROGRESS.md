@@ -2,8 +2,15 @@
 
 ## 当前状态
 
-**阶段**: Phase 4.3 - AI Agent 高级功能增强 完成
+**阶段**: Phase 5.1 - Copilot 风格 UI/UX 全站重构（第一版）完成
 **最后更新**: 2026-02-06
+
+- 全站 UI/UX 重构：重建主题令牌、布局壳层与核心交互样式
+- 导航升级：顶部主导航（Overview/Transactions/Budgets/Advisor）+ 二级菜单
+- 核心页面重做：Dashboard、交易记录、预算总览、AI 顾问、登录/注册
+- 新增共用组件：MetricCard、BudgetProgressBar、MoneyText、SectionHeader、InsightPanel、EmptyState
+- 前端验证：`pnpm test:unit` 109/109 通过；`vite build` 通过
+- 已识别环境问题：`pnpm build` 的 `vue-tsc` 在当前 Node 22 环境下报兼容错误（非本次代码改动引入）
 
 - 多 Provider 自动降级：主 Provider 失败时自动切换备用（Redis 健康追踪 + 装饰器模式）
 - 工具结果 Redis 缓存：同一会话内相同查询复用缓存，15 个读取工具支持缓存，写入操作自动失效关联缓存

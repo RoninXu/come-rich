@@ -1,8 +1,59 @@
-import type { GlobalThemeOverrides } from "naive-ui";
+﻿import type { GlobalThemeOverrides } from "naive-ui";
 import { colors, radius, typography } from "./tokens";
+
+const baseCommon = {
+  borderRadius: radius.md,
+  borderRadiusSmall: radius.sm,
+  fontFamily: typography.fontFamily,
+  fontSize: typography.fontSizeMd,
+  fontSizeMini: typography.fontSizeXs,
+  fontSizeTiny: typography.fontSizeSm,
+  fontSizeSmall: typography.fontSizeSm,
+  fontSizeMedium: typography.fontSizeMd,
+  fontSizeLarge: typography.fontSizeLg,
+  fontSizeHuge: typography.fontSizeXl,
+  heightMedium: "38px",
+  heightSmall: "32px",
+  heightLarge: "44px",
+};
+
+const shared: GlobalThemeOverrides = {
+  Card: {
+    borderRadius: radius.lg,
+    paddingMedium: "20px",
+    paddingLarge: "24px",
+  },
+  Button: {
+    borderRadiusMedium: radius.md,
+    borderRadiusSmall: radius.sm,
+    borderRadiusLarge: radius.md,
+    fontWeightStrong: String(typography.fontWeightSemibold),
+    heightMedium: "38px",
+    heightLarge: "44px",
+  },
+  Input: {
+    borderRadius: radius.md,
+    heightMedium: "38px",
+    heightLarge: "44px",
+  },
+  Menu: {
+    borderRadius: radius.md,
+    itemHeight: "42px",
+  },
+  Tabs: {
+    tabBorderRadius: radius.md,
+  },
+  Pagination: {
+    itemBorderRadius: radius.sm,
+  },
+  Progress: {
+    borderRadius: radius.full,
+  },
+};
 
 export const lightThemeOverrides: GlobalThemeOverrides = {
   common: {
+    ...baseCommon,
     primaryColor: colors.light.primary,
     primaryColorHover: colors.light.primaryHover,
     primaryColorPressed: colors.light.primaryPressed,
@@ -16,70 +67,19 @@ export const lightThemeOverrides: GlobalThemeOverrides = {
     textColor2: colors.light.textSecondary,
     textColor3: colors.light.textTertiary,
     bodyColor: colors.light.bgPage,
-    cardColor: colors.light.bgCardSolid,
-    modalColor: colors.light.bgCardSolid,
-    popoverColor: colors.light.bgCardSolid,
+    cardColor: colors.light.bgCard,
+    modalColor: colors.light.bgCard,
+    popoverColor: colors.light.bgCard,
     borderColor: colors.light.border,
     dividerColor: colors.light.divider,
     inputColor: colors.light.bgInput,
-    borderRadius: radius.md,
-    borderRadiusSmall: radius.sm,
-    fontFamily: typography.fontFamily,
-    fontSize: typography.fontSizeMd,
-    fontSizeMini: typography.fontSizeXs,
-    fontSizeTiny: typography.fontSizeSm,
-    fontSizeSmall: typography.fontSizeSm,
-    fontSizeMedium: typography.fontSizeMd,
-    fontSizeLarge: typography.fontSizeLg,
-    fontSizeHuge: typography.fontSizeXl,
-    heightMedium: "36px",
-    heightSmall: "30px",
-    heightLarge: "42px",
   },
-  Card: {
-    borderRadius: radius.xl,
-    paddingMedium: "20px",
-    paddingLarge: "24px",
-  },
-  Button: {
-    borderRadiusMedium: radius.md,
-    borderRadiusSmall: radius.sm,
-    borderRadiusLarge: radius.md,
-    heightMedium: "36px",
-    heightLarge: "42px",
-    fontWeightStrong: String(typography.fontWeightSemibold),
-  },
-  Input: {
-    borderRadius: radius.md,
-    heightMedium: "36px",
-    heightLarge: "42px",
-  },
-  Menu: {
-    borderRadius: radius.md,
-    itemHeight: "40px",
-  },
-  DataTable: {
-    borderRadius: radius.xl,
-  },
-  Tag: {
-    borderRadius: radius.sm,
-  },
-  Tabs: {
-    tabBorderRadius: radius.md,
-  },
-  Dialog: {
-    borderRadius: radius.xl,
-  },
-  Pagination: {
-    itemBorderRadius: radius.sm,
-  },
-  Progress: {
-    borderRadius: radius.full,
-  },
+  ...shared,
 };
 
 export const darkThemeOverrides: GlobalThemeOverrides = {
   common: {
+    ...baseCommon,
     primaryColor: colors.dark.primary,
     primaryColorHover: colors.dark.primaryHover,
     primaryColorPressed: colors.dark.primaryPressed,
@@ -93,64 +93,12 @@ export const darkThemeOverrides: GlobalThemeOverrides = {
     textColor2: colors.dark.textSecondary,
     textColor3: colors.dark.textTertiary,
     bodyColor: colors.dark.bgPage,
-    cardColor: colors.dark.bgCardSolid,
-    modalColor: colors.dark.bgCardSolid,
-    popoverColor: colors.dark.bgCardSolid,
+    cardColor: colors.dark.bgCard,
+    modalColor: colors.dark.bgCard,
+    popoverColor: colors.dark.bgCard,
     borderColor: colors.dark.border,
     dividerColor: colors.dark.divider,
     inputColor: colors.dark.bgInput,
-    borderRadius: radius.md,
-    borderRadiusSmall: radius.sm,
-    fontFamily: typography.fontFamily,
-    fontSize: typography.fontSizeMd,
-    fontSizeMini: typography.fontSizeXs,
-    fontSizeTiny: typography.fontSizeSm,
-    fontSizeSmall: typography.fontSizeSm,
-    fontSizeMedium: typography.fontSizeMd,
-    fontSizeLarge: typography.fontSizeLg,
-    fontSizeHuge: typography.fontSizeXl,
-    heightMedium: "36px",
-    heightSmall: "30px",
-    heightLarge: "42px",
   },
-  Card: {
-    borderRadius: radius.xl,
-    paddingMedium: "20px",
-    paddingLarge: "24px",
-  },
-  Button: {
-    borderRadiusMedium: radius.md,
-    borderRadiusSmall: radius.sm,
-    borderRadiusLarge: radius.md,
-    heightMedium: "36px",
-    heightLarge: "42px",
-    fontWeightStrong: String(typography.fontWeightSemibold),
-  },
-  Input: {
-    borderRadius: radius.md,
-    heightMedium: "36px",
-    heightLarge: "42px",
-  },
-  Menu: {
-    borderRadius: radius.md,
-    itemHeight: "40px",
-  },
-  DataTable: {
-    borderRadius: radius.xl,
-  },
-  Tag: {
-    borderRadius: radius.sm,
-  },
-  Tabs: {
-    tabBorderRadius: radius.md,
-  },
-  Dialog: {
-    borderRadius: radius.xl,
-  },
-  Pagination: {
-    itemBorderRadius: radius.sm,
-  },
-  Progress: {
-    borderRadius: radius.full,
-  },
+  ...shared,
 };
