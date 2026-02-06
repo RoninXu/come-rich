@@ -9,10 +9,10 @@
 - 可解释与可落地：结合统计报表与健康评分，清晰展示财务现状与改进路径
 
 ## 最新进展（Current Status）
-Phase 4.2（目标/投资/副业 Agent 工具扩展）已完成；Phase 4.3（高级功能）规划中。Phase 1-3 功能已全部交付并整体打通：
-- AI Agent 工具扩展：新增 13 个工具（目标 6 + 投资 3 + 副业 4），总计 28 个工具
-- AI Agent 上下文压缩：自动压缩超限对话历史，控制 token 消耗
-- AI Agent 基础能力：工具体系、ReAct 编排、SSE 协议升级、确认流程
+Phase 4.3（AI Agent 高级功能增强）已完成；Phase 5 规划中。Phase 1-4 功能已全部交付：
+- AI Agent 高级增强：多 Provider 自动降级、工具结果 Redis 缓存、Rate Limiting 预留机制、错误恢复、指标埋点
+- AI Agent 工具扩展：28 个工具（记账 6 + 分析 3 + 预算 6 + 目标 6 + 投资 3 + 副业 4）
+- AI Agent 基础能力：工具体系、ReAct 编排、SSE 协议升级、确认流程、上下文压缩
 - 预算管理：按分类月度预算、预算 vs 实际对比、AI 优化建议
 - 投资建议：8 题风险测评、AI 资产配置建议
 - 数据导出：交易 Excel/CSV 导出、月度/年度报表导出
@@ -100,7 +100,7 @@ cp .env.example .env
 # Required: DB_PASSWORD, JWT_SECRET, DEEPSEEK_API_KEY
 ```
 
-See [Environment Configuration Guide](docs/ENV_CONFIGURATION.md) for detailed setup instructions.
+See [Environment Configuration Guide](docs/plans/ENV_CONFIGURATION.md) for detailed setup instructions.
 
 ### 2. Start infrastructure services
 

@@ -90,6 +90,11 @@ ai:
   agent:
     max-context-tokens: ${AI_AGENT_MAX_CONTEXT_TOKENS:6000}
     compression-enabled: ${AI_AGENT_COMPRESSION_ENABLED:true}
+  fallback:
+    enabled: ${AI_FALLBACK_ENABLED:true}
+    providers: ${AI_FALLBACK_PROVIDERS:deepseek,moonshot,qwen}
+    failure-threshold: ${AI_FALLBACK_FAILURE_THRESHOLD:3}
+    recovery-timeout-minutes: ${AI_FALLBACK_RECOVERY_MINUTES:5}
   rate-limit:
     daily-limit: ${AI_DAILY_LIMIT:10}
 

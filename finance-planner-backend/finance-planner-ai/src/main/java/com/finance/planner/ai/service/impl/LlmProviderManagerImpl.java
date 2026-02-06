@@ -43,4 +43,15 @@ public class LlmProviderManagerImpl implements LlmProviderManager {
     public List<String> listProviders() {
         return new ArrayList<>(aiConfig.getProviders().keySet());
     }
+
+    @Override
+    public List<String> getFallbackOrder() {
+        List<String> configuredOrder = aiConfig.getFallback().getProviders();
+        if (configuredOrder != null && !configuredOrder.isEmpty()) {
+            return configuredOrder.stream()
+                    .filter(p -> aiConfig.getProviders().containsKey(p))
+                    .collect(java.util.stream.Collectors.toList());
+        }
+        return listProviders();
+    }
 }

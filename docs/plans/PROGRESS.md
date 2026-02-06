@@ -2,13 +2,15 @@
 
 ## 当前状态
 
-**阶段**: Phase 4.2 - 目标/投资/副业 Agent 工具扩展 完成
+**阶段**: Phase 4.3 - AI Agent 高级功能增强 完成
 **最后更新**: 2026-02-06
 
-- 新增 13 个 AI Agent 工具（目标 6 + 投资 3 + 副业 4），总工具数达 28 个
-- 上下文压缩优化（TokenEstimator + ContextCompressor，自动压缩超限对话历史）
-- 更新 Agent 系统提示（新增投资风险提示要求）
-- 新增 15 个单元测试（13 工具测试 + 2 压缩测试）
+- 多 Provider 自动降级：主 Provider 失败时自动切换备用（Redis 健康追踪 + 装饰器模式）
+- 工具结果 Redis 缓存：同一会话内相同查询复用缓存，15 个读取工具支持缓存，写入操作自动失效关联缓存
+- Rate Limiting 适配 Agent：一轮完整对话只算 1 次配额（预留/确认/回滚机制）
+- 错误恢复机制：Agent 循环中断时自动清理待确认请求，SSE 超时/错误回调触发清理
+- Agent 指标埋点：异步记录每次工具执行指标（延迟、成功率、缓存命中），供 Phase 5 展示
+- 新增 22 个单元测试（降级 6 + 缓存 6 + 限流 4 + 清理 4 + 指标 3 - 含重叠测试共 22 个新增）
 
 ## 已完成
 
@@ -237,16 +239,43 @@
 - [x] Agent 系统提示更新（新增投资风险提示）
 - [x] 15 个单元测试（13 工具测试 + 2 压缩测试）
 
-#### Phase 4.3 - 高级功能
+#### Phase 4.3 - 高级功能增强 ✅
 
-- [ ] 多 Provider 健壮性(单 provider 失败自动降级)
-- [ ] 工具结果 Redis 缓存 (同一会话内查询复用)
-- [ ] Agent 分析仪表盘(工具使用频率、成功率、延迟)
-- [ ] Rate limiting 适配 (Agent 一轮对话算 1 次)
-- [ ] 错误恢复 (Agent 循环中断时状态清理)
+- [x] **多 Provider 自动降级**
+  - [x] `ProviderHealthTracker` Redis 健康追踪（连续失败阈值 + 自动恢复探测）
+  - [x] `ResilientLlmClient` 装饰器（@Primary，透明降级）
+  - [x] `LlmProviderManagerImpl.getFallbackOrder()` 可配置降级顺序
+  - [x] application.yml 降级配置（enabled/providers/threshold/recovery）
+
+- [x] **工具结果 Redis 缓存**
+  - [x] `ToolCacheService` 15 个只读工具支持缓存（TTL 30 分钟）
+  - [x] 缓存 key: `agent:tool:cache:{sessionId}:{toolName}:{MD5(args)}`
+  - [x] 写入操作自动失效关联读取工具缓存
+  - [x] 仅缓存成功结果
+
+- [x] **Rate Limiting 适配 Agent**
+  - [x] `reserveQuota(userId)` 预留配额（原子操作 + 超限回滚）
+  - [x] `commitQuota(reservationId)` 确认扣减
+  - [x] `releaseQuota(reservationId)` Agent 失败时回滚
+  - [x] 预留记录 Redis TTL 10 分钟自动清理
+
+- [x] **错误恢复机制**
+  - [x] `AgentCleanupService` 会话清理（取消待确认、日志记录）
+  - [x] `ConfirmationStore.cancelAllForUser()` 批量取消
+  - [x] `AgentServiceImpl.runAgentLoop()` finally 块确保 emitter 完成
+  - [x] SSE onTimeout/onError 回调触发清理
+
+- [x] **Agent 指标埋点 (仅后端)**
+  - [x] `agent_tool_metrics` 表（Flyway V13）
+  - [x] `AgentToolMetrics` JPA 实体 + Repository
+  - [x] `AgentMetricsService` @Async 异步记录（不阻塞主流程）
+  - [x] 记录: tool_name, success, latency_ms, cached, error_message
+
+- [x] 22 个单元测试
 
 ### Phase 5 (规划中)
 
+- [ ] Agent 分析仪表盘前端页面（基于 Phase 4.3 指标数据展示）
 - [ ] 多语言支持
 - [ ] 移动端适配
 - [ ] 数据备份/恢复

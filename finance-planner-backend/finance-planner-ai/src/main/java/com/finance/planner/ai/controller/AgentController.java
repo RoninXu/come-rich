@@ -1,6 +1,7 @@
 package com.finance.planner.ai.controller;
 
 import com.finance.planner.ai.agent.dto.AgentConfirmationRequest;
+import com.finance.planner.ai.agent.service.AgentCleanupService;
 import com.finance.planner.ai.agent.service.AgentRiskConfigService;
 import com.finance.planner.ai.agent.service.AgentService;
 import com.finance.planner.auth.entity.User;
@@ -29,6 +30,7 @@ public class AgentController {
 
     private final AgentService agentService;
     private final AgentRiskConfigService riskConfigService;
+    private final AgentCleanupService agentCleanupService;
     private final UserRepository userRepository;
 
     @GetMapping(value = "/chat-stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -39,8 +41,12 @@ public class AgentController {
             @Parameter(description = "Session ID (optional, auto-generated if not provided)")
             @RequestParam(required = false) String sessionId) {
         Long userId = getUserId(userDetails);
+        String effectiveSessionId = sessionId != null ? sessionId : "unknown";
         SseEmitter emitter = new SseEmitter(300_000L);
-        emitter.onTimeout(emitter::complete);
+        emitter.onTimeout(() ->
+                agentCleanupService.cleanupSession(userId, effectiveSessionId, "SSE timeout"));
+        emitter.onError(t ->
+                agentCleanupService.cleanupSession(userId, effectiveSessionId, "SSE error: " + t.getMessage()));
         agentService.streamAgentChat(userId, message, sessionId, emitter);
         return emitter;
     }
