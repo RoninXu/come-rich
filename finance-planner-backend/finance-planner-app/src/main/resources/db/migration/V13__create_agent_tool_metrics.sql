@@ -1,6 +1,6 @@
 CREATE TABLE agent_tool_metrics (
     id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL REFERENCES users(id),
+    user_id BIGINT NOT NULL REFERENCES "user"(id),
     session_id VARCHAR(100) NOT NULL,
     tool_name VARCHAR(100) NOT NULL,
     success BOOLEAN NOT NULL,
