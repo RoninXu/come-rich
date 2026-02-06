@@ -9,7 +9,15 @@
 - 可解释与可落地：结合统计报表与健康评分，清晰展示财务现状与改进路径
 
 ## 最新进展（Current Status）
-Phase 4.3（AI Agent 高级功能增强）已完成；Phase 5 规划中。Phase 1-4 功能已全部交付：
+Phase 4.3（AI Agent 高级功能增强）已完成；Phase 5.1（Copilot 风格 UI/UX 重构）已完成第一版全量替换：
+- 前端视觉系统重构：主题令牌、CSS 变量、Naive UI 主题覆盖统一升级
+- 壳层与导航重构：从重侧栏改为顶部主导航 + 二级导航分组
+- 核心页面重做：Dashboard、交易记录、预算总览、AI 顾问、登录/注册
+- 新增通用组件：`MetricCard`、`BudgetProgressBar`、`MoneyText`、`SectionHeader`、`InsightPanel`、`EmptyState`
+- 文案与路由标题统一中文修复，减少编码异常风险
+- 前端单测新增并通过（109/109）
+
+Phase 1-4 功能已全部交付：
 - AI Agent 高级增强：多 Provider 自动降级、工具结果 Redis 缓存、Rate Limiting 预留机制、错误恢复、指标埋点
 - AI Agent 工具扩展：28 个工具（记账 6 + 分析 3 + 预算 6 + 目标 6 + 投资 3 + 副业 4）
 - AI Agent 基础能力：工具体系、ReAct 编排、SSE 协议升级、确认流程、上下文压缩
@@ -48,7 +56,7 @@ Phase 4.3（AI Agent 高级功能增强）已完成；Phase 5 规划中。Phase 
 | Layer | Technologies |
 |---|---|
 | Backend | Java 17, Spring Boot 3.2, Spring Data JPA, Spring Security, JWT, WebFlux (SSE) |
-| Frontend | Vue 3.4, TypeScript 5, Vite 5, Element Plus, Pinia, ECharts |
+| Frontend | Vue 3.4, TypeScript 5, Vite 5, Naive UI, Pinia, ECharts |
 | Database | PostgreSQL 14, Redis 7, Flyway |
 | AI | DeepSeek V3 API, Moonshot API, Baidu OCR API, Apache POI |
 | Infra | Docker Compose, Nginx, Aliyun (ECS/OSS/RDS) |

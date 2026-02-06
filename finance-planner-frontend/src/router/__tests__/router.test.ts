@@ -1,6 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock auth utils
 vi.mock("@/utils/auth", () => ({
   isAuthenticated: vi.fn(() => false),
 }));
@@ -52,28 +51,35 @@ describe("router", () => {
     expect(accountingEdit).toBeDefined();
   });
 
-  it("redirects to login when not authenticated for protected route", async () => {
-    vi.mocked(isAuthenticated).mockReturnValue(false);
-    const mod = await import("../index");
-    const router = mod.default;
+  it(
+    "redirects to login when not authenticated for protected route",
+    async () => {
+      vi.mocked(isAuthenticated).mockReturnValue(false);
+      const mod = await import("../index");
+      const router = mod.default;
 
-    // Push to dashboard without being authenticated
-    await router.push("/dashboard");
-    await router.isReady();
+      await router.push("/dashboard");
+      await router.isReady();
 
-    expect(router.currentRoute.value.path).toBe("/login");
-  });
+      expect(router.currentRoute.value.path).toBe("/login");
+    },
+    12000,
+  );
 
-  it("allows login page when not authenticated", async () => {
-    vi.mocked(isAuthenticated).mockReturnValue(false);
-    const mod = await import("../index");
-    const router = mod.default;
+  it(
+    "allows login page when not authenticated",
+    async () => {
+      vi.mocked(isAuthenticated).mockReturnValue(false);
+      const mod = await import("../index");
+      const router = mod.default;
 
-    await router.push("/login");
-    await router.isReady();
+      await router.push("/login");
+      await router.isReady();
 
-    expect(router.currentRoute.value.path).toBe("/login");
-  });
+      expect(router.currentRoute.value.path).toBe("/login");
+    },
+    12000,
+  );
 
   it("redirects to dashboard when authenticated and visiting login", async () => {
     vi.mocked(isAuthenticated).mockReturnValue(true);

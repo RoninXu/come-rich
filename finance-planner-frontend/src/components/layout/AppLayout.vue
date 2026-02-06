@@ -1,77 +1,61 @@
-<template>
-  <n-layout
-    class="app-layout"
-    has-sider
-  >
-    <n-layout-sider
-      bordered
-      :width="220"
-      :collapsed-width="0"
-      collapse-mode="width"
-      class="app-sidebar"
-      content-class="app-sidebar__content"
-    >
-      <div class="app-sidebar__logo">
-        <span class="app-sidebar__logo-text">Come Rich</span>
-        <span class="app-sidebar__logo-sub">AI</span>
-      </div>
-      <n-menu
-        :value="activeMenu"
-        :options="menuOptions"
-        :root-indent="20"
-        :indent="16"
-        @update:value="handleMenuSelect"
-      />
-    </n-layout-sider>
-
-    <n-layout>
-      <n-layout-header
-        bordered
-        class="app-header"
-      >
-        <div class="app-header__right">
-          <n-button
-            quaternary
-            circle
-            size="small"
-            @click="toggleTheme"
-          >
-            <template #icon>
-              <n-icon :size="18">
-                <Moon v-if="!isDark" />
-                <Sunny v-else />
-              </n-icon>
-            </template>
-          </n-button>
-
-          <n-dropdown
-            :options="userMenuOptions"
-            @select="handleUserMenuSelect"
-          >
-            <div class="app-header__user">
-              <n-avatar
-                :size="32"
-                round
-              >
-                <n-icon><Person /></n-icon>
-              </n-avatar>
-              <span class="app-header__username">{{ userStore.username }}</span>
-            </div>
-          </n-dropdown>
+﻿<template>
+  <n-layout class="app-layout">
+    <n-layout-header bordered class="app-header">
+      <div class="brand" @click="router.push('/dashboard')">
+        <div class="brand__dot" />
+        <div>
+          <p class="brand__name">Come Rich</p>
+          <p class="brand__sub">Personal Finance OS</p>
         </div>
-      </n-layout-header>
+      </div>
 
-      <n-layout-content class="app-main">
-        <router-view v-slot="{ Component }">
-          <transition
-            name="cr-page"
-            mode="out-in"
-          >
-            <component :is="Component" />
-          </transition>
-        </router-view>
-      </n-layout-content>
-    </n-layout>
+      <n-menu
+        mode="horizontal"
+        responsive
+        :value="activePrimary"
+        :options="primaryMenu"
+        class="top-nav"
+        @update:value="handlePrimarySelect"
+      />
+
+      <div class="app-header__right">
+        <n-button quaternary circle size="small" @click="toggleTheme">
+          <template #icon>
+            <n-icon :size="18">
+              <Moon v-if="!isDark" />
+              <Sunny v-else />
+            </n-icon>
+          </template>
+        </n-button>
+
+        <n-dropdown :options="userMenuOptions" @select="handleUserMenuSelect">
+          <div class="user-chip">
+            <n-avatar :size="30" round>
+              <n-icon><Person /></n-icon>
+            </n-avatar>
+            <span>{{ userStore.username }}</span>
+          </div>
+        </n-dropdown>
+      </div>
+    </n-layout-header>
+
+    <n-layout-content class="app-main">
+      <div v-if="secondaryMenu.length" class="secondary-nav-wrap">
+        <n-menu
+          mode="horizontal"
+          :value="route.path"
+          :options="secondaryMenu"
+          class="secondary-nav"
+          @update:value="handleSecondarySelect"
+        />
+      </div>
+
+      <router-view v-slot="{ Component }">
+        <transition name="cr-page" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </router-view>
+    </n-layout-content>
   </n-layout>
 </template>
 
@@ -80,7 +64,6 @@ import { computed, h } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   NLayout,
-  NLayoutSider,
   NLayoutHeader,
   NLayoutContent,
   NMenu,
@@ -91,13 +74,13 @@ import {
 } from "naive-ui";
 import type { MenuOption } from "naive-ui";
 import {
-  Home,
+  PieChart,
   Wallet,
   Cash,
+  Chatbubbles,
   Flag,
   TrendingUp,
   Rocket,
-  Chatbubbles,
   StatsChart,
   Moon,
   Sunny,
@@ -112,70 +95,55 @@ const router = useRouter();
 const userStore = useUserStore();
 const { isDark, toggleTheme } = useTheme();
 
-const activeMenu = computed(() => route.path);
-
 function renderIcon(icon: any) {
   return () => h(NIcon, null, { default: () => h(icon) });
 }
 
-const menuOptions: MenuOption[] = [
-  {
-    label: "首页",
-    key: "/dashboard",
-    icon: renderIcon(Home),
-  },
-  {
-    label: "记账",
-    key: "/accounting",
-    icon: renderIcon(Wallet),
-  },
-  {
-    label: "预算管理",
-    key: "/budget",
-    icon: renderIcon(Cash),
-  },
-  {
-    label: "理财目标",
-    key: "/goals",
-    icon: renderIcon(Flag),
-  },
-  {
-    label: "投资建议",
-    key: "investment",
-    icon: renderIcon(TrendingUp),
-    children: [
-      { label: "资产配置", key: "/investment" },
-      { label: "风险评估", key: "/investment/quiz" },
-      { label: "评估历史", key: "/investment/history" },
-    ],
-  },
-  {
-    label: "副业规划",
-    key: "career",
-    icon: renderIcon(Rocket),
-    children: [
-      { label: "AI推荐", key: "/career" },
-      { label: "我的计划", key: "/career/plans" },
-      { label: "个人资料", key: "/career/profile" },
-    ],
-  },
-  {
-    label: "AI 顾问",
-    key: "/ai/chat",
-    icon: renderIcon(Chatbubbles),
-  },
-  {
-    label: "统计分析",
-    key: "analysis",
-    icon: renderIcon(StatsChart),
-    children: [
-      { label: "月度报表", key: "/analysis/monthly" },
-      { label: "财务健康", key: "/analysis/health" },
-    ],
-  },
+const primaryMenu: MenuOption[] = [
+  { label: "Overview", key: "overview", icon: renderIcon(PieChart) },
+  { label: "Transactions", key: "transactions", icon: renderIcon(Wallet) },
+  { label: "Budgets", key: "budgets", icon: renderIcon(Cash) },
+  { label: "Advisor", key: "advisor", icon: renderIcon(Chatbubbles) },
 ];
 
-function handleMenuSelect(key: string) {
+const secondaryByPrimary: Record<string, MenuOption[]> = {
+  overview: [
+    { label: "首页", key: "/dashboard" },
+    { label: "财务健康", key: "/analysis/health" },
+    { label: "月度报告", key: "/analysis/monthly" },
+    { label: "目标", key: "/goals" },
+    { label: "投资", key: "/investment" },
+    { label: "职业", key: "/career" },
+  ],
+  transactions: [
+    { label: "交易记录", key: "/accounting" },
+    { label: "拍照记账", key: "/accounting/ocr" },
+  ],
+  budgets: [
+    { label: "预算总览", key: "/budget" },
+    { label: "预算编辑", key: "/budget/edit" },
+    { label: "预算趋势", key: "/budget/trend" },
+  ],
+  advisor: [{ label: "AI 顾问", key: "/ai/chat" }],
+};
+
+const activePrimary = computed(() => {
+  if (route.path.startsWith("/accounting")) return "transactions";
+  if (route.path.startsWith("/budget")) return "budgets";
+  if (route.path.startsWith("/ai")) return "advisor";
+  return "overview";
+});
+
+const secondaryMenu = computed(() => secondaryByPrimary[activePrimary.value]);
+
+function handlePrimarySelect(key: string) {
+  const first = secondaryByPrimary[key]?.[0] as MenuOption | undefined;
+  if (first?.key) {
+    router.push(String(first.key));
+  }
+}
+
+function handleSecondarySelect(key: string) {
   router.push(key);
 }
 
@@ -197,86 +165,100 @@ function handleUserMenuSelect(key: string) {
 
 <style scoped lang="scss">
 .app-layout {
-  height: 100vh;
-}
-
-.app-sidebar {
-  background: var(--cr-bg-sidebar) !important;
-  backdrop-filter: blur(var(--cr-blur-lg));
-  -webkit-backdrop-filter: blur(var(--cr-blur-lg));
-
-  &__content {
-    display: flex;
-    flex-direction: column;
-  }
-
-  &__logo {
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    border-bottom: 1px solid var(--cr-border-light);
-  }
-
-  &__logo-text {
-    color: var(--cr-text-primary);
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-  }
-
-  &__logo-sub {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--cr-primary);
-    background: rgba(0, 122, 255, 0.1);
-    padding: 2px 6px;
-    border-radius: 4px;
-    line-height: 1;
-  }
+  min-height: 100vh;
+  background: var(--cr-bg-page);
 }
 
 .app-header {
-  height: 56px;
+  height: 68px;
+  display: grid;
+  grid-template-columns: 260px 1fr auto;
+  align-items: center;
+  gap: var(--cr-space-lg);
+  padding: 0 var(--cr-space-xxxl);
+  background: var(--cr-bg-header) !important;
+  border-bottom: 1px solid var(--cr-border);
+  backdrop-filter: blur(var(--cr-blur-md));
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.brand {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  padding: 0 20px;
-  background: var(--cr-bg-header) !important;
-  backdrop-filter: blur(var(--cr-blur-md));
-  -webkit-backdrop-filter: blur(var(--cr-blur-md));
+  gap: 10px;
+  cursor: pointer;
 
-  &__right {
-    display: flex;
-    align-items: center;
-    gap: var(--cr-space-md);
+  &__dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 30% 30%, #7cb0ff, var(--cr-primary));
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--cr-primary) 18%, transparent);
   }
 
-  &__user {
-    display: flex;
-    align-items: center;
-    gap: var(--cr-space-sm);
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: var(--cr-radius-md);
-    transition: background 0.15s ease;
-
-    &:hover {
-      background: var(--cr-bg-hover);
-    }
-  }
-
-  &__username {
+  &__name {
+    font-size: 16px;
+    font-weight: 700;
     color: var(--cr-text-primary);
-    font-size: 14px;
-    font-weight: 500;
+  }
+
+  &__sub {
+    font-size: 12px;
+    color: var(--cr-text-tertiary);
+  }
+}
+
+.top-nav {
+  min-width: 360px;
+}
+
+.app-header__right {
+  display: flex;
+  align-items: center;
+  gap: var(--cr-space-md);
+}
+
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--cr-space-sm);
+  padding: 4px 8px;
+  border-radius: var(--cr-radius-md);
+  cursor: pointer;
+  color: var(--cr-text-secondary);
+
+  &:hover {
+    background: var(--cr-bg-hover);
   }
 }
 
 .app-main {
-  padding: var(--cr-space-xxl);
-  background: var(--cr-bg-page) !important;
-  overflow-y: auto;
+  padding: var(--cr-space-xl) var(--cr-space-xxxl) var(--cr-space-xxxl);
+}
+
+.secondary-nav-wrap {
+  margin-bottom: var(--cr-space-xl);
+  background: var(--cr-bg-elevated);
+  border: 1px solid var(--cr-border-light);
+  border-radius: var(--cr-radius-lg);
+  box-shadow: var(--cr-shadow-sm);
+  padding: 0 var(--cr-space-sm);
+}
+
+@media (max-width: 1100px) {
+  .app-header {
+    grid-template-columns: 1fr auto;
+    padding: 0 var(--cr-space-xl);
+  }
+
+  .top-nav {
+    display: none;
+  }
+
+  .app-main {
+    padding: var(--cr-space-lg);
+  }
 }
 </style>

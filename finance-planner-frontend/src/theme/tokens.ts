@@ -1,70 +1,70 @@
-/**
- * Design tokens for Come Rich — Apple/macOS-inspired design language.
- * Provides light & dark color palettes, spacing, radius, shadows, and typography.
+﻿/**
+ * Copilot-inspired visual token system for Come Rich.
+ * Keep it neutral, dense, and finance-first.
  */
 
 export const colors = {
   light: {
-    primary: "#007AFF",
-    primaryHover: "#0066D6",
-    primaryPressed: "#004DB3",
-    success: "#34C759",
-    warning: "#FF9500",
-    error: "#FF3B30",
-    info: "#5AC8FA",
+    primary: "#1463ff",
+    primaryHover: "#0f55e0",
+    primaryPressed: "#0a42b8",
+    success: "#16a34a",
+    warning: "#f59e0b",
+    error: "#dc2626",
+    info: "#0284c7",
 
-    bgPage: "#F2F2F7",
-    bgCard: "rgba(255, 255, 255, 0.72)",
-    bgCardSolid: "#FFFFFF",
-    bgSidebar: "rgba(246, 246, 246, 0.80)",
-    bgHeader: "rgba(255, 255, 255, 0.72)",
-    bgInput: "rgba(118, 118, 128, 0.08)",
-    bgHover: "rgba(0, 0, 0, 0.04)",
+    bgPage: "#f5f7fb",
+    bgElevated: "#ffffff",
+    bgCard: "#ffffff",
+    bgSidebar: "#eef3ff",
+    bgHeader: "rgba(255, 255, 255, 0.92)",
+    bgInput: "#f1f5f9",
+    bgHover: "rgba(20, 99, 255, 0.08)",
 
-    textPrimary: "#1D1D1F",
-    textSecondary: "#86868B",
-    textTertiary: "#AEAEB2",
-    textInverse: "#FFFFFF",
+    textPrimary: "#0f172a",
+    textSecondary: "#475569",
+    textTertiary: "#64748b",
+    textInverse: "#ffffff",
 
-    border: "rgba(0, 0, 0, 0.08)",
-    borderLight: "rgba(0, 0, 0, 0.04)",
-    divider: "rgba(0, 0, 0, 0.06)",
+    border: "#e2e8f0",
+    borderLight: "#edf2f7",
+    divider: "#e2e8f0",
   },
   dark: {
-    primary: "#0A84FF",
-    primaryHover: "#409CFF",
-    primaryPressed: "#0066CC",
-    success: "#30D158",
-    warning: "#FF9F0A",
-    error: "#FF453A",
-    info: "#64D2FF",
+    primary: "#4f8dff",
+    primaryHover: "#6aa0ff",
+    primaryPressed: "#3277ff",
+    success: "#22c55e",
+    warning: "#f59e0b",
+    error: "#ef4444",
+    info: "#38bdf8",
 
-    bgPage: "#1C1C1E",
-    bgCard: "rgba(44, 44, 46, 0.72)",
-    bgCardSolid: "#2C2C2E",
-    bgSidebar: "rgba(28, 28, 30, 0.85)",
-    bgHeader: "rgba(44, 44, 46, 0.72)",
-    bgInput: "rgba(118, 118, 128, 0.24)",
-    bgHover: "rgba(255, 255, 255, 0.06)",
+    bgPage: "#0b1220",
+    bgElevated: "#111b2d",
+    bgCard: "#152238",
+    bgSidebar: "#10192b",
+    bgHeader: "rgba(11, 18, 32, 0.9)",
+    bgInput: "#1e293b",
+    bgHover: "rgba(79, 141, 255, 0.16)",
 
-    textPrimary: "#F5F5F7",
-    textSecondary: "#98989D",
-    textTertiary: "#636366",
-    textInverse: "#1D1D1F",
+    textPrimary: "#e2e8f0",
+    textSecondary: "#cbd5e1",
+    textTertiary: "#94a3b8",
+    textInverse: "#0b1220",
 
-    border: "rgba(255, 255, 255, 0.10)",
-    borderLight: "rgba(255, 255, 255, 0.06)",
-    divider: "rgba(255, 255, 255, 0.08)",
+    border: "#24354f",
+    borderLight: "#1f2d42",
+    divider: "#24354f",
   },
 } as const;
 
 export const radius = {
-  xs: "4px",
-  sm: "6px",
-  md: "8px",
-  lg: "12px",
-  xl: "14px",
-  xxl: "20px",
+  xs: "6px",
+  sm: "8px",
+  md: "12px",
+  lg: "16px",
+  xl: "20px",
+  xxl: "24px",
   full: "9999px",
 } as const;
 
@@ -76,44 +76,47 @@ export const spacing = {
   xl: "20px",
   xxl: "24px",
   xxxl: "32px",
+  display: "40px",
 } as const;
 
 export const shadows = {
   light: {
-    sm: "0 1px 3px rgba(0, 0, 0, 0.04)",
-    md: "0 4px 12px rgba(0, 0, 0, 0.06)",
-    lg: "0 8px 24px rgba(0, 0, 0, 0.08)",
-    xl: "0 16px 48px rgba(0, 0, 0, 0.12)",
+    sm: "0 1px 2px rgba(15, 23, 42, 0.06)",
+    md: "0 8px 24px rgba(15, 23, 42, 0.08)",
+    lg: "0 14px 38px rgba(15, 23, 42, 0.12)",
+    xl: "0 24px 60px rgba(15, 23, 42, 0.16)",
   },
   dark: {
-    sm: "0 1px 3px rgba(0, 0, 0, 0.20)",
-    md: "0 4px 12px rgba(0, 0, 0, 0.30)",
-    lg: "0 8px 24px rgba(0, 0, 0, 0.40)",
-    xl: "0 16px 48px rgba(0, 0, 0, 0.50)",
+    sm: "0 1px 2px rgba(2, 6, 23, 0.4)",
+    md: "0 8px 24px rgba(2, 6, 23, 0.42)",
+    lg: "0 14px 38px rgba(2, 6, 23, 0.52)",
+    xl: "0 24px 60px rgba(2, 6, 23, 0.62)",
   },
 } as const;
 
 export const typography = {
   fontFamily:
-    "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang SC', 'Helvetica Neue', Helvetica, 'Microsoft YaHei', Arial, sans-serif",
+    "'PingFang SC', 'SF Pro Display', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  fontMono:
+    "'SF Mono', 'JetBrains Mono', 'Fira Code', Menlo, Monaco, Consolas, monospace",
   fontSizeXs: "11px",
   fontSizeSm: "13px",
   fontSizeMd: "14px",
-  fontSizeLg: "17px",
-  fontSizeXl: "22px",
+  fontSizeLg: "16px",
+  fontSizeXl: "20px",
   fontSizeXxl: "28px",
   fontSizeDisplay: "34px",
   fontWeightRegular: 400,
   fontWeightMedium: 500,
   fontWeightSemibold: 600,
   fontWeightBold: 700,
-  lineHeight: 1.5,
+  lineHeight: 1.45,
 } as const;
 
 export const blur = {
-  sm: "10px",
-  md: "20px",
-  lg: "40px",
+  sm: "4px",
+  md: "10px",
+  lg: "18px",
 } as const;
 
 export type ThemeMode = "light" | "dark";
