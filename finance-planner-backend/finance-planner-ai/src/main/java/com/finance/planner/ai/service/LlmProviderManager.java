@@ -13,4 +13,6 @@ public interface LlmProviderManager {
     void switchProvider(String providerName);
 
     List<String> listProviders();
+
+    List<String> getFallbackOrder();
 }

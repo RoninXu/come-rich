@@ -54,6 +54,16 @@ public class ConfirmationStore {
         }
     }
 
+    public void cancelAllForUser(Long userId) {
+        store.entrySet().removeIf(entry -> {
+            if (entry.getValue().getUserId().equals(userId)) {
+                entry.getValue().getFuture().complete(false);
+                return true;
+            }
+            return false;
+        });
+    }
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

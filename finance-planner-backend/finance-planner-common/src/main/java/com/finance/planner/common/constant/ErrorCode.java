@@ -42,6 +42,7 @@ public enum ErrorCode {
     AI_SESSION_NOT_FOUND(4003, "对话会话不存在"),
     AI_MESSAGE_TOO_LONG(4004, "消息超出最大长度"),
     AI_PROVIDER_NOT_FOUND(4005, "AI 模型提供商不存在"),
+    AI_ALL_PROVIDERS_UNAVAILABLE(4006, "所有 AI 服务提供商均不可用"),
 
     // Goal Errors (5xxx - business)
     GOAL_NOT_FOUND(5001, "理财目标不存在"),

@@ -49,8 +49,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Come Rich（AI个人理财规划师）面向中国中产用户的个人理财规划应用，覆盖记账、目标、预算、投资建议与职业/收入增长建议，并提供 AI 助手与 OCR 票据识别能力。
 
-**Current Status**: Phase 4.2 (目标/投资/副业 Agent 工具扩展) completed; Phase 4.3 (高级功能) planned. Phase 1-3 features are fully delivered (AI chat, goals, OCR, career, budget, investment, export).
-**Recent Update**: Added 13 AI Agent tools (goal 6 + investment 3 + career 4), bringing total to 28 tools. Implemented context compression (TokenEstimator + ContextCompressor). Updated Agent system prompt with investment risk disclaimer requirement.
+**Current Status**: Phase 4.3 (AI Agent 高级功能增强) completed; Phase 5 planned. Phase 1-4 features are fully delivered.
+**Recent Update**: Added multi-provider auto-failover (ProviderHealthTracker + ResilientLlmClient), tool result Redis caching (ToolCacheService, 15 cacheable tools), quota reservation for Agent rate limiting, error recovery (AgentCleanupService), and async agent metrics collection (AgentToolMetrics entity + Flyway V13). Total: 28 tools, 88 AI module tests.
 
 ## Technology Stack
 

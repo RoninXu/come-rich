@@ -49,17 +49,26 @@ public class AgentServiceImpl implements AgentService {
     private final AgentRiskConfigService riskConfigService;
     private final TimeContextProvider timeContextProvider;
     private final ObjectMapper objectMapper;
+    private final ToolCacheService toolCacheService;
+    private final AgentCleanupService agentCleanupService;
+    private final AgentMetricsService agentMetricsService;
 
     @Override
     public void streamAgentChat(Long userId, String message, String sessionId, SseEmitter emitter) {
-        if (!rateLimitService.isAllowed(userId)) {
-            throw new BusinessException(ErrorCode.AI_RATE_LIMIT_EXCEEDED);
-        }
+        String reservationId = rateLimitService.reserveQuota(userId);
 
         String finalSessionId = conversationService.createOrGetSessionId(sessionId);
         conversationService.saveMessage(userId, finalSessionId, "user", message, null, "text", null, null);
 
-        Schedulers.boundedElastic().schedule(() -> runAgentLoop(userId, finalSessionId, message, emitter));
+        Schedulers.boundedElastic().schedule(() -> {
+            try {
+                runAgentLoop(userId, finalSessionId, message, emitter);
+                rateLimitService.commitQuota(reservationId);
+            } catch (Exception e) {
+                rateLimitService.releaseQuota(reservationId);
+                throw e;
+            }
+        });
     }
 
     @Override
@@ -117,11 +126,12 @@ public class AgentServiceImpl implements AgentService {
             }
 
             sseHelper.sendDone(emitter, sessionId);
-            emitter.complete();
         } catch (Exception e) {
             log.error("Agent loop failed: {}", e.getMessage(), e);
+            agentCleanupService.cleanupSession(userId, sessionId, e.getMessage());
             sseHelper.sendError(emitter, "AI 处理失败，请稍后再试");
-            emitter.complete();
+        } finally {
+            try { emitter.complete(); } catch (Exception ignored) {}
         }
     }
 
@@ -154,47 +164,79 @@ public class AgentServiceImpl implements AgentService {
             BigDecimal riskThreshold,
             SseEmitter emitter
     ) throws Exception {
-        Tool tool = toolRegistry.getTool(toolCall.getName());
-        if (tool == null) {
-            ToolResult result = ToolResult.failure("未知工具: " + toolCall.getName());
-            appendToolResult(userId, sessionId, toolCall, result, messages);
-            sseHelper.sendToolCallResult(emitter, buildToolPayload(toolCall, result));
-            return;
-        }
+        long startTime = System.currentTimeMillis();
+        boolean wasCached = false;
+        ToolResult result = null;
 
-        Map<String, Object> arguments = new HashMap<>(parseArguments(toolCall.getArguments()));
-        applyRelativeDateOverride(toolCall.getName(), userMessage, arguments, userId);
-        RiskLevel riskLevel = toolExecutor.resolveRiskLevel(tool, arguments, riskThreshold);
-
-        sseHelper.sendToolCallStart(emitter, buildToolPayload(toolCall, null));
-
-        if (riskLevel == RiskLevel.HIGH) {
-            String confirmationId = confirmationStore.create(userId, toolCall.getId(), toolCall.getName());
-            AgentConfirmationPayload payload = AgentConfirmationPayload.builder()
-                    .confirmationId(confirmationId)
-                    .toolCallId(toolCall.getId())
-                    .toolName(toolCall.getName())
-                    .riskLevel(riskLevel)
-                    .summary("此操作为高风险操作，需要确认后继续执行")
-                    .build();
-            sseHelper.sendConfirmationRequired(emitter, payload);
-            boolean accepted = confirmationStore.awaitDecision(confirmationId, 300);
-            Map<String, Object> resolved = new HashMap<>();
-            resolved.put("confirmationId", confirmationId);
-            resolved.put("toolCallId", toolCall.getId());
-            resolved.put("accepted", accepted);
-            sseHelper.sendConfirmationResolved(emitter, resolved);
-            if (!accepted) {
-                ToolResult rejected = ToolResult.failure("用户拒绝了该操作");
-                appendToolResult(userId, sessionId, toolCall, rejected, messages);
-                sseHelper.sendToolCallResult(emitter, buildToolPayload(toolCall, rejected));
+        try {
+            Tool tool = toolRegistry.getTool(toolCall.getName());
+            if (tool == null) {
+                result = ToolResult.failure("未知工具: " + toolCall.getName());
+                appendToolResult(userId, sessionId, toolCall, result, messages);
+                sseHelper.sendToolCallResult(emitter, buildToolPayload(toolCall, result));
                 return;
             }
-        }
 
-        ToolResult result = toolExecutor.executeTool(tool, userId, arguments, riskThreshold);
-        appendToolResult(userId, sessionId, toolCall, result, messages);
-        sseHelper.sendToolCallResult(emitter, buildToolPayload(toolCall, result));
+            Map<String, Object> arguments = new HashMap<>(parseArguments(toolCall.getArguments()));
+            applyRelativeDateOverride(toolCall.getName(), userMessage, arguments, userId);
+
+            // Check cache for read-only tools
+            Optional<ToolResult> cached = toolCacheService.get(sessionId, toolCall.getName(), arguments);
+            if (cached.isPresent()) {
+                result = cached.get();
+                wasCached = true;
+                appendToolResult(userId, sessionId, toolCall, result, messages);
+                sseHelper.sendToolCallResult(emitter, buildToolPayload(toolCall, result));
+                return;
+            }
+
+            RiskLevel riskLevel = toolExecutor.resolveRiskLevel(tool, arguments, riskThreshold);
+
+            sseHelper.sendToolCallStart(emitter, buildToolPayload(toolCall, null));
+
+            if (riskLevel == RiskLevel.HIGH) {
+                String confirmationId = confirmationStore.create(userId, toolCall.getId(), toolCall.getName());
+                AgentConfirmationPayload payload = AgentConfirmationPayload.builder()
+                        .confirmationId(confirmationId)
+                        .toolCallId(toolCall.getId())
+                        .toolName(toolCall.getName())
+                        .riskLevel(riskLevel)
+                        .summary("此操作为高风险操作，需要确认后继续执行")
+                        .build();
+                sseHelper.sendConfirmationRequired(emitter, payload);
+                boolean accepted = confirmationStore.awaitDecision(confirmationId, 300);
+                Map<String, Object> resolved = new HashMap<>();
+                resolved.put("confirmationId", confirmationId);
+                resolved.put("toolCallId", toolCall.getId());
+                resolved.put("accepted", accepted);
+                sseHelper.sendConfirmationResolved(emitter, resolved);
+                if (!accepted) {
+                    result = ToolResult.failure("用户拒绝了该操作");
+                    appendToolResult(userId, sessionId, toolCall, result, messages);
+                    sseHelper.sendToolCallResult(emitter, buildToolPayload(toolCall, result));
+                    return;
+                }
+            }
+
+            result = toolExecutor.executeTool(tool, userId, arguments, riskThreshold);
+
+            // Cache successful results for cacheable tools
+            toolCacheService.put(sessionId, toolCall.getName(), arguments, result);
+
+            // Invalidate related caches for write operations
+            if (tool.getRiskLevel() != RiskLevel.LOW) {
+                toolCacheService.invalidateRelated(sessionId, toolCall.getName());
+            }
+
+            appendToolResult(userId, sessionId, toolCall, result, messages);
+            sseHelper.sendToolCallResult(emitter, buildToolPayload(toolCall, result));
+        } finally {
+            long latency = System.currentTimeMillis() - startTime;
+            boolean success = result != null && result.isSuccess();
+            String errorMsg = (result != null && !result.isSuccess()) ? result.getMessage() : null;
+            agentMetricsService.recordToolExecution(userId, sessionId, toolCall.getName(),
+                    success, latency, errorMsg, wasCached);
+        }
     }
 
     private void appendToolResult(
