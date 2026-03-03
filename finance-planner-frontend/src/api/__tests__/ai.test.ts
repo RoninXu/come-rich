@@ -17,6 +17,10 @@ vi.mock("@/utils/auth", () => ({
 
 import request from "@/utils/request";
 import {
+  getAgentErrorMetrics,
+  getAgentMetricsOverview,
+  getAgentMetricsTimeline,
+  getAgentToolMetrics,
   getConversationHistory,
   getRemainingChats,
   getProviders,
@@ -55,6 +59,34 @@ describe("ai API", () => {
     switchProvider("moonshot");
     expect(request.put).toHaveBeenCalledWith("/ai/provider", null, {
       params: { name: "moonshot" },
+    });
+  });
+
+  it("getAgentMetricsOverview gets /ai/agent/metrics/overview", () => {
+    getAgentMetricsOverview({ days: 7 });
+    expect(request.get).toHaveBeenCalledWith("/ai/agent/metrics/overview", {
+      params: { days: 7 },
+    });
+  });
+
+  it("getAgentToolMetrics gets /ai/agent/metrics/tools", () => {
+    getAgentToolMetrics({ startDate: "2026-03-01", endDate: "2026-03-03", limit: 10 });
+    expect(request.get).toHaveBeenCalledWith("/ai/agent/metrics/tools", {
+      params: { startDate: "2026-03-01", endDate: "2026-03-03", limit: 10 },
+    });
+  });
+
+  it("getAgentMetricsTimeline gets /ai/agent/metrics/timeline", () => {
+    getAgentMetricsTimeline({ days: 30 });
+    expect(request.get).toHaveBeenCalledWith("/ai/agent/metrics/timeline", {
+      params: { days: 30 },
+    });
+  });
+
+  it("getAgentErrorMetrics gets /ai/agent/metrics/errors", () => {
+    getAgentErrorMetrics({ days: 7, limit: 5 });
+    expect(request.get).toHaveBeenCalledWith("/ai/agent/metrics/errors", {
+      params: { days: 7, limit: 5 },
     });
   });
 });

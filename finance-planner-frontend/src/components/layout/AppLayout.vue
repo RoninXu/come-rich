@@ -124,7 +124,10 @@ const secondaryByPrimary: Record<string, MenuOption[]> = {
     { label: "预算编辑", key: "/budget/edit" },
     { label: "预算趋势", key: "/budget/trend" },
   ],
-  advisor: [{ label: "AI 顾问", key: "/ai/chat" }],
+  advisor: [
+    { label: "AI 顾问", key: "/ai/chat" },
+    { label: "Agent 分析", key: "/ai/agent-metrics" },
+  ],
 };
 
 const activePrimary = computed(() => {

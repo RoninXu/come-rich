@@ -39,6 +39,15 @@ describe("router", () => {
     expect(dashboardRoute!.path).toBe("/dashboard");
   });
 
+  it("has agent metrics route", async () => {
+    const mod = await import("../index");
+    const router = mod.default;
+    const routes = router.getRoutes();
+    const metricsRoute = routes.find((r) => r.name === "AgentMetrics");
+    expect(metricsRoute).toBeDefined();
+    expect(metricsRoute!.path).toBe("/ai/agent-metrics");
+  });
+
   it("has accounting routes", async () => {
     const mod = await import("../index");
     const router = mod.default;

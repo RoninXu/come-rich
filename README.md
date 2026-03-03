@@ -16,6 +16,10 @@ Phase 4.3（AI Agent 高级功能增强）已完成；Phase 5.1（Copilot 风格
 - 新增通用组件：`MetricCard`、`BudgetProgressBar`、`MoneyText`、`SectionHeader`、`InsightPanel`、`EmptyState`
 - 文案与路由标题统一中文修复，减少编码异常风险
 - 前端单测新增并通过（109/109）
+- Phase 5.2（Agent 分析仪表盘）第一版已完成：
+  - 新增 Agent 指标聚合 API：`/api/ai/agent/metrics/overview|tools|timeline|errors`
+  - 新增 Agent 分析页：`/ai/agent-metrics`（指标卡、趋势图、错误分布、工具排行）
+  - 新增后端/前端单测覆盖指标查询与路由/API 调用
 
 Phase 1-4 功能已全部交付：
 - AI Agent 高级增强：多 Provider 自动降级、工具结果 Redis 缓存、Rate Limiting 预留机制、错误恢复、指标埋点
