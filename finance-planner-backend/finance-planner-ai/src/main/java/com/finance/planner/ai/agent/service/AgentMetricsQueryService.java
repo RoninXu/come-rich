@@ -8,6 +8,7 @@ import com.finance.planner.ai.agent.repository.AgentToolMetricsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.time.LocalDate;
@@ -17,6 +18,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AgentMetricsQueryService {
 
     private final AgentToolMetricsRepository metricsRepository;

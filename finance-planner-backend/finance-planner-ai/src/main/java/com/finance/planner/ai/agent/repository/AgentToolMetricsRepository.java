@@ -27,7 +27,7 @@ public interface AgentToolMetricsRepository extends JpaRepository<AgentToolMetri
                    COUNT(DISTINCT m.sessionId)
             FROM AgentToolMetrics m
             WHERE m.userId = :userId
-              AND m.executedAt BETWEEN :startTime AND :endTime
+              AND m.executedAt >= :startTime AND m.executedAt < :endTime
             """)
     Object[] getOverviewStats(@Param("userId") Long userId,
                               @Param("startTime") LocalDateTime startTime,
@@ -41,7 +41,7 @@ public interface AgentToolMetricsRepository extends JpaRepository<AgentToolMetri
                    SUM(CASE WHEN m.cached = true THEN 1 ELSE 0 END)
             FROM AgentToolMetrics m
             WHERE m.userId = :userId
-              AND m.executedAt BETWEEN :startTime AND :endTime
+              AND m.executedAt >= :startTime AND m.executedAt < :endTime
             GROUP BY m.toolName
             ORDER BY COUNT(m) DESC
             """)
@@ -57,7 +57,7 @@ public interface AgentToolMetricsRepository extends JpaRepository<AgentToolMetri
                    AVG(m.latencyMs)
             FROM AgentToolMetrics m
             WHERE m.userId = :userId
-              AND m.executedAt BETWEEN :startTime AND :endTime
+              AND m.executedAt >= :startTime AND m.executedAt < :endTime
             GROUP BY FUNCTION('DATE', m.executedAt)
             ORDER BY FUNCTION('DATE', m.executedAt)
             """)
@@ -70,7 +70,7 @@ public interface AgentToolMetricsRepository extends JpaRepository<AgentToolMetri
             FROM AgentToolMetrics m
             WHERE m.userId = :userId
               AND m.success = false
-              AND m.executedAt BETWEEN :startTime AND :endTime
+              AND m.executedAt >= :startTime AND m.executedAt < :endTime
             GROUP BY m.errorMessage
             ORDER BY COUNT(m) DESC
             """)

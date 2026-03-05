@@ -1,6 +1,9 @@
 package com.finance.planner.ai.controller;
 
+import com.finance.planner.ai.agent.dto.metrics.AgentErrorMetricDto;
 import com.finance.planner.ai.agent.dto.metrics.AgentMetricsOverviewDto;
+import com.finance.planner.ai.agent.dto.metrics.AgentMetricsTimelinePointDto;
+import com.finance.planner.ai.agent.dto.metrics.AgentToolMetricDto;
 import com.finance.planner.ai.agent.service.AgentCleanupService;
 import com.finance.planner.ai.agent.service.AgentMetricsQueryService;
 import com.finance.planner.ai.agent.service.AgentRiskConfigService;
@@ -21,11 +24,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -99,6 +104,66 @@ class AgentControllerTest {
                 agentController.getMetricsOverview(userDetails, null, null, 0)
         ).isInstanceOf(BusinessException.class)
                 .hasMessageContaining("days 必须在 1 到 365 之间");
+    }
+
+    @Test
+    @DisplayName("getToolMetrics - should return tool ranking list")
+    void getToolMetrics_shouldReturnData() {
+        mockUser(1L, "alice");
+        List<AgentToolMetricDto> tools = List.of(
+                AgentToolMetricDto.builder().toolName("queryTransactions").totalCalls(50L).build()
+        );
+        when(metricsQueryService.getToolMetrics(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class), anyInt()))
+                .thenReturn(tools);
+
+        ApiResponse<List<AgentToolMetricDto>> response = agentController.getToolMetrics(userDetails, null, null, 7, 10);
+
+        assertThat(response.getData()).hasSize(1);
+        assertThat(response.getData().get(0).getToolName()).isEqualTo("queryTransactions");
+    }
+
+    @Test
+    @DisplayName("getMetricsTimeline - should return timeline points")
+    void getMetricsTimeline_shouldReturnData() {
+        mockUser(1L, "alice");
+        List<AgentMetricsTimelinePointDto> points = List.of(
+                AgentMetricsTimelinePointDto.builder().date(LocalDate.of(2026, 3, 1)).totalCalls(20L).build()
+        );
+        when(metricsQueryService.getTimeline(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(points);
+
+        ApiResponse<List<AgentMetricsTimelinePointDto>> response = agentController.getMetricsTimeline(userDetails, null, null, 7);
+
+        assertThat(response.getData()).hasSize(1);
+        assertThat(response.getData().get(0).getTotalCalls()).isEqualTo(20L);
+    }
+
+    @Test
+    @DisplayName("getErrorMetrics - should return error stats")
+    void getErrorMetrics_shouldReturnData() {
+        mockUser(1L, "alice");
+        List<AgentErrorMetricDto> errs = List.of(
+                AgentErrorMetricDto.builder().errorMessage("Timeout").count(5L).build()
+        );
+        when(metricsQueryService.getErrorStats(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class), anyInt()))
+                .thenReturn(errs);
+
+        ApiResponse<List<AgentErrorMetricDto>> response = agentController.getErrorMetrics(userDetails, null, null, 7, 10);
+
+        assertThat(response.getData()).hasSize(1);
+        assertThat(response.getData().get(0).getErrorMessage()).isEqualTo("Timeout");
+    }
+
+    @Test
+    @DisplayName("getToolMetrics - limit should be clamped to max 100")
+    void getToolMetrics_shouldClampLimit() {
+        mockUser(1L, "alice");
+        when(metricsQueryService.getToolMetrics(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class), eq(100)))
+                .thenReturn(List.of());
+
+        agentController.getToolMetrics(userDetails, null, null, 7, 9999);
+
+        verify(metricsQueryService).getToolMetrics(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class), eq(100));
     }
 
     private void mockUser(Long id, String username) {

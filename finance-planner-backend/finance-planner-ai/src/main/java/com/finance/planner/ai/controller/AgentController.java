@@ -114,7 +114,7 @@ public class AgentController {
             @RequestParam(required = false, defaultValue = "10") Integer limit) {
         Long userId = getUserId(userDetails);
         DateRange range = resolveRange(startDate, endDate, days);
-        return ApiResponse.success(metricsQueryService.getToolMetrics(userId, range.start(), range.end(), limit));
+        return ApiResponse.success(metricsQueryService.getToolMetrics(userId, range.start(), range.end(), clampLimit(limit)));
     }
 
     @GetMapping("/metrics/timeline")
@@ -139,7 +139,7 @@ public class AgentController {
             @RequestParam(required = false, defaultValue = "10") Integer limit) {
         Long userId = getUserId(userDetails);
         DateRange range = resolveRange(startDate, endDate, days);
-        return ApiResponse.success(metricsQueryService.getErrorStats(userId, range.start(), range.end(), limit));
+        return ApiResponse.success(metricsQueryService.getErrorStats(userId, range.start(), range.end(), clampLimit(limit)));
     }
 
     private DateRange resolveRange(LocalDate startDate, LocalDate endDate, Integer days) {
@@ -151,7 +151,7 @@ public class AgentController {
             if (endDate.isBefore(startDate)) {
                 throw new BusinessException(ErrorCode.BAD_REQUEST, "endDate 不能早于 startDate");
             }
-            return new DateRange(startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay().minusNanos(1));
+            return new DateRange(startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay());
         }
 
         int effectiveDays = days == null ? 7 : days;
@@ -161,6 +161,10 @@ public class AgentController {
 
         LocalDateTime end = LocalDateTime.now();
         return new DateRange(end.minusDays(effectiveDays), end);
+    }
+
+    private static int clampLimit(int limit) {
+        return Math.max(1, Math.min(limit, 100));
     }
 
     private Long getUserId(UserDetails userDetails) {

@@ -155,7 +155,10 @@ const toolColumns: DataTableColumns<AgentToolMetric> = [
   { title: "Failures", key: "failedCalls", width: 120 },
 ];
 
-onMounted(fetchMetrics);
+onMounted(() => {
+  window.addEventListener("resize", handleResize);
+  fetchMetrics();
+});
 onBeforeUnmount(() => {
   window.removeEventListener("resize", handleResize);
   timelineChart?.dispose();
@@ -193,7 +196,6 @@ async function fetchMetrics() {
 
     await nextTick();
     renderCharts();
-    window.addEventListener("resize", handleResize);
   } catch {
     message.error("Failed to load agent metrics.");
   } finally {
@@ -239,9 +241,8 @@ function renderTimelineChart() {
         data: dates.length ? dates : ["No data"],
       },
       yAxis: [
-        { type: "value", name: "Calls" },
-        { type: "value", name: "Percent", axisLabel: { formatter: "{value}%" } },
-        { type: "value", name: "Latency (ms)" },
+        { type: "value", name: "Calls / Latency (ms)" },
+        { type: "value", name: "Percent", axisLabel: { formatter: "{value}%" }, max: 100 },
       ],
       series: [
         {
@@ -261,7 +262,7 @@ function renderTimelineChart() {
         {
           name: "Avg Latency (ms)",
           type: "line",
-          yAxisIndex: 2,
+          yAxisIndex: 0,
           smooth: true,
           data: latencies,
           itemStyle: { color: "#ff7d00" },
