@@ -2,8 +2,8 @@
 
 ## 当前状态
 
-**阶段**: Phase 5.1 - Copilot 风格 UI/UX 全站重构（第一版）完成
-**最后更新**: 2026-02-06
+**阶段**: Phase 5.2 - Agent 分析仪表盘（第一版）完成
+**最后更新**: 2026-03-03
 
 - 全站 UI/UX 重构：重建主题令牌、布局壳层与核心交互样式
 - 导航升级：顶部主导航（Overview/Transactions/Budgets/Advisor）+ 二级菜单
@@ -18,6 +18,9 @@
 - 错误恢复机制：Agent 循环中断时自动清理待确认请求，SSE 超时/错误回调触发清理
 - Agent 指标埋点：异步记录每次工具执行指标（延迟、成功率、缓存命中），供 Phase 5 展示
 - 新增 22 个单元测试（降级 6 + 缓存 6 + 限流 4 + 清理 4 + 指标 3 - 含重叠测试共 22 个新增）
+- Agent 指标查询 API：新增 overview/tools/timeline/errors 4 个聚合接口（支持 7天/30天/自定义区间）
+- 前端 Agent 分析页：新增 `/ai/agent-metrics` 页面，支持指标卡片、趋势图、错误分布、工具排行
+- 新增单元测试：后端 `AgentMetricsQueryServiceTest`、`AgentControllerTest`；前端 AI API 与路由测试更新
 
 ## 已完成
 
@@ -280,9 +283,9 @@
 
 - [x] 22 个单元测试
 
-### Phase 5 (规划中)
+### Phase 5 (进行中)
 
-- [ ] Agent 分析仪表盘前端页面（基于 Phase 4.3 指标数据展示）
+- [x] Agent 分析仪表盘前端页面（基于 Phase 4.3 指标数据展示）
 - [ ] 多语言支持
 - [ ] 移动端适配
 - [ ] 数据备份/恢复
@@ -326,6 +329,7 @@
 | /analysis/monthly | 月度报表 | 收支统计图表 |
 | /analysis/health | 健康评分 | 财务健康分析 |
 | /ai/chat | AI 顾问 | AI 对话、流式回复、模型切换 |
+| /ai/agent-metrics | Agent 分析 | 工具调用指标、趋势与错误分布 |
 | /accounting/ocr | 拍照记账 | OCR 票据识别、自动记账 |
 | /goals | 目标列表 | 理财目标管理、状态筛选 |
 | /goals/new | 新建目标 | 创建理财目标 |

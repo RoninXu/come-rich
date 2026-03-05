@@ -1,6 +1,12 @@
 import request from "@/utils/request";
 import { getToken } from "@/utils/auth";
 import type { AgentStreamEvent, ConversationHistory } from "@/types/ai";
+import type {
+  AgentErrorMetric,
+  AgentMetricsOverview,
+  AgentMetricsTimelinePoint,
+  AgentToolMetric,
+} from "@/types/agent-metrics";
 import type { ApiResponse } from "@/types/api";
 import { mapAiError } from "@/utils/ai-error";
 
@@ -307,6 +313,73 @@ export function getAgentRiskThreshold() {
 export function setAgentRiskThreshold(threshold: number) {
   return request.put<ApiResponse<void>>("/ai/agent/risk-threshold", null, {
     params: { threshold },
+  });
+}
+
+function buildMetricsParams(params: {
+  days?: number;
+  startDate?: string;
+  endDate?: string;
+  limit?: number;
+}) {
+  const query: Record<string, string | number> = {};
+  if (params.startDate && params.endDate) {
+    query.startDate = params.startDate;
+    query.endDate = params.endDate;
+  } else if (params.days) {
+    query.days = params.days;
+  }
+  if (params.limit) {
+    query.limit = params.limit;
+  }
+  return query;
+}
+
+export function getAgentMetricsOverview(params: {
+  days?: number;
+  startDate?: string;
+  endDate?: string;
+}) {
+  return request.get<ApiResponse<AgentMetricsOverview>>(
+    "/ai/agent/metrics/overview",
+    {
+      params: buildMetricsParams(params),
+    },
+  );
+}
+
+export function getAgentToolMetrics(params: {
+  days?: number;
+  startDate?: string;
+  endDate?: string;
+  limit?: number;
+}) {
+  return request.get<ApiResponse<AgentToolMetric[]>>("/ai/agent/metrics/tools", {
+    params: buildMetricsParams(params),
+  });
+}
+
+export function getAgentMetricsTimeline(params: {
+  days?: number;
+  startDate?: string;
+  endDate?: string;
+}) {
+  return request.get<ApiResponse<AgentMetricsTimelinePoint[]>>(
+    "/ai/agent/metrics/timeline",
+    {
+      params: buildMetricsParams(params),
+    },
+  );
+}
+
+export function getAgentErrorMetrics(params: {
+  days?: number;
+  startDate?: string;
+  endDate?: string;
+  limit?: number;
+}) {
+  return request.get<ApiResponse<AgentErrorMetric[]>>("/ai/agent/metrics/errors", {
+    params: buildMetricsParams(params),
   });
 }
 

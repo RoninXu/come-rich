@@ -49,8 +49,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Come Rich（AI个人理财规划师）面向中国中产用户的个人理财规划应用，覆盖记账、目标、预算、投资建议与职业/收入增长建议，并提供 AI 助手与 OCR 票据识别能力。
 
-**Current Status**: Phase 5.1 (Copilot 风格 UI/UX 全站重构第一版) completed on 2026-02-06. Phase 1-4 features remain fully delivered.
-**Recent Update**: Frontend visual refresh with new token system and layout shell, top navigation + secondary nav grouping, redesigned Dashboard/Transactions/Budget/AI Chat/Auth pages, new shared components (MetricCard/BudgetProgressBar/MoneyText/SectionHeader/InsightPanel/EmptyState), and additional frontend unit tests.
+**Current Status**: Phase 5.2 (Agent Metrics Dashboard v1) completed on 2026-03-03, following Phase 5.1 UI/UX refresh.
+**Recent Update**: Added Agent metrics aggregation APIs (`/api/ai/agent/metrics/overview|tools|timeline|errors`) and a new frontend route/page (`/ai/agent-metrics`) with KPI cards, trend chart, error distribution, and tool ranking; tests updated for backend metrics query/controller and frontend API/router.
 
 ## Technology Stack
 
@@ -132,7 +132,7 @@ come-rich/
 - `finance-planner-auth` - User authentication, JWT, Spring Security
 - `finance-planner-accounting` - Transaction CRUD, category management
 - `finance-planner-analysis` - Monthly statistics, health score calculation
-- `finance-planner-ai` - AI chat, multi-model LLM integration (DeepSeek, Moonshot), SSE streaming, OCR bill import
+- `finance-planner-ai` - AI chat, multi-model LLM integration (DeepSeek, Moonshot), SSE streaming, OCR bill import, Agent metrics aggregation APIs
 - `finance-planner-goal` - Financial goal planning, progress tracking, AI savings plans
 - `finance-planner-career` - Side hustle recommendations, user profile, income tracking, AI startup plans
 - `finance-planner-budget` - Budget management per category, budget-vs-actual comparison, AI optimization suggestions
@@ -143,7 +143,7 @@ come-rich/
 - `dashboard/` - Home dashboard with summary, budget utilization card, risk profile card
 - `accounting/` - Transaction list (with Excel/CSV export), form, and OCR import page
 - `analysis/` - Monthly report (with export) and health score (with export)
-- `ai/` - AI financial advisor chat with SSE streaming
+- `ai/` - AI financial advisor chat with SSE streaming and Agent metrics dashboard
 - `goal/` - Goal list, form, and detail pages with progress charts
 - `career/` - Profile, AI recommendations, plan list, and plan detail pages
 - `budget/` - Budget overview, budget form (batch edit), budget trend chart

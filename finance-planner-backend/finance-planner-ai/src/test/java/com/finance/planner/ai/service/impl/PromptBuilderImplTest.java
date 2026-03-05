@@ -16,8 +16,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -68,9 +66,8 @@ class PromptBuilderImplTest {
                         .serverDate("2026-02-04")
                         .timezone("Asia/Shanghai")
                         .build());
-        LocalDate now = LocalDate.now();
-        when(statisticsService.getMonthlySummary(eq(USER_ID), eq(now.getYear()), eq(now.getMonthValue())))
-                .thenReturn(MonthlySummaryDto.empty(now.getYear(), now.getMonthValue()));
+        when(statisticsService.getMonthlySummary(eq(USER_ID), eq(2026), eq(2)))
+                .thenReturn(MonthlySummaryDto.empty(2026, 2));
         when(healthScoreService.calculateHealthScore(USER_ID))
                 .thenReturn(null);
         when(conversationService.getRecentMessages(eq(USER_ID), eq(SESSION_ID), eq(5)))
@@ -92,9 +89,8 @@ class PromptBuilderImplTest {
                         .serverDate("2026-02-04")
                         .timezone("Asia/Shanghai")
                         .build());
-        LocalDate now = LocalDate.now();
-        when(statisticsService.getMonthlySummary(eq(USER_ID), eq(now.getYear()), eq(now.getMonthValue())))
-                .thenReturn(MonthlySummaryDto.empty(now.getYear(), now.getMonthValue()));
+        when(statisticsService.getMonthlySummary(eq(USER_ID), eq(2026), eq(2)))
+                .thenReturn(MonthlySummaryDto.empty(2026, 2));
         when(healthScoreService.calculateHealthScore(USER_ID))
                 .thenReturn(null);
 
@@ -128,17 +124,16 @@ class PromptBuilderImplTest {
                         .serverDate("2026-02-04")
                         .timezone("Asia/Shanghai")
                         .build());
-        LocalDate now = LocalDate.now();
         MonthlySummaryDto summary = MonthlySummaryDto.builder()
-                .year(now.getYear())
-                .month(now.getMonthValue())
+                .year(2026)
+                .month(2)
                 .totalIncome(new BigDecimal("10000"))
                 .totalExpense(new BigDecimal("6000"))
                 .balance(new BigDecimal("4000"))
                 .savingsRate(new BigDecimal("40.00"))
                 .transactionCount(25)
                 .build();
-        when(statisticsService.getMonthlySummary(eq(USER_ID), eq(now.getYear()), eq(now.getMonthValue())))
+        when(statisticsService.getMonthlySummary(eq(USER_ID), eq(2026), eq(2)))
                 .thenReturn(summary);
 
         HealthScoreDto healthScore = HealthScoreDto.builder()
@@ -166,8 +161,7 @@ class PromptBuilderImplTest {
                         .serverDate("2026-02-04")
                         .timezone("Asia/Shanghai")
                         .build());
-        LocalDate now = LocalDate.now();
-        when(statisticsService.getMonthlySummary(eq(USER_ID), eq(now.getYear()), eq(now.getMonthValue())))
+        when(statisticsService.getMonthlySummary(eq(USER_ID), eq(2026), eq(2)))
                 .thenThrow(new RuntimeException("DB error"));
         when(conversationService.getRecentMessages(eq(USER_ID), eq(SESSION_ID), eq(5)))
                 .thenReturn(Collections.emptyList());
